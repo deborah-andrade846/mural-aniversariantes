@@ -76,6 +76,38 @@ if dados:
     
     if not df_mes.empty:
         df_mes = df_mes.sort_values(by='data_nascimento')
+       # --- LÓGICA DE EXIBIÇÃO DO MURAL ---
+if not st.session_state['exibir_mural'] and senha_digitada != SENHA_CORRETA:
+    st.title("🎉 Mural de Aniversariantes")
+    st.info("### O Mural está sendo preparado com carinho! 🤫\n\nFique atento às comunicações no grupo da GAFI para a grande revelação em breve.")
+    st.stop()
+
+# --- ABAIXO DAQUI É O CÓDIGO DO MURAL ---
+url = st.secrets["SUPABASE_URL"]
+key = st.secrets["SUPABASE_KEY"]
+supabase: Client = create_client(url, key)
+
+mes_atual = datetime.now().month
+meses_ptbr = {1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 5: 'Maio', 6: 'Junho', 
+              7: 'Julho', 8: 'Agosto', 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'}
+nome_mes_atual = meses_ptbr[mes_atual]
+
+try:
+    response = supabase.table("aniversariantes").select("*").execute()
+    dados = response.data
+    resp_recados = supabase.table("recados").select("*").execute()
+    df_recados = pd.DataFrame(resp_recados.data)
+except Exception as e:
+    st.error(f"Erro: {e}")
+    dados = []
+
+if dados:
+    df = pd.DataFrame(dados)
+    df['data_nascimento'] = pd.to_datetime(df['data_nascimento'])
+    df_mes = df[df['data_nascimento'].dt.month == mes_atual].copy()
+    
+    if not df_mes.empty:
+        df_mes = df_mes.sort_values(by='data_nascimento')
         
         html_base = f"""
         <!DOCTYPE html>
@@ -99,20 +131,19 @@ if dados:
             <div class="mural-header"><h1>Aniversariantes de {nome_mes_atual}</h1></div>
             <div class="mural-grid">
         """
-       cartoes_html = ""
-       for index, row in df_mes.iterrows():
+        
+        cartoes_html = ""
+        for index, row in df_mes.iterrows():
             img = f"url('{row['foto_url']}')" if row['foto_url'] else "linear-gradient(#ccc, #999)"
             
-            p_html = ""
+            post_its_html = ""
             if not df_recados.empty:
-                # Filtra os recados apenas para o nome desta pessoa
                 recados_pessoa = df_recados[df_recados['para_quem'] == row['nome']]
                 
                 if recados_pessoa.empty:
                     post_its_html = "<p style='color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-top: 80px; text-shadow: 1px 1px 2px black;'>Deixe um recado na aba lateral 📌</p>"
                 else:
                     for i, recado in recados_pessoa.iterrows():
-                        # Cria uma rotação aleatória para cada post-it
                         rotacao = random.randint(-6, 6)
                         post_its_html += f"""
                         <div class="post-it" style="transform: rotate({rotacao}deg);">
@@ -122,6 +153,7 @@ if dados:
                         """
             else:
                 post_its_html = "<p style='color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-top: 80px; text-shadow: 1px 1px 2px black;'>Deixe um recado na aba lateral 📌</p>"
+
             cartoes_html += f"""
                 <div class="aniversariante-card">
                     <div class="polaroid">
@@ -129,7 +161,8 @@ if dados:
                         <div class="nome">{row['nome']}</div>
                         <div style="color:red; font-weight:bold;">{row['data_nascimento'].day}/{row['data_nascimento'].month}</div>
                     </div>
-                    <div class="area-post-it">{p_html if p_html else "Aguardando recados..."}</div>
+                    <div class="area-post-it">{post_its_html}</div>
                 </div>
             """
+        
         components.html(html_base + cartoes_html + "</div></body></html>", height=1500, scrolling=True)
