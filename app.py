@@ -90,7 +90,9 @@ except Exception as e:
     dados = []
 
 # --- 6. MURAL (INALTERADO) ---
-if dados:
+if aba == "Mural":
+
+    if dados:
         df = pd.DataFrame(dados)
         df['data_nascimento'] = pd.to_datetime(df['data_nascimento'], errors='coerce')
         df_mes = df[df['data_nascimento'].dt.month == mes_atual].copy()
