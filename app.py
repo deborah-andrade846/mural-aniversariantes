@@ -99,19 +99,11 @@ if dados:
             <div class="mural-header"><h1>Aniversariantes de {nome_mes_atual}</h1></div>
             <div class="mural-grid">
         """
-
        cartoes_html = ""
         for index, row in df_mes.iterrows():
-            dia_aniversario = row['data_nascimento'].day
+            img = f"url('{row['foto_url']}')" if row['foto_url'] else "linear-gradient(#ccc, #999)"
             
-            imagem_bg = "linear-gradient(45deg, #e2e8f0 25%, #cbd5e1 25%, #cbd5e1 50%, #e2e8f0 50%, #e2e8f0 75%, #cbd5e1 75%, #cbd5e1 100%)"
-            if pd.notna(row['foto_url']) and str(row['foto_url']).strip() != "":
-                imagem_bg = f"url('{row['foto_url']}')"
-                
-            curiosidade = row['curiosidade'] if pd.notna(row['curiosidade']) and str(row['curiosidade']).strip() != "" else ""
-
-            # --- LÓGICA DE GERAR OS POST-ITS DESSA PESSOA ---
-            post_its_html = ""
+            p_html = ""
             if not df_recados.empty:
                 # Filtra os recados apenas para o nome desta pessoa
                 recados_pessoa = df_recados[df_recados['para_quem'] == row['nome']]
@@ -130,26 +122,14 @@ if dados:
                         """
             else:
                 post_its_html = "<p style='color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-top: 80px; text-shadow: 1px 1px 2px black;'>Deixe um recado na aba lateral 📌</p>"
-
-            # Montagem final do cartão com a área de post-its preenchida
-            cartao = f"""
+            cartoes_html += f"""
                 <div class="aniversariante-card">
                     <div class="polaroid">
-                        <div class="foto" style="background-image: {imagem_bg};"></div>
+                        <div class="foto" style="background-image: {img};"></div>
                         <div class="nome">{row['nome']}</div>
-                        <div class="data">{dia_aniversario} de {nome_mes_atual}</div>
-                        <div class="curiosidade" style="font-size: 0.85rem; color: #64748b;"><i>{curiosidade}</i></div>
+                        <div style="color:red; font-weight:bold;">{row['data_nascimento'].day}/{row['data_nascimento'].month}</div>
                     </div>
-                    <div class="area-post-it">
-                        {post_its_html}
-                    </div>
+                    <div class="area-post-it">{p_html if p_html else "Aguardando recados..."}</div>
                 </div>
-            """
-            cartoes_html += cartao
-
-        html_fim = """
-            </div>
-        </body>
-        </html>
             """
         components.html(html_base + cartoes_html + "</div></body></html>", height=1500, scrolling=True)
