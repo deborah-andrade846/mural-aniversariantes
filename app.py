@@ -8,27 +8,38 @@ import base64
 
 st.set_page_config(page_title="Mural de Clima", layout="wide", page_icon="🎉")
 
-# -- PERSONALIZAÇÃO DO MURAL --
-st.sidebar.title("🎨 Personalizar Mural")
+# -- PERSONALIZAÇÃO DO MURAL (ÁREA RESTRITA) --
+st.sidebar.title("⚙️ Administração")
 
-# Cor de fundo padrão
-cor_fundo = st.sidebar.color_picker("1. Escolha a cor base", "#0f172a")
+# Campo de senha mascarado (aparece como bolinhas)
+senha_digitada = st.sidebar.text_input("Acesso restrito", type="password")
 
-# Opção de subir uma imagem
-imagem_fundo = st.sidebar.file_uploader("2. Ou suba uma Imagem de Fundo (Florzinhas, temas, etc)", type=["jpg", "png", "jpeg"])
+# Defina sua senha aqui:
+SENHA_CORRETA = "cgc2026"
 
-# Lógica inteligente: Se tiver imagem, usa a imagem. Se não, usa a cor.
-if imagem_fundo is not None:
-    # Transforma a imagem anexada em um código que o HTML consegue ler
-    base64_img = base64.b64encode(imagem_fundo.read()).decode()
-    # Pega o tipo da imagem (jpg, png)
-    tipo_img = imagem_fundo.type
-    # Cria o comando CSS para preencher a tela toda
-    estilo_fundo = f"background-image: url('data:{tipo_img};base64,{base64_img}'); background-size: cover; background-position: center; background-attachment: fixed;"
+if senha_digitada == SENHA_CORRETA:
+    st.sidebar.success("Modo Admin ativado! 🔓")
+    
+    cor_fundo = st.sidebar.color_picker("1. Escolha a cor base", "#0f172a")
+    imagem_fundo = st.sidebar.file_uploader("2. Ou suba uma Imagem de Fundo", type=["jpg", "png", "jpeg"])
+
+    if imagem_fundo is not None:
+        base64_img = base64.b64encode(imagem_fundo.read()).decode()
+        tipo_img = imagem_fundo.type
+        estilo_fundo = f"background-image: url('data:{tipo_img};base64,{base64_img}'); background-size: cover; background-position: center; background-attachment: fixed;"
+    else:
+        estilo_fundo = f"background-color: {cor_fundo};"
 else:
-    estilo_fundo = f"background-color: {cor_fundo};"
+    # Se digitar errado, avisa sutilmente
+    if senha_digitada != "":
+        st.sidebar.error("Senha incorreta.")
+        
+    # ESTILO PADRÃO (O que todo mundo vê sem a senha)
+    # Azul noturno executivo
+    estilo_fundo = "background-color: #0f172a;"
 
-# Conexão com Supabase
+
+# --- CONEXÃO E LÓGICA DO BANCO DE DADOS ---
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase: Client = create_client(url, key)
@@ -57,7 +68,7 @@ if dados:
     if not df_mes.empty:
         df_mes = df_mes.sort_values(by='data_nascimento')
         
-        # Repare que o CSS agora usa a variável {estilo_fundo} no body
+        # Repare que o CSS continua usando a variável {estilo_fundo} no body
         html_base = f"""
         <!DOCTYPE html>
         <html>
