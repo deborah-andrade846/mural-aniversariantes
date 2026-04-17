@@ -47,11 +47,24 @@ if modo_admin:
     novo_exibir = st.sidebar.checkbox("REVELAR MURAL FINAL", value=exibir_mural)
 
     if st.sidebar.button("💾 Salvar alterações"):
-        atualizar_config("liberar_cadastro", novo_cadastro)
-        atualizar_config("liberar_recados", novo_recados)
-        atualizar_config("exibir_mural", novo_exibir)
-        st.sidebar.success("Atualizado!")
-        st.rerun()
+    atualizar_config("liberar_cadastro", novo_cadastro)
+    atualizar_config("liberar_recados", novo_recados)
+    atualizar_config("exibir_mural", novo_exibir)
+
+    # SALVAR COR
+    atualizar_config("cor_fundo", cor_fundo)
+
+    # SALVAR IMAGEM
+    if imagem_salva = config.get("imagem_fundo", "")
+cor_salva = config.get("cor_fundo", "#0f172a")
+
+if imagem_salva:
+    estilo_fundo = f"background-image: url('{imagem_salva}'); background-size: cover; background-position: center; background-attachment: fixed;"
+else:
+    estilo_fundo = f"background-color: {cor_salva};"
+
+    st.sidebar.success("Atualizado!")
+    st.rerun()
 
     st.sidebar.divider()
     cor_fundo = st.sidebar.color_picker("Cor base do Mural", "#0f172a")
