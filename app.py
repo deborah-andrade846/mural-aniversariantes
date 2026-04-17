@@ -47,24 +47,27 @@ if modo_admin:
         print("VALOR ENVIADO:", chave, valor)
         try:
             response = supabase.table("configuracoes_mural") \
-                .update({"valor": valor}) \
+                .update({"valor": valor}, count="exact") \
                 .eq("chave", chave) \
                 .execute()
 
             print("SUCESSO:", response)
 
-            if not response.data:
+            linhas_atualizadas = getattr(response, "count", None)
+
+            # Não inferir falha com base em response.data vazio,
+            # pois políticas RLS podem ocultar linhas retornadas.
+            if linhas_atualizadas == 0:
                 response_upsert = supabase.table("configuracoes_mural") \
                     .upsert({"chave": chave, "valor": valor}) \
                     .execute()
 
                 print("UPSERT:", response_upsert)
-
-                if not response_upsert.data:
-                    raise Exception(
-                        f"Nenhuma linha foi atualizada/inserida para chave='{chave}'. "
-                        "Verifique RLS, constraints e se as colunas existem."
-                    )
+            elif linhas_atualizadas is None:
+                print(
+                    "AVISO: UPDATE sem count retornado; "
+                    "pulando UPSERT para evitar falso negativo por RLS."
+                )
         except Exception as e:
             print("ERRO DETALHADO:", e)
             raise e
