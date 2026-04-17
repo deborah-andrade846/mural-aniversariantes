@@ -5,6 +5,7 @@ from datetime import datetime
 from supabase import create_client, Client
 import random
 import base64
+import re
 
 st.set_page_config(page_title="Mural de Clima", layout="wide", page_icon="🎉")
 
@@ -29,10 +30,14 @@ def carregar_config():
     except Exception:
         return {}
 
+def cor_hex_valida(valor):
+    return isinstance(valor, str) and bool(re.fullmatch(r"#[0-9a-fA-F]{6}", valor.strip()))
+
 config = carregar_config()
 
 exibir_mural    = to_bool(config.get("exibir_mural",    False))
 liberar_recados = to_bool(config.get("liberar_recados", False))
+liberar_cadastro = to_bool(config.get("liberar_cadastro", True))
 
 # --- 3. ADMIN ---
 st.sidebar.title("⚙️ Administração CGC")
@@ -44,34 +49,25 @@ if modo_admin:
     st.sidebar.success("Modo Admin Ativado! 🔓")
 
     def atualizar_config(chave, valor):
-        print("VALOR ENVIADO:", chave, valor)
         try:
-            response = supabase.table("configuracoes_mural") \
-                .update({"valor": valor}) \
-                .eq("chave", chave) \
+            supabase.table("configuracoes_mural") \
+                .upsert(
+                    {"chave": chave, "valor": str(valor)},
+                    on_conflict="chave"
+                ) \
                 .execute()
-
-            print("SUCESSO:", response)
-
-            if not response.data:
-                response_upsert = supabase.table("configuracoes_mural") \
-                    .upsert({"chave": chave, "valor": valor}) \
-                    .execute()
-
-                print("UPSERT:", response_upsert)
-
-                if not response_upsert.data:
-                    raise Exception(
-                        f"Nenhuma linha foi atualizada/inserida para chave='{chave}'. "
-                        "Verifique RLS, constraints e se as colunas existem."
-                    )
         except Exception as e:
-            print("ERRO DETALHADO:", e)
             raise e
+
+    # Recarrega sempre do banco antes de renderizar os inputs do admin
+    config = carregar_config()
+    exibir_mural = to_bool(config.get("exibir_mural", False))
+    liberar_recados = to_bool(config.get("liberar_recados", False))
+    liberar_cadastro = to_bool(config.get("liberar_cadastro", True))
 
     novo_cadastro = st.sidebar.checkbox(
         "Liberar Aba de Cadastro",
-        value=to_bool(config.get("liberar_cadastro", True))
+        value=liberar_cadastro
     )
     novo_recados = st.sidebar.checkbox(
         "Liberar Aba de Recados",
@@ -83,7 +79,11 @@ if modo_admin:
     )
 
     st.sidebar.divider()
-    cor_fundo     = st.sidebar.color_picker("Cor base do Mural", config.get("cor_fundo", "#0f172a"))
+    cor_fundo_banco = config.get("cor_fundo")
+    if cor_hex_valida(cor_fundo_banco):
+        cor_fundo = st.sidebar.color_picker("Cor base do Mural", value=cor_fundo_banco)
+    else:
+        cor_fundo = st.sidebar.color_picker("Cor base do Mural")
     imagem_fundo  = st.sidebar.file_uploader("Imagem de Fundo", type=["jpg", "png", "jpeg"])
 
     # Lê o arquivo UMA ÚNICA VEZ e reutiliza
@@ -96,11 +96,6 @@ if modo_admin:
         img_tipo_admin  = imagem_fundo.type
 
     if st.sidebar.button("💾 Salvar alterações"):
-        if not cor_fundo:
-            raise ValueError("cor_fundo está vazio")
-        if not isinstance(cor_fundo, str):
-            raise TypeError("cor_fundo precisa ser string")
-
         atualizar_config("liberar_cadastro", novo_cadastro)
         atualizar_config("liberar_recados",  novo_recados)
         atualizar_config("exibir_mural",     novo_exibir)
@@ -108,6 +103,8 @@ if modo_admin:
         if img_b64_admin is not None:
             fundo_data_url = f"data:{img_tipo_admin};base64,{img_b64_admin}"
             atualizar_config("imagem_fundo", fundo_data_url)
+        # Depois de salvar, buscar novamente do banco para evitar dependência de sessão
+        config = carregar_config()
         st.sidebar.success("Atualizado!")
         st.rerun()
 
@@ -123,24 +120,28 @@ if modo_admin:
 elif senha_digitada != "":
     st.sidebar.error("Senha incorreta.")
     imagem_salva = config.get("imagem_fundo", "")
-    cor_salva    = config.get("cor_fundo", "#0f172a")
+    cor_salva    = config.get("cor_fundo")
     if imagem_salva:
         estilo_fundo = (
             f"background-image: url('{imagem_salva}'); "
             f"background-size: cover; background-position: center; background-attachment: fixed;"
         )
-    else:
+    elif cor_hex_valida(cor_salva):
         estilo_fundo = f"background-color: {cor_salva};"
+    else:
+        estilo_fundo = ""
 else:
     imagem_salva = config.get("imagem_fundo", "")
-    cor_salva    = config.get("cor_fundo", "#0f172a")
+    cor_salva    = config.get("cor_fundo")
     if imagem_salva:
         estilo_fundo = (
             f"background-image: url('{imagem_salva}'); "
             f"background-size: cover; background-position: center; background-attachment: fixed;"
         )
-    else:
+    elif cor_hex_valida(cor_salva):
         estilo_fundo = f"background-color: {cor_salva};"
+    else:
+        estilo_fundo = ""
 
 # --- 4. PORTEIRO ---
 if not exibir_mural:
