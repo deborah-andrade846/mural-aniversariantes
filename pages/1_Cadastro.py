@@ -2,30 +2,37 @@ import streamlit as st
 from supabase import create_client, Client
 import datetime
 import uuid
-if not st.session_state.get('liberar_cadastro', True):
-    st.warning("### Período de cadastro encerrado ou ainda não iniciado.")
-    st.stop()
+
 st.set_page_config(page_title="Cadastro no Mural", page_icon="📝")
 
-# Conexão
-url = st.secrets["SUPABASE_URL"]
-key = st.secrets["SUPABASE_KEY"]
+# --- CONEXÃO + CONTROLE GLOBAL ---
+url = st.secrets["https://nkxunopqjksbpedbevur.supabase.co"]
+key = st.secrets["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5reHVub3BxamtzYnBlZGJldnVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NjMwMTcsImV4cCI6MjA5MTQzOTAxN30.nmBrJZRxrD1FYfzrua1x3grbY3OEYFRfoBD63zu_OK8"]
 supabase: Client = create_client(url, key)
 
+def carregar_config():
+    resp = supabase.table("configuracoes_mural").select("*").execute()
+    return {item['chave']: item['valor'] for item in resp.data}
+
+config = carregar_config()
+liberar_cadastro = config.get("liberar_cadastro", True)
+
+if not liberar_cadastro:
+    st.warning("### Período de cadastro encerrado ou ainda não iniciado.")
+    st.stop()
+
+# --- RESTANTE IGUAL ---
 st.title("📝 Atualizar Perfil no Mural")
 
 try:
-    # 1. Busca a lista de todos os nomes cadastrados para o Selectbox
     res = supabase.table("aniversariantes").select("nome, perfil_completo").execute()
     lista_funcionarios = res.data
     nomes_disponiveis = [f["nome"] for f in lista_funcionarios]
 
-    # Adiciona a opção de criar um novo logo no início da lista
     opcoes_lista = ["", "➕ Meu nome não está na lista"] + nomes_disponiveis
 
     nome_selecionado = st.selectbox("Selecione seu nome na lista oficial:", opcoes_lista)
 
-    # --- CENÁRIO 1: O FUNCIONÁRIO É NOVO E PRECISA SER CRIADO DO ZERO ---
     if nome_selecionado == "➕ Meu nome não está na lista":
         with st.form("form_novo"):
             st.info("👋 Bem-vindo(a)! Como você é novo por aqui, vamos criar seu cadastro do zero.")
@@ -63,12 +70,9 @@ try:
                         "foto_url": foto_url
                     }
 
-                    # INSERT (Cria uma linha nova no banco)
                     supabase.table("aniversariantes").insert(dados_insert).execute()
                     st.success(f"✅ Cadastro de {novo_nome} criado com sucesso! Bem-vindo(a) à equipe.")
 
-
-    # --- CENÁRIO 2: O NOME JÁ ESTÁ NA LISTA OFICIAL ---
     elif nome_selecionado != "":
         dados_atuais = next(item for item in lista_funcionarios if item["nome"] == nome_selecionado)
         foi_completado = dados_atuais.get("perfil_completo", False)
@@ -76,7 +80,6 @@ try:
         with st.form("form_update"):
             st.write(f"### Olá, {nome_selecionado}!")
             
-            # Trava de Segurança
             if foi_completado:
                 st.warning("🔒 Este perfil já foi preenchido. Para editar, insira sua senha de perfil.")
                 senha_acesso = st.text_input("Senha do seu perfil", type="password")
@@ -93,7 +96,6 @@ try:
                 res_check = supabase.table("aniversariantes").select("senha_perfil").eq("nome", nome_selecionado).single().execute()
                 senha_no_banco = res_check.data.get("senha_perfil") if res_check.data else None
 
-                # Validação da senha
                 if foi_completado and senha_acesso != senha_no_banco:
                     st.error("❌ Senha incorreta! Você não tem permissão para alterar este perfil.")
                 elif not senha_acesso:
@@ -114,7 +116,6 @@ try:
                     if foto_url:
                         dados_update["foto_url"] = foto_url
 
-                    # UPDATE (Atualiza o perfil existente)
                     supabase.table("aniversariantes").update(dados_update).eq("nome", nome_selecionado).execute()
                     st.success("✅ Perfil atualizado e protegido com sucesso!")
 
