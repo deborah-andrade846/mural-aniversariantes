@@ -69,9 +69,9 @@ else:
     estilo_fundo = "background-color: #0f172a;"
 
 # --- 4. PORTEIRO DO MURAL ---
-if not exibir_mural and not modo_admin:
+if not exibir_mural:
     st.title("🎉 Mural de Aniversariantes")
-    st.info("### O Mural está sendo preparado com carinho! 🤫\n\nFique atento às comunicações da CGC para a grande revelação.")
+    st.info("### O Mural está sendo preparado com carinho! 🤫\n\nFique atento às comunicações da CGC para a grande revelação em breve.")
     st.stop()
 
 # --- 5. DADOS ---
