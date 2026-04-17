@@ -18,7 +18,7 @@ if 'liberar_cadastro' not in st.session_state:
     st.session_state['liberar_cadastro'] = True # Cadastro geralmente começa aberto
 
 # -- PAINEL ADMINISTRATIVO --
-st.sidebar.title("⚙️ Administração CGC")
+st.sidebar.title("⚙️ Administração")
 senha_digitada = st.sidebar.text_input("Acesso restrito", type="password")
 SENHA_CORRETA = "cgc2026"
 
@@ -46,7 +46,7 @@ else:
 # --- LÓGICA DE EXIBIÇÃO DO MURAL ---
 if not st.session_state['exibir_mural'] and senha_digitada != SENHA_CORRETA:
     st.title("🎉 Mural de Aniversariantes")
-    st.info("### O Mural está sendo preparado com carinho! 🤫\n\nFique atento às comunicações da CGC para a grande revelação em breve.")
+    st.info("### O Mural está sendo preparado com carinho! 🤫\n\nFique atento às comunicações no grupo da GAFI para a grande revelação em breve.")
     # Interrompe a execução aqui para quem não é admin
     st.stop()
 
