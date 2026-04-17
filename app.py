@@ -44,9 +44,13 @@ if modo_admin:
 
     novo_cadastro = st.sidebar.checkbox("Liberar Aba de Cadastro", value=config.get("liberar_cadastro", True))
     novo_recados = st.sidebar.checkbox("Liberar Aba de Recados", value=liberar_recados)
-    novo_exibir = st.sidebar.checkbox("REVELAR MURAL FINAL", value=exibir_mural)
+   novo_exibir = st.sidebar.checkbox("REVELAR MURAL FINAL", value=exibir_mural)
 
-    if st.sidebar.button("💾 Salvar alterações"):
+st.sidebar.divider()
+cor_fundo = st.sidebar.color_picker("Cor base do Mural", "#0f172a")
+imagem_fundo = st.sidebar.file_uploader("Imagem de Fundo", type=["jpg", "png", "jpeg"])
+
+if st.sidebar.button("💾 Salvar alterações"):
     atualizar_config("liberar_cadastro", novo_cadastro)
     atualizar_config("liberar_recados", novo_recados)
     atualizar_config("exibir_mural", novo_exibir)
@@ -64,28 +68,26 @@ if modo_admin:
     st.sidebar.success("Atualizado!")
     st.rerun()
 
-    st.sidebar.divider()
-    cor_fundo = st.sidebar.color_picker("Cor base do Mural", "#0f172a")
-    imagem_fundo = st.sidebar.file_uploader("Imagem de Fundo", type=["jpg", "png", "jpeg"])
+# DEFINIÇÃO DO FUNDO (ADMIN)
+if imagem_fundo is not None:
+    base64_img = base64.b64encode(imagem_fundo.read()).decode()
+    tipo_img = imagem_fundo.type
+    estilo_fundo = f"background-image: url('data:{tipo_img};base64,{base64_img}'); background-size: cover; background-position: center; background-attachment: fixed;"
+else:
+    estilo_fundo = f"background-color: {cor_fundo};"
 
-    if imagem_fundo is not None:
-        base64_img = base64.b64encode(imagem_fundo.read()).decode()
-        tipo_img = imagem_fundo.type
-        estilo_fundo = f"background-image: url('data:{tipo_img};base64,{base64_img}'); background-size: cover; background-position: center; background-attachment: fixed;"
-    else:
-        estilo_fundo = f"background-color: {cor_fundo};"
 else:
     if senha_digitada != "":
         st.sidebar.error("Senha incorreta.")
-    estilo_fundo = "background-color: #0f172a;"
+
+    # FUNDO VINDO DO BANCO (USUÁRIOS NORMAIS)
     imagem_salva = config.get("imagem_fundo", "")
-cor_salva = config.get("cor_fundo", "#0f172a")
+    cor_salva = config.get("cor_fundo", "#0f172a")
 
-if imagem_salva:
-    estilo_fundo = f"background-image: url('{imagem_salva}'); background-size: cover; background-position: center; background-attachment: fixed;"
-else:
-    estilo_fundo = f"background-color: {cor_salva};"
-
+    if imagem_salva:
+        estilo_fundo = f"background-image: url('{imagem_salva}'); background-size: cover; background-position: center; background-attachment: fixed;"
+    else:
+        estilo_fundo = f"background-color: {cor_salva};"
 # --- 4. PORTEIRO ---
 if not exibir_mural:
     st.title("🎉 Mural de Aniversariantes")
