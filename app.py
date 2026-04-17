@@ -68,7 +68,7 @@ else:
         st.sidebar.error("Senha incorreta.")
     estilo_fundo = "background-color: #0f172a;"
 
-# --- 4. PORTEIRO DO MURAL ---
+# --- 4. PORTEIRO ---
 if not exibir_mural:
     st.title("🎉 Mural de Aniversariantes")
     st.info("### O Mural está sendo preparado com carinho! 🤫\n\nFique atento às comunicações da CGC para a grande revelação em breve.")
@@ -89,7 +89,7 @@ except Exception as e:
     st.error(f"Erro no banco: {e}")
     dados = []
 
-# --- MURAL DIRETO (SEM ABA) ---
+# --- 6. MURAL ---
 if dados:
     df = pd.DataFrame(dados)
     df['data_nascimento'] = pd.to_datetime(df['data_nascimento'], errors='coerce')
@@ -97,87 +97,81 @@ if dados:
 
     if not df_mes.empty:
         df_mes = df_mes.sort_values(by='data_nascimento')
-            html_base = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <style>
-                    * {{ margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }}
-                    body {{ {estilo_fundo} color: #f8fafc; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; min-height: 100vh; }}
-                    .mural-header {{ text-align: center; margin-bottom: 50px; }}
-                    .mural-header h1 {{ font-size: 3rem; text-transform: uppercase; letter-spacing: 3px; color: #ffffff; text-shadow: 2px 2px 8px rgba(0,0,0,0.8); border-bottom: 2px solid #38bdf8; padding-bottom: 10px; display: inline-block; }}
-                    .mural-grid {{ display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; max-width: 1200px; }}
-                    .aniversariante-card {{ display: flex; flex-direction: column; align-items: center; gap: 20px; }}
-                    .polaroid {{ background-color: #ffffff; padding: 15px 15px 30px 15px; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 250px; color: #1e293b; text-align: center; }}
-                    .foto {{ width: 100%; height: 220px; background-size: cover; background-position: center; border-radius: 2px; border: 1px solid #cbd5e1; }}
-                    .nome {{ font-size: 1.5rem; font-weight: bold; margin-top: 10px; color: #1e293b; }}
-                    .data {{ font-size: 1rem; color: #ef4444; font-weight: bold; }}
-                    .area-post-it {{ border: 2px dashed rgba(255,255,255,0.3); border-radius: 8px; width: 300px; min-height: 180px; padding: 10px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; background-color: rgba(0,0,0,0.1); }}
-                    .post-it {{ background-color: #fef08a; color: #3f6212; padding: 12px; width: 130px; box-shadow: 2px 4px 6px rgba(0,0,0,0.3); font-family: 'Comic Sans MS', cursive; font-size: 0.85rem; border-radius: 2px; }}
-                </style>
-            </head>
-            <body>
-                <div class="mural-header"><h1>Aniversariantes de {nome_mes_atual}</h1></div>
-                <div class="mural-grid">
+
+        html_base = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                * {{ margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }}
+                body {{ {estilo_fundo} color: #f8fafc; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; min-height: 100vh; }}
+                .mural-header {{ text-align: center; margin-bottom: 50px; }}
+                .mural-header h1 {{ font-size: 3rem; text-transform: uppercase; letter-spacing: 3px; color: #ffffff; text-shadow: 2px 2px 8px rgba(0,0,0,0.8); border-bottom: 2px solid #38bdf8; padding-bottom: 10px; display: inline-block; }}
+                .mural-grid {{ display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; max-width: 1200px; }}
+                .aniversariante-card {{ display: flex; flex-direction: column; align-items: center; gap: 20px; }}
+                .polaroid {{ background-color: #ffffff; padding: 15px 15px 30px 15px; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 250px; color: #1e293b; text-align: center; }}
+                .foto {{ width: 100%; height: 220px; background-size: cover; background-position: center; border-radius: 2px; border: 1px solid #cbd5e1; }}
+                .nome {{ font-size: 1.5rem; font-weight: bold; margin-top: 10px; color: #1e293b; }}
+                .data {{ font-size: 1rem; color: #ef4444; font-weight: bold; }}
+                .area-post-it {{ border: 2px dashed rgba(255,255,255,0.3); border-radius: 8px; width: 300px; min-height: 180px; padding: 10px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; background-color: rgba(0,0,0,0.1); }}
+                .post-it {{ background-color: #fef08a; color: #3f6212; padding: 12px; width: 130px; box-shadow: 2px 4px 6px rgba(0,0,0,0.3); font-family: 'Comic Sans MS', cursive; font-size: 0.85rem; border-radius: 2px; }}
+            </style>
+        </head>
+        <body>
+            <div class="mural-header"><h1>Aniversariantes de {nome_mes_atual}</h1></div>
+            <div class="mural-grid">
+        """
+
+        cartoes_html = ""
+
+        for _, row in df_mes.iterrows():
+            nome = str(row.get("nome", "Sem nome"))
+            dia = row['data_nascimento'].day if pd.notna(row['data_nascimento']) else ""
+
+            img_url = str(row.get("foto_url", "")).strip()
+            img_style = f"background-image: url('{img_url}');" if img_url else "background-color: #e2e8f0;"
+
+            curiosidade = ""
+            if pd.notna(row.get("curiosidade")):
+                curiosidade = f"<div style='font-size: 0.8rem; color: #64748b; margin-top:5px;'><i>{row['curiosidade']}</i></div>"
+
+            post_its_html = ""
+
+            if not df_recados.empty and liberar_recados:
+                recados_pessoa = df_recados[df_recados['para_quem'] == nome]
+
+                if recados_pessoa.empty:
+                    post_its_html = "<p style='color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-top: 60px;'>Aguardando recados... 📌</p>"
+                else:
+                    for _, recado in recados_pessoa.iterrows():
+                        mensagem = str(recado.get("mensagem", ""))
+                        autor = str(recado.get("de_quem", ""))
+                        rotacao = random.randint(-7, 7)
+
+                        post_its_html += f"""
+                        <div class="post-it" style="transform: rotate({rotacao}deg);">
+                            <strong>"{mensagem}"</strong><br><br>
+                            <small>✏️ {autor}</small>
+                        </div>
+                        """
+
+            cartoes_html += f"""
+            <div class="aniversariante-card">
+                <div class="polaroid">
+                    <div class="foto" style="{img_style}"></div>
+                    <div class="nome">{nome}</div>
+                    <div class="data">{dia} de {nome_mes_atual}</div>
+                    {curiosidade}
+                </div>
+                <div class="area-post-it">{post_its_html}</div>
+            </div>
             """
 
-            cartoes_html = ""
+        full_html = html_base + cartoes_html + "</div></body></html>"
+        components.html(full_html, height=1500, scrolling=True)
 
-            for _, row in df_mes.iterrows():
-
-                nome = str(row.get("nome", "Sem nome"))
-                dia = row['data_nascimento'].day if pd.notna(row['data_nascimento']) else ""
-
-                img_url = str(row.get("foto_url", "")).strip()
-                if img_url:
-                    img_style = f"background-image: url('{img_url}');"
-                else:
-                    img_style = "background-color: #e2e8f0;"
-
-                curiosidade = ""
-                if pd.notna(row.get("curiosidade")):
-                    curiosidade = f"<div style='font-size: 0.8rem; color: #64748b; margin-top:5px;'><i>{row['curiosidade']}</i></div>"
-
-                post_its_html = ""
-
-                if not df_recados.empty and liberar_recados:
-                    recados_pessoa = df_recados[df_recados['para_quem'] == nome]
-
-                    if recados_pessoa.empty:
-                        post_its_html = "<p style='color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-top: 60px;'>Aguardando recados... 📌</p>"
-                    else:
-                        for _, recado in recados_pessoa.iterrows():
-                            mensagem = str(recado.get("mensagem", ""))
-                            autor = str(recado.get("de_quem", ""))
-                            rotacao = random.randint(-7, 7)
-
-                            post_its_html += f"""
-                            <div class="post-it" style="transform: rotate({rotacao}deg);">
-                                <strong>"{mensagem}"</strong><br><br>
-                                <small>✏️ {autor}</small>
-                            </div>
-                            """
-                else:
-                    post_its_html = "<p style='color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-top: 60px;'>Aguardando recados... 📌</p>"
-
-                cartoes_html += f"""
-                <div class="aniversariante-card">
-                    <div class="polaroid">
-                        <div class="foto" style="{img_style}"></div>
-                        <div class="nome">{nome}</div>
-                        <div class="data">{dia} de {nome_mes_atual}</div>
-                        {curiosidade}
-                    </div>
-                    <div class="area-post-it">{post_its_html}</div>
-                </div>
-                """
-
-            full_html = html_base + cartoes_html + "</div></body></html>"
-
-            components.html(full_html, height=1500, scrolling=True)
-
-        else:
-            st.info(f"Nenhum aniversariante em {nome_mes_atual}.")
     else:
-        st.warning("Nenhum dado encontrado no banco.")
+        st.info(f"Nenhum aniversariante em {nome_mes_atual}.")
+else:
+    st.warning("Nenhum dado encontrado no banco.")
