@@ -157,7 +157,7 @@ if dados:
 
             post_its_html = ""
 
-            if not df_recados.empty and liberar_recados:
+            if not df_recados.empty:
                 recados_pessoa = df_recados[df_recados['para_quem'] == nome]
 
                 if recados_pessoa.empty:
