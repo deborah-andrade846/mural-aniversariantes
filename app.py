@@ -48,16 +48,24 @@ modo_admin     = (senha_digitada == SENHA_CORRETA)
 if modo_admin:
     st.sidebar.success("Modo Admin Ativado! 🔓")
 
-    def atualizar_config(chave, valor):
-        try:
-            supabase.table("configuracoes_mural") \
-                .upsert(
-                    {"chave": chave, "valor": str(valor)},
-                    on_conflict="chave"
-                ) \
-                .execute()
-        except Exception as e:
-            raise e
+   def atualizar_config(chave, valor):
+    try:
+        # Garante que o valor vai como texto para o banco
+        valor_str = str(valor)
+        
+        # 1. Verifica se a chave já existe na tabela
+        busca = supabase.table("configuracoes_mural").select("id").eq("chave", chave).execute()
+        
+        if busca.data and len(busca.data) > 0:
+            # 2. Se a chave existir, atualiza o valor
+            supabase.table("configuracoes_mural").update({"valor": valor_str}).eq("chave", chave).execute()
+        else:
+            # 3. Se a chave não existir, insere um novo registro
+            supabase.table("configuracoes_mural").insert({"chave": chave, "valor": valor_str}).execute()
+            
+    except Exception as e:
+        st.error(f"Erro ao salvar configuração: {e}")
+        raise e
 
     # Recarrega sempre do banco antes de renderizar os inputs do admin
     config = carregar_config()
