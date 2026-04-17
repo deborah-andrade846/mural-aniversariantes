@@ -2,7 +2,9 @@ import streamlit as st
 from supabase import create_client, Client
 import datetime
 import pandas as pd
-
+if not st.session_state.get('liberar_recados', False):
+    st.warning("### A caixinha de recados abrirá em breve! Aguarde o momento da festa.")
+    st.stop()
 st.set_page_config(page_title="Deixe um Recado", page_icon="💌")
 
 # Conexão com o banco
