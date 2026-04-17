@@ -44,10 +44,30 @@ if modo_admin:
     st.sidebar.success("Modo Admin Ativado! 🔓")
 
     def atualizar_config(chave, valor):
-        supabase.table("configuracoes_mural") \
-            .update({"valor": valor}) \
-            .eq("chave", chave) \
-            .execute()
+        print("VALOR ENVIADO:", chave, valor)
+        try:
+            response = supabase.table("configuracoes_mural") \
+                .update({"valor": valor}) \
+                .eq("chave", chave) \
+                .execute()
+
+            print("SUCESSO:", response)
+
+            if not response.data:
+                response_upsert = supabase.table("configuracoes_mural") \
+                    .upsert({"chave": chave, "valor": valor}) \
+                    .execute()
+
+                print("UPSERT:", response_upsert)
+
+                if not response_upsert.data:
+                    raise Exception(
+                        f"Nenhuma linha foi atualizada/inserida para chave='{chave}'. "
+                        "Verifique RLS, constraints e se as colunas existem."
+                    )
+        except Exception as e:
+            print("ERRO DETALHADO:", e)
+            raise e
 
     novo_cadastro = st.sidebar.checkbox(
         "Liberar Aba de Cadastro",
@@ -76,6 +96,11 @@ if modo_admin:
         img_tipo_admin  = imagem_fundo.type
 
     if st.sidebar.button("💾 Salvar alterações"):
+        if not cor_fundo:
+            raise ValueError("cor_fundo está vazio")
+        if not isinstance(cor_fundo, str):
+            raise TypeError("cor_fundo precisa ser string")
+
         atualizar_config("liberar_cadastro", novo_cadastro)
         atualizar_config("liberar_recados",  novo_recados)
         atualizar_config("exibir_mural",     novo_exibir)
