@@ -5,23 +5,23 @@ import uuid
 
 st.set_page_config(page_title="Cadastro no Mural", page_icon="📝")
 
-# --- CONEXÃO + CONTROLE GLOBAL ---
+# --- CONEXÃO ---
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase: Client = create_client(url, key)
 
+# --- CONTROLE (SUBSTITUI session_state) ---
 def carregar_config():
     resp = supabase.table("configuracoes_mural").select("*").execute()
     return {item['chave']: item['valor'] for item in resp.data}
 
 config = carregar_config()
-liberar_cadastro = config.get("liberar_cadastro", True)
 
-if not liberar_cadastro:
+if not config.get("liberar_cadastro", True):
     st.warning("### Período de cadastro encerrado ou ainda não iniciado.")
     st.stop()
 
-# --- RESTANTE IGUAL ---
+# --- UI ---
 st.title("📝 Atualizar Perfil no Mural")
 
 try:
@@ -33,6 +33,7 @@ try:
 
     nome_selecionado = st.selectbox("Selecione seu nome na lista oficial:", opcoes_lista)
 
+    # --- NOVO CADASTRO ---
     if nome_selecionado == "➕ Meu nome não está na lista":
         with st.form("form_novo"):
             st.info("👋 Bem-vindo(a)! Como você é novo por aqui, vamos criar seu cadastro do zero.")
@@ -73,6 +74,7 @@ try:
                     supabase.table("aniversariantes").insert(dados_insert).execute()
                     st.success(f"✅ Cadastro de {novo_nome} criado com sucesso! Bem-vindo(a) à equipe.")
 
+    # --- ATUALIZAÇÃO ---
     elif nome_selecionado != "":
         dados_atuais = next(item for item in lista_funcionarios if item["nome"] == nome_selecionado)
         foi_completado = dados_atuais.get("perfil_completo", False)
