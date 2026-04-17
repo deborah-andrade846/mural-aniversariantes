@@ -152,8 +152,10 @@ if dados:
             img_style = f"background-image: url('{img_url}');" if img_url else "background-color: #e2e8f0;"
 
             curiosidade = ""
-            if pd.notna(row.get("curiosidade")):
-                curiosidade = f"<div style='font-size: 0.8rem; color: #64748b; margin-top:5px;'><i>{row['curiosidade']}</i></div>"
+            texto_curiosidade = str(row.get("curiosidade", "")).strip()
+
+            if texto_curiosidade:
+            curiosidade = f"<div style='font-size: 0.8rem; color: #64748b; margin-top:5px;'><i>{texto_curiosidade}</i></div>"
 
             post_its_html = ""
 
