@@ -6,8 +6,8 @@ import uuid
 st.set_page_config(page_title="Cadastro no Mural", page_icon="📝")
 
 # --- CONEXÃO + CONTROLE GLOBAL ---
-url = st.secrets["https://nkxunopqjksbpedbevur.supabase.co"]
-key = st.secrets["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5reHVub3BxamtzYnBlZGJldnVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NjMwMTcsImV4cCI6MjA5MTQzOTAxN30.nmBrJZRxrD1FYfzrua1x3grbY3OEYFRfoBD63zu_OK8"]
+url = st.secrets["SUPABASE_URL"]
+key = st.secrets["SUPABASE_KEY"]
 supabase: Client = create_client(url, key)
 
 def carregar_config():
