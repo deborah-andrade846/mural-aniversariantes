@@ -2,7 +2,9 @@ import streamlit as st
 from supabase import create_client, Client
 import datetime
 import uuid
-
+if not st.session_state.get('liberar_cadastro', True):
+    st.warning("### Período de cadastro encerrado ou ainda não iniciado.")
+    st.stop()
 st.set_page_config(page_title="Cadastro no Mural", page_icon="📝")
 
 # Conexão
