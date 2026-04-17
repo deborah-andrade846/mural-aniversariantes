@@ -5,26 +5,27 @@ import pandas as pd
 
 st.set_page_config(page_title="Deixe um Recado", page_icon="💌")
 
-# --- CONEXÃO + CONTROLE GLOBAL ---
+# --- CONEXÃO ---
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase: Client = create_client(url, key)
 
+# --- CONTROLE (SUBSTITUI session_state) ---
 def carregar_config():
     resp = supabase.table("configuracoes_mural").select("*").execute()
     return {item['chave']: item['valor'] for item in resp.data}
 
 config = carregar_config()
-liberar_recados = config.get("liberar_recados", False)
 
-if not liberar_recados:
+if not config.get("liberar_recados", False):
     st.warning("### A caixinha de recados abrirá em breve! Aguarde o momento da festa.")
     st.stop()
 
-# --- RESTANTE IGUAL ---
+# --- UI ---
 st.title("💌 Murais de Recados")
 st.write("Escreva uma mensagem para os aniversariantes do mês. Ela vai virar um Post-it digital no quadro!")
 
+# --- DADOS ---
 mes_atual = datetime.datetime.now().month
 
 try:
