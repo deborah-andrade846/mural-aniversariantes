@@ -154,7 +154,7 @@ if dados:
             curiosidade = ""
             texto_curiosidade = str(row.get("curiosidade", "")).strip()
 
-            if texto_curiosidade:
+        if texto_curiosidade:
             curiosidade = f"<div style='font-size: 0.8rem; color: #64748b; margin-top:5px;'><i>{texto_curiosidade}</i></div>"
 
             post_its_html = ""
