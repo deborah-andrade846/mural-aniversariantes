@@ -4,14 +4,29 @@ import pandas as pd
 from datetime import datetime
 from supabase import create_client, Client
 import random
-import base64 # <-- ADICIONE ESTA LINHA AQUI
+import base64
 
 st.set_page_config(page_title="Mural de Clima", layout="wide", page_icon="🎉")
 
-# -- PERSONALIZAÇÃO DE COR --
+# -- PERSONALIZAÇÃO DO MURAL --
 st.sidebar.title("🎨 Personalizar Mural")
-# Cor padrão é o azul escuro executivo. Você pode mudar pelo menu lateral!
-cor_fundo = st.sidebar.color_picker("Escolha a cor de fundo", "#0f172a")
+
+# Cor de fundo padrão
+cor_fundo = st.sidebar.color_picker("1. Escolha a cor base", "#0f172a")
+
+# Opção de subir uma imagem
+imagem_fundo = st.sidebar.file_uploader("2. Ou suba uma Imagem de Fundo (Florzinhas, temas, etc)", type=["jpg", "png", "jpeg"])
+
+# Lógica inteligente: Se tiver imagem, usa a imagem. Se não, usa a cor.
+if imagem_fundo is not None:
+    # Transforma a imagem anexada em um código que o HTML consegue ler
+    base64_img = base64.b64encode(imagem_fundo.read()).decode()
+    # Pega o tipo da imagem (jpg, png)
+    tipo_img = imagem_fundo.type
+    # Cria o comando CSS para preencher a tela toda
+    estilo_fundo = f"background-image: url('data:{tipo_img};base64,{base64_img}'); background-size: cover; background-position: center; background-attachment: fixed;"
+else:
+    estilo_fundo = f"background-color: {cor_fundo};"
 
 # Conexão com Supabase
 url = st.secrets["SUPABASE_URL"]
@@ -42,16 +57,16 @@ if dados:
     if not df_mes.empty:
         df_mes = df_mes.sort_values(by='data_nascimento')
         
-        # Repare que o CSS agora usa a variável {cor_fundo}
+        # Repare que o CSS agora usa a variável {estilo_fundo} no body
         html_base = f"""
         <!DOCTYPE html>
         <html>
         <head>
             <style>
                 * {{ margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }}
-                body {{ background-color: {cor_fundo}; color: #f8fafc; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; transition: background-color 0.5s ease; }}
+                body {{ {estilo_fundo} color: #f8fafc; display: flex; flex-direction: column; align-items: center; padding: 30px 20px; transition: background-color 0.5s ease; min-height: 100vh; }}
                 .mural-header {{ text-align: center; margin-bottom: 50px; }}
-                .mural-header h1 {{ font-size: 3rem; text-transform: uppercase; letter-spacing: 3px; color: #f8fafc; border-bottom: 2px solid #38bdf8; padding-bottom: 10px; display: inline-block; }}
+                .mural-header h1 {{ font-size: 3rem; text-transform: uppercase; letter-spacing: 3px; color: #ffffff; text-shadow: 2px 2px 8px rgba(0,0,0,0.8); border-bottom: 2px solid #38bdf8; padding-bottom: 10px; display: inline-block; }}
                 .mural-grid {{ display: flex; flex-wrap: wrap; gap: 40px; justify-content: center; max-width: 1200px; }}
                 .aniversariante-card {{ display: flex; flex-direction: column; align-items: center; gap: 20px; }}
                 .polaroid {{ background-color: #ffffff; padding: 15px 15px 30px 15px; border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 250px; color: #1e293b; text-align: center; z-index: 2; }}
@@ -61,8 +76,8 @@ if dados:
                 .nome {{ font-size: 1.5rem; font-weight: bold; margin-bottom: 5px; }}
                 .data {{ font-size: 1rem; color: #ef4444; font-weight: bold; margin-bottom: 10px; }}
                 
-                /* Área de post-its adaptada para receber vários itens */
-                .area-post-it {{ border: 2px dashed rgba(255,255,255,0.3); border-radius: 8px; width: 300px; min-height: 200px; padding: 10px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: flex-start; }}
+                /* Área de post-its adaptada para fundo com imagem */
+                .area-post-it {{ border: 2px dashed rgba(255,255,255,0.5); border-radius: 8px; width: 300px; min-height: 200px; padding: 10px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: flex-start; background-color: rgba(0,0,0,0.2); }}
                 
                 /* Estilo do Post-it Digital */
                 .post-it {{ background-color: #fef08a; color: #3f6212; padding: 15px; width: 130px; box-shadow: 2px 4px 6px rgba(0,0,0,0.3); font-family: 'Comic Sans MS', cursive, sans-serif; font-size: 0.85rem; border-radius: 2px; }}
@@ -92,10 +107,10 @@ if dados:
                 recados_pessoa = df_recados[df_recados['para_quem'] == row['nome']]
                 
                 if recados_pessoa.empty:
-                    post_its_html = "<p style='color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-top: 80px;'>Deixe um recado na aba lateral 📌</p>"
+                    post_its_html = "<p style='color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-top: 80px; text-shadow: 1px 1px 2px black;'>Deixe um recado na aba lateral 📌</p>"
                 else:
                     for i, recado in recados_pessoa.iterrows():
-                        # Cria uma rotação aleatória para cada post-it não ficar reto parecendo robótico
+                        # Cria uma rotação aleatória para cada post-it
                         rotacao = random.randint(-6, 6)
                         post_its_html += f"""
                         <div class="post-it" style="transform: rotate({rotacao}deg);">
@@ -104,7 +119,7 @@ if dados:
                         </div>
                         """
             else:
-                post_its_html = "<p style='color: rgba(255,255,255,0.5); font-size: 0.9rem; margin-top: 80px;'>Deixe um recado na aba lateral 📌</p>"
+                post_its_html = "<p style='color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-top: 80px; text-shadow: 1px 1px 2px black;'>Deixe um recado na aba lateral 📌</p>"
 
             # Montagem final do cartão com a área de post-its preenchida
             cartao = f"""
@@ -130,3 +145,7 @@ if dados:
         
         html_completo = html_base + cartoes_html + html_fim
         components.html(html_completo, height=1200, scrolling=True)
+    else:
+        st.info(f"Nenhum aniversariante encontrado para o mês de {nome_mes_atual}.")
+else:
+    st.info("O banco de dados está vazio. Preencha o cadastro na aba lateral!")
