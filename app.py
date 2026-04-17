@@ -44,7 +44,7 @@ if modo_admin:
 
     novo_cadastro = st.sidebar.checkbox("Liberar Aba de Cadastro", value=config.get("liberar_cadastro", True))
     novo_recados = st.sidebar.checkbox("Liberar Aba de Recados", value=liberar_recados)
-   novo_exibir = st.sidebar.checkbox("REVELAR MURAL FINAL", value=exibir_mural)
+    novo_exibir = st.sidebar.checkbox("REVELAR MURAL FINAL", value=exibir_mural)
 
 st.sidebar.divider()
 cor_fundo = st.sidebar.color_picker("Cor base do Mural", "#0f172a")
