@@ -100,7 +100,7 @@ if dados:
             <div class="mural-grid">
         """
        cartoes_html = ""
-        for index, row in df_mes.iterrows():
+       for index, row in df_mes.iterrows():
             img = f"url('{row['foto_url']}')" if row['foto_url'] else "linear-gradient(#ccc, #999)"
             
             p_html = ""
