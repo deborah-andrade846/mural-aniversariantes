@@ -90,7 +90,7 @@ except Exception as e:
     dados = []
 
 # --- 6. MURAL (INALTERADO) ---
-if aba == "Mural":
+
 
     if dados:
         df = pd.DataFrame(dados)
