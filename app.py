@@ -55,13 +55,11 @@ if modo_admin:
     atualizar_config("cor_fundo", cor_fundo)
 
     # SALVAR IMAGEM
-    if imagem_salva = config.get("imagem_fundo", "")
-cor_salva = config.get("cor_fundo", "#0f172a")
-
-if imagem_salva:
-    estilo_fundo = f"background-image: url('{imagem_salva}'); background-size: cover; background-position: center; background-attachment: fixed;"
-else:
-    estilo_fundo = f"background-color: {cor_salva};"
+    if imagem_fundo is not None:
+        base64_img = base64.b64encode(imagem_fundo.read()).decode()
+        tipo_img = imagem_fundo.type
+        fundo_img = f"data:{tipo_img};base64,{base64_img}"
+        atualizar_config("imagem_fundo", fundo_img)
 
     st.sidebar.success("Atualizado!")
     st.rerun()
@@ -80,6 +78,13 @@ else:
     if senha_digitada != "":
         st.sidebar.error("Senha incorreta.")
     estilo_fundo = "background-color: #0f172a;"
+    imagem_salva = config.get("imagem_fundo", "")
+cor_salva = config.get("cor_fundo", "#0f172a")
+
+if imagem_salva:
+    estilo_fundo = f"background-image: url('{imagem_salva}'); background-size: cover; background-position: center; background-attachment: fixed;"
+else:
+    estilo_fundo = f"background-color: {cor_salva};"
 
 # --- 4. PORTEIRO ---
 if not exibir_mural:
