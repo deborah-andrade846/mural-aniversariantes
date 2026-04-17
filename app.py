@@ -86,7 +86,7 @@ else:
 
     if imagem_salva:
         estilo_fundo = f"background-image: url('{imagem_salva}'); background-size: cover; background-position: center; background-attachment: fixed;"
-    else:
+else:
         estilo_fundo = f"background-color: {cor_salva};"
 # --- 4. PORTEIRO ---
 if not exibir_mural:
