@@ -89,17 +89,14 @@ except Exception as e:
     st.error(f"Erro no banco: {e}")
     dados = []
 
-# --- 6. MURAL (INALTERADO) ---
+# --- MURAL DIRETO (SEM ABA) ---
+if dados:
+    df = pd.DataFrame(dados)
+    df['data_nascimento'] = pd.to_datetime(df['data_nascimento'], errors='coerce')
+    df_mes = df[df['data_nascimento'].dt.month == mes_atual].copy()
 
-
-    if dados:
-        df = pd.DataFrame(dados)
-        df['data_nascimento'] = pd.to_datetime(df['data_nascimento'], errors='coerce')
-        df_mes = df[df['data_nascimento'].dt.month == mes_atual].copy()
-
-        if not df_mes.empty:
-            df_mes = df_mes.sort_values(by='data_nascimento')
-
+    if not df_mes.empty:
+        df_mes = df_mes.sort_values(by='data_nascimento')
             html_base = f"""
             <!DOCTYPE html>
             <html>
