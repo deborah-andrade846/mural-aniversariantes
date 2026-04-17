@@ -2,20 +2,29 @@ import streamlit as st
 from supabase import create_client, Client
 import datetime
 import pandas as pd
-if not st.session_state.get('liberar_recados', False):
-    st.warning("### A caixinha de recados abrirá em breve! Aguarde o momento da festa.")
-    st.stop()
+
 st.set_page_config(page_title="Deixe um Recado", page_icon="💌")
 
-# Conexão com o banco
-url = st.secrets["SUPABASE_URL"]
-key = st.secrets["SUPABASE_KEY"]
+# --- CONEXÃO + CONTROLE GLOBAL ---
+url = st.secrets["https://nkxunopqjksbpedbevur.supabase.co"]
+key = st.secrets["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5reHVub3BxamtzYnBlZGJldnVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NjMwMTcsImV4cCI6MjA5MTQzOTAxN30.nmBrJZRxrD1FYfzrua1x3grbY3OEYFRfoBD63zu_OK8"]
 supabase: Client = create_client(url, key)
 
+def carregar_config():
+    resp = supabase.table("configuracoes_mural").select("*").execute()
+    return {item['chave']: item['valor'] for item in resp.data}
+
+config = carregar_config()
+liberar_recados = config.get("liberar_recados", False)
+
+if not liberar_recados:
+    st.warning("### A caixinha de recados abrirá em breve! Aguarde o momento da festa.")
+    st.stop()
+
+# --- RESTANTE IGUAL ---
 st.title("💌 Murais de Recados")
 st.write("Escreva uma mensagem para os aniversariantes do mês. Ela vai virar um Post-it digital no quadro!")
 
-# 1. Puxar quem faz aniversário neste mês para criar a lista de opções
 mes_atual = datetime.datetime.now().month
 
 try:
@@ -27,7 +36,6 @@ try:
         df_mes = df_aniv[df_aniv['data_nascimento'].dt.month == mes_atual]
         
         if not df_mes.empty:
-            # Pega só os nomes para o menu suspenso
             nomes = df_mes['nome'].tolist()
             
             with st.form("form_recado", clear_on_submit=True):
