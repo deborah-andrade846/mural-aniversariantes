@@ -3,7 +3,8 @@ import streamlit.components.v1 as components
 import pandas as pd
 from datetime import datetime
 from supabase import create_client, Client
-import random # Usado para entortar os post-its aleatoriamente
+import random
+import base64 # <-- ADICIONE ESTA LINHA AQUI
 
 st.set_page_config(page_title="Mural de Clima", layout="wide", page_icon="🎉")
 
