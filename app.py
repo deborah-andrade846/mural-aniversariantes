@@ -73,26 +73,23 @@ if modo_admin:
     liberar_recados = to_bool(config.get("liberar_recados", False))
     liberar_cadastro = to_bool(config.get("liberar_cadastro", True))
 
-    novo_cadastro = st.sidebar.checkbox(
-        "Liberar Aba de Cadastro",
-        value=liberar_cadastro
-    )
-    novo_recados = st.sidebar.checkbox(
-        "Liberar Aba de Recados",
-        value=liberar_recados
-    )
-    novo_exibir = st.sidebar.checkbox(
-        "REVELAR MURAL FINAL",
-        value=exibir_mural
-    )
-
     st.sidebar.divider()
-    cor_fundo_banco = config.get("cor_fundo")
-    if cor_hex_valida(cor_fundo_banco):
-        cor_fundo = st.sidebar.color_picker("Cor base do Mural", value=cor_fundo_banco)
-    else:
-        cor_fundo = st.sidebar.color_picker("Cor base do Mural")
-    imagem_fundo  = st.sidebar.file_uploader("Imagem de Fundo", type=["jpg", "png", "jpeg"])
+    
+    # Agrupando os controles de acesso
+    with st.sidebar.expander("🔐 Controles de Acesso", expanded=True):
+        novo_cadastro = st.checkbox("Liberar Aba de Cadastro", value=liberar_cadastro)
+        novo_recados = st.checkbox("Liberar Aba de Recados", value=liberar_recados)
+        novo_exibir = st.checkbox("🎉 REVELAR MURAL FINAL", value=exibir_mural)
+
+    # Agrupando a personalização de cores e imagens
+    with st.sidebar.expander("🎨 Personalização Visual", expanded=False):
+        cor_fundo_banco = config.get("cor_fundo")
+        if cor_hex_valida(cor_fundo_banco):
+            cor_fundo = st.color_picker("Cor base do Mural", value=cor_fundo_banco)
+        else:
+            cor_fundo = st.color_picker("Cor base do Mural")
+            
+        imagem_fundo  = st.file_uploader("Imagem de Fundo", type=["jpg", "png", "jpeg"])
 
     # Lê o arquivo UMA ÚNICA VEZ e reutiliza
     img_bytes_admin  = None
@@ -103,7 +100,9 @@ if modo_admin:
         img_b64_admin   = base64.b64encode(img_bytes_admin).decode()
         img_tipo_admin  = imagem_fundo.type
 
-    if st.sidebar.button("💾 Salvar alterações"):
+    st.sidebar.write("") # Espaçamento
+    # Botão de salvar mais destacado ocupando toda a largura
+    if st.sidebar.button("💾 Salvar alterações", type="primary", use_container_width=True):
         atualizar_config("liberar_cadastro", novo_cadastro)
         atualizar_config("liberar_recados",  novo_recados)
         atualizar_config("exibir_mural",     novo_exibir)
@@ -153,14 +152,65 @@ else:
 
 # --- 4. PORTEIRO ---
 if not exibir_mural:
-    st.markdown("""
-    <div style="text-align:center; padding: 80px 20px;">
-        <div style="font-size: 5rem;">🎉</div>
-        <h1 style="font-size: 2.5rem; margin: 20px 0 10px;">Mural de Aniversariantes</h1>
-        <p style="font-size: 1.2rem; color: #94a3b8;">
-            O Mural está sendo preparado com carinho! 🤫<br>
-            Fique atento às comunicações da CGC para a grande revelação.
-        </p>
+    st.markdown(f"""
+    <style>
+        /* Aplica o fundo escolhido no admin também na tela de espera */
+        .stApp {{
+            {estilo_fundo}
+        }}
+        .porteiro-card {{
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 50px 30px;
+            text-align: center;
+            max-width: 600px;
+            margin: 10vh auto;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            color: white;
+            animation: fadeIn 1s ease-in-out;
+        }}
+        .emoji-animado {{
+            font-size: 5rem;
+            display: inline-block;
+            animation: pulse 2s infinite;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }}
+        .porteiro-titulo {{
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }}
+        .porteiro-texto {{
+            font-family: 'Lato', sans-serif;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }}
+        @keyframes pulse {{
+            0% {{ transform: scale(1); }}
+            50% {{ transform: scale(1.15) rotate(-5deg); }}
+            100% {{ transform: scale(1); }}
+        }}
+        @keyframes fadeIn {{
+            from {{ opacity: 0; transform: translateY(20px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
+    </style>
+
+    <div class="porteiro-card">
+        <div class="emoji-animado">🤫</div>
+        <div class="porteiro-titulo">Mural em Preparação</div>
+        <div class="porteiro-texto">
+            A equipe da CGC está cuidando de cada detalhe com muito carinho!<br><br>
+            Fique atento às comunicações internas para a grande revelação do nosso quadro de aniversariantes.
+        </div>
     </div>
     """, unsafe_allow_html=True)
     st.stop()
