@@ -653,7 +653,7 @@ if dados:
             <button class="btn-imprimir" onclick="window.print()">🖨️ Extrair para PDF / Imprimir A3</button>
 
             <div class="mural-header">
-                <p class="subtitulo">Celebrações CGC</p>
+                <p class="subtitulo">Celebrações GAFI</p>
                 <h1>Aniversariantes de <span class="mes-destaque">{nome_mes_atual}</span></h1>
             </div>
             <div class="mural-grid">
