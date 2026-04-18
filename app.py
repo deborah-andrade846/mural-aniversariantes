@@ -714,7 +714,7 @@ if dados:
                 <div class="recados-section">
                     <div class="recados-titulo">
                         <span>Mensagens para {nome.split()[0]}</span>
-                        <span style="font-size: 1.2rem; opacity: 0.6;">🎂</span>
+                        <span style="font-size: 1.9rem; opacity: 0;">🎂</span>
                     </div>
                     <div class="area-post-it">
                         {post_its_html}
