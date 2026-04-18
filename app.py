@@ -276,6 +276,16 @@ if dados:
 
     if not df_mes.empty:
         df_mes = df_mes.sort_values(by='data_nascimento')
+        
+        # Prepara a variável de fundo EXCLUSIVA para os cartões na hora da impressão
+        img_print = config.get("imagem_fundo", "")
+        cor_print = config.get("cor_fundo", "")
+        if img_print:
+            estilo_fundo_print = f"background-image: url('{img_print}') !important; background-size: cover !important; background-position: center !important;"
+        elif cor_hex_valida(cor_print):
+            estilo_fundo_print = f"background-color: {cor_print} !important;"
+        else:
+            estilo_fundo_print = "background-color: #334155 !important;"
 
         html_base = f"""
         <!DOCTYPE html>
@@ -542,16 +552,17 @@ if dados:
                     box-shadow: 0 12px 25px rgba(0,0,0,0.5);
                 }}
 
-                /* ── CONFIGURAÇÕES EXCLUSIVAS PARA A IMPRESSORA (Folha A3) ── */
+                /* ── CONFIGURAÇÕES EXCLUSIVAS PARA A IMPRESSORA (Folha A3 com Cartões Temáticos) ── */
                 @media print {{
                     * {{
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                     }}
                     @page {{
-                        size: A3 portrait; /* Força o tamanho A3 Retrato */
+                        size: A3 portrait;
                         margin: 1cm;
                     }}
+                    /* Remove o fundo de toda a folha para não gastar tinta */
                     body {{
                         background: white !important;
                         color: black !important;
@@ -576,26 +587,32 @@ if dados:
                         -webkit-text-fill-color: #0284c7 !important;
                     }}
                     
-                    /* Mágica da Grade de Impressão (2 Colunas, estica para caber) */
+                    /* Mágica da Grade de Impressão A3 (2 Colunas) */
                     .mural-grid {{
                         display: grid !important;
-                        grid-template-columns: repeat(2, 1fr) !important; /* Exatas 2 colunas */
-                        grid-auto-rows: 1fr !important; /* Faz com que as linhas dividam a página por igual */
+                        grid-template-columns: repeat(2, 1fr) !important;
+                        grid-auto-rows: 1fr !important;
                         gap: 20px !important;
-                        min-height: 85vh !important; /* Estica o conteúdo para preencher o fundo da A3 */
+                        min-height: 85vh !important;
                     }}
                     
+                    /* CARTÃO DO ANIVERSARIANTE NA IMPRESSÃO */
                     .aniversariante-row {{
-                        background: #f8fafc !important;
-                        box-shadow: none !important;
-                        border: 2px solid #cbd5e1 !important;
-                        margin-bottom: 0 !important; /* Removido, o grid-gap que cuida do espaço */
+                        /* Aplica a imagem ou cor escolhida no admin SÓ AQUI dentro! */
+                        {estilo_fundo_print}
                         
-                        /* Layout interno focado para a coluna (Foto em cima, recado embaixo) */
+                        /* Película escura (insulfilm) para garantir que o texto branco apareça na impressão */
+                        box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.6) !important;
+                        
+                        border: 2px solid #cbd5e1 !important;
+                        border-radius: 20px !important;
+                        margin-bottom: 0 !important;
+                        
+                        /* Layout para a coluna da grade */
                         flex-direction: column !important;
                         align-items: center !important;
                         padding: 20px !important;
-                        height: 100% !important; /* Acompanha o esticamento da linha */
+                        height: 100% !important;
                         
                         break-inside: avoid !important;
                         page-break-inside: avoid !important;
@@ -617,17 +634,17 @@ if dados:
                         align-items: center !important;
                     }}
                     .recados-titulo {{
-                        color: #0f172a !important;
-                        border-bottom: 2px solid #cbd5e1 !important;
+                        color: #ffffff !important; /* Mantém branco pois a película do fundo será escura */
+                        border-bottom: 2px solid rgba(255,255,255,0.3) !important;
                         width: 100% !important;
                         justify-content: center !important;
                     }}
                     .area-post-it {{
-                        justify-content: center !important; /* Centraliza os postits na coluna */
+                        justify-content: center !important;
                         width: 100% !important;
                     }}
                     .sem-recados {{
-                        color: #64748b !important;
+                        color: rgba(255,255,255,0.8) !important;
                     }}
                 }}
             </style>
