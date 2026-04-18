@@ -49,7 +49,7 @@ if modo_admin:
     st.sidebar.success("Modo Admin Ativado! 🔓")
 
    def atualizar_config(chave, valor):
-    try:
+       try:
         # Garante que o valor vai como texto para o banco
         valor_str = str(valor)
         
