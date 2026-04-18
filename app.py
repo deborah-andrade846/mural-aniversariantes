@@ -48,24 +48,24 @@ modo_admin     = (senha_digitada == SENHA_CORRETA)
 if modo_admin:
     st.sidebar.success("Modo Admin Ativado! 🔓")
 
-def atualizar_config(chave, valor):
-    try:
-    # Garante que o valor vai como texto para o banco
-    valor_str = str(valor)
-    
-    # 1. Verifica se a chave já existe na tabela
-    busca = supabase.table("configuracoes_mural").select("id").eq("chave", chave).execute()
-    
-    if busca.data and len(busca.data) > 0:
-        # 2. Se a chave existir, atualiza o valor
-        supabase.table("configuracoes_mural").update({"valor": valor_str}).eq("chave", chave).execute()
-    else:
-        # 3. Se a chave não existir, insere um novo registro
-        supabase.table("configuracoes_mural").insert({"chave": chave, "valor": valor_str}).execute()
+    def atualizar_config(chave, valor):
+        try:
+            # Garante que o valor vai como texto para o banco
+            valor_str = str(valor)
             
-    except Exception as e:
-        st.error(f"Erro ao salvar configuração: {e}")
-        raise e
+            # 1. Verifica se a chave já existe na tabela
+            busca = supabase.table("configuracoes_mural").select("id").eq("chave", chave).execute()
+            
+            if busca.data and len(busca.data) > 0:
+                # 2. Se a chave existir, atualiza o valor
+                supabase.table("configuracoes_mural").update({"valor": valor_str}).eq("chave", chave).execute()
+            else:
+                # 3. Se a chave não existir, insere um novo registro
+                supabase.table("configuracoes_mural").insert({"chave": chave, "valor": valor_str}).execute()
+                    
+        except Exception as e:
+            st.error(f"Erro ao salvar configuração: {e}")
+            raise e
 
     # Recarrega sempre do banco antes de renderizar os inputs do admin
     config = carregar_config()
@@ -169,7 +169,7 @@ if not exibir_mural:
 mes_atual = datetime.now().month
 meses_ptbr = {
     1: 'Janeiro',  2: 'Fevereiro', 3: 'Março',    4: 'Abril',
-    5: 'Maio',     6: 'Junho',     7: 'Julho',     8: 'Agosto',
+    5: 'Maio',     6: 'Junho',     7: 'Julho',    8: 'Agosto',
     9: 'Setembro', 10: 'Outubro',  11: 'Novembro', 12: 'Dezembro'
 }
 nome_mes_atual = meses_ptbr[mes_atual]
