@@ -7,7 +7,7 @@ import random
 import base64
 import re
 
-st.set_page_config(page_title="Mural de Clima", layout="wide", page_icon="🎉")
+st.set_page_config(page_title="Mural de Aniversáriantes", layout="wide", page_icon="🎉")
 
 # --- MODO TV (TELA LIMPA) ---
 # Se a URL terminar com ?tv=true, esconde toda a interface padrão do Streamlit
@@ -64,7 +64,7 @@ liberar_recados = to_bool(config.get("liberar_recados", False))
 liberar_cadastro = to_bool(config.get("liberar_cadastro", True))
 
 # --- 3. ADMIN ---
-st.sidebar.title("⚙️ Administração CGC")
+st.sidebar.title("⚙️ Administração")
 senha_digitada = st.sidebar.text_input("Acesso restrito", type="password")
 SENHA_CORRETA  = "cgc2026"
 modo_admin     = (senha_digitada == SENHA_CORRETA)
@@ -232,8 +232,8 @@ if not exibir_mural:
         <div class="emoji-animado">🤫</div>
         <div class="porteiro-titulo">Mural em Preparação</div>
         <div class="porteiro-texto">
-            A equipe da CGC está cuidando de cada detalhe com muito carinho!<br><br>
-            Fique atento às comunicações internas para a grande revelação do nosso quadro de aniversariantes.
+            A equipe está cuidando de cada detalhe com muito carinho!<br><br>
+            Fique atento às comunicações da GAFI para a grande revelação do nosso quadro de aniversariantes.
         </div>
     </div>
     """, unsafe_allow_html=True)
