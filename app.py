@@ -283,7 +283,6 @@ if dados:
         <head>
             <meta charset="UTF-8">
             <meta http-equiv="refresh" content="300">
-            
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
             <style>
@@ -388,7 +387,6 @@ if dados:
                     position: relative;
                     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                 }}
-                /* Efeito de Fita Adesiva (Washi Tape) */
                 .polaroid::after {{
                     content: '';
                     position: absolute;
@@ -482,10 +480,8 @@ if dados:
                     justify-content: space-between;
                     position: relative;
                     transition: transform 0.3s ease;
-                    /* Efeito de iluminação 3D no papel */
                     background-image: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%) !important;
                 }}
-                /* Simulação de um Durex segurando o post-it */
                 .post-it::after {{
                     content: '';
                     position: absolute;
@@ -518,9 +514,89 @@ if dados:
                     font-style: italic;
                     padding: 20px 0;
                 }}
+
+                /* ── Botão de Impressão ── */
+                .btn-imprimir {{
+                    position: fixed;
+                    bottom: 30px;
+                    right: 30px;
+                    background-color: #38bdf8;
+                    color: #0f172a;
+                    border: none;
+                    padding: 15px 25px;
+                    border-radius: 50px;
+                    font-family: 'Lato', sans-serif;
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+                    cursor: pointer;
+                    z-index: 1000;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }}
+                .btn-imprimir:hover {{
+                    transform: translateY(-5px);
+                    background-color: #7dd3fc;
+                    box-shadow: 0 12px 25px rgba(0,0,0,0.5);
+                }}
+
+                /* ── CONFIGURAÇÕES ESPECÍFICAS PARA A IMPRESSORA (A4 / FÍSICO) ── */
+                @media print {{
+                    /* Força o navegador a imprimir cores exatas de fundo (Post-its) */
+                    * {{
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }}
+                    @page {{
+                        margin: 1.5cm; /* Margens limpas no papel */
+                        size: A4 portrait;
+                    }}
+                    body {{
+                        background: white !important; /* Tira a foto de fundo para economizar tinta e destacar a leitura */
+                        color: black !important;
+                        padding: 0 !important;
+                    }}
+                    .btn-imprimir {{
+                        display: none !important; /* Esconde o botão na hora de imprimir */
+                    }}
+                    .mural-header {{
+                        background: #f1f5f9 !important;
+                        color: #0f172a !important;
+                        box-shadow: none !important;
+                        border: 2px solid #cbd5e1 !important;
+                        margin-bottom: 30px !important;
+                        padding: 20px !important;
+                    }}
+                    .mural-header h1, .mural-header .subtitulo {{
+                        color: #0f172a !important;
+                        text-shadow: none !important;
+                    }}
+                    .mural-header .mes-destaque {{
+                        -webkit-text-fill-color: #0284c7 !important; /* Azul sólido para impressora */
+                    }}
+                    .aniversariante-row {{
+                        background: #f8fafc !important; /* Troca o vidro por um cinza bem claro elegante */
+                        box-shadow: none !important;
+                        border: 1px solid #cbd5e1 !important;
+                        break-inside: avoid; /* IMPEDIR QUE A IMPRESSORA CORTE O CARTÃO AO MEIO */
+                        page-break-inside: avoid;
+                        margin-bottom: 30px !important;
+                    }}
+                    .recados-titulo {{
+                        color: #0f172a !important;
+                        border-bottom: 2px solid #cbd5e1 !important;
+                    }}
+                    .sem-recados {{
+                        color: #64748b !important;
+                    }}
+                }}
             </style>
         </head>
         <body>
+            <button class="btn-imprimir" onclick="window.print()">🖨️ Extrair para PDF / Imprimir</button>
+
             <div class="mural-header">
                 <p class="subtitulo">Celebrações CGC</p>
                 <h1>Aniversariantes de <span class="mes-destaque">{nome_mes_atual}</span></h1>
