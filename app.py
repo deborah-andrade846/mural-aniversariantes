@@ -271,216 +271,233 @@ if dados:
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    padding: 40px 20px 60px;
+                    padding: 60px 20px;
                     min-height: 100vh;
                 }}
                 /* ── Header ── */
                 .mural-header {{
                     text-align: center;
-                    margin-bottom: 60px;
-                    position: relative;
+                    margin-bottom: 70px;
+                    background: rgba(0, 0, 0, 0.4);
+                    padding: 30px 60px;
+                    border-radius: 20px;
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
                 }}
                 .mural-header .subtitulo {{
-                    font-family: 'Lato', sans-serif;
-                    font-weight: 300;
-                    font-size: 0.95rem;
-                    letter-spacing: 5px;
+                    font-weight: 400;
+                    font-size: 1.1rem;
+                    letter-spacing: 6px;
                     text-transform: uppercase;
-                    color: #94a3b8;
+                    color: #e2e8f0;
                     margin-bottom: 10px;
                 }}
                 .mural-header h1 {{
                     font-family: 'Playfair Display', serif;
-                    font-size: 3.2rem;
+                    font-size: 3.5rem;
                     font-weight: 900;
                     color: #ffffff;
-                    text-shadow: 0 2px 20px rgba(0,0,0,0.6);
-                    line-height: 1.1;
+                    text-shadow: 0 4px 15px rgba(0,0,0,0.5);
+                    line-height: 1.2;
                 }}
                 .mural-header .mes-destaque {{
                     color: #38bdf8;
-                }}
-                .header-linha {{
-                    width: 80px;
-                    height: 3px;
                     background: linear-gradient(90deg, #38bdf8, #818cf8);
-                    margin: 16px auto 0;
-                    border-radius: 2px;
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
                 }}
-                /* ── Grid ── */
+                
+                /* ── Grid Principal ── */
                 .mural-grid {{
                     display: flex;
-                    flex-wrap: wrap;
-                    gap: 50px;
-                    justify-content: center;
-                    max-width: 1300px;
+                    flex-direction: column;
+                    gap: 40px;
+                    max-width: 1200px;
                     width: 100%;
                 }}
-                /* ── Card de Aniversariante ── */
-                .aniversariante-card {{
+
+                /* ── Bloco de Celebração (Card Horizontal) ── */
+                .aniversariante-row {{
                     display: flex;
-                    flex-direction: column;
+                    flex-direction: row;
+                    gap: 40px;
+                    background: rgba(255, 255, 255, 0.08);
+                    backdrop-filter: blur(16px);
+                    -webkit-backdrop-filter: blur(16px);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: 24px;
+                    padding: 40px;
+                    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+                    animation: fadeInUp 0.8s ease both;
                     align-items: center;
-                    gap: 24px;
-                    animation: fadeInUp 0.6s ease both;
                 }}
+                @media (max-width: 800px) {{
+                    .aniversariante-row {{
+                        flex-direction: column;
+                        padding: 25px;
+                    }}
+                }}
+
                 @keyframes fadeInUp {{
-                    from {{ opacity: 0; transform: translateY(24px); }}
+                    from {{ opacity: 0; transform: translateY(30px); }}
                     to   {{ opacity: 1; transform: translateY(0); }}
                 }}
-                /* ── Polaroid ── */
+
+                /* ── Polaroid C/ Fita ── */
+                .polaroid-container {{
+                    flex-shrink: 0;
+                    position: relative;
+                }}
                 .polaroid {{
-                    background: #fffef5;
-                    padding: 14px 14px 40px;
-                    border-radius: 3px;
-                    box-shadow:
-                        0 4px 6px rgba(0,0,0,0.2),
-                        0 12px 30px rgba(0,0,0,0.45),
-                        inset 0 1px 0 rgba(255,255,255,0.8);
-                    width: 240px;
+                    background: #ffffff;
+                    padding: 16px 16px 50px;
+                    border-radius: 4px;
+                    box-shadow: 
+                        0 10px 20px rgba(0,0,0,0.3),
+                        inset 0 1px 0 rgba(255,255,255,1);
+                    width: 260px;
                     color: #1e293b;
                     text-align: center;
                     position: relative;
-                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                }}
+                /* Efeito de Fita Adesiva (Washi Tape) */
+                .polaroid::after {{
+                    content: '';
+                    position: absolute;
+                    top: -12px;
+                    left: 50%;
+                    transform: translateX(-50%) rotate(-3deg);
+                    width: 100px;
+                    height: 30px;
+                    background-color: rgba(255, 255, 255, 0.4);
+                    backdrop-filter: blur(4px);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    border-radius: 2px;
+                    z-index: 5;
+                    border: 1px solid rgba(255,255,255,0.5);
                 }}
                 .polaroid:hover {{
-                    transform: scale(1.04) rotate(-0.5deg);
-                    box-shadow:
-                        0 8px 16px rgba(0,0,0,0.3),
-                        0 24px 50px rgba(0,0,0,0.55);
+                    transform: scale(1.05) rotate(2deg);
                 }}
                 .foto {{
                     width: 100%;
-                    height: 210px;
+                    height: 230px;
                     background-size: cover;
-                    background-position: center top;
-                    border-radius: 1px;
-                    border: 1px solid #e2e8f0;
-                    overflow: hidden;
+                    background-position: center 20%;
+                    border-radius: 2px;
+                    border: 1px solid #cbd5e1;
+                    filter: contrast(1.05) brightness(1.02);
                 }}
                 .foto-placeholder {{
                     width: 100%;
-                    height: 210px;
-                    background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+                    height: 230px;
+                    background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 4rem;
-                    border-radius: 1px;
+                    font-size: 5rem;
                 }}
                 .nome {{
                     font-family: 'Playfair Display', serif;
-                    font-size: 1.15rem;
-                    font-weight: 700;
-                    margin-top: 12px;
-                    color: #1e293b;
-                    line-height: 1.2;
+                    font-size: 1.4rem;
+                    font-weight: 900;
+                    margin-top: 15px;
+                    color: #0f172a;
                 }}
                 .data-badge {{
                     display: inline-block;
-                    background: linear-gradient(135deg, #ef4444, #f97316);
+                    background: #1e293b;
                     color: #fff;
-                    font-size: 0.75rem;
+                    font-size: 0.8rem;
                     font-weight: 700;
                     letter-spacing: 1px;
                     text-transform: uppercase;
-                    padding: 3px 10px;
+                    padding: 4px 12px;
                     border-radius: 20px;
-                    margin-top: 6px;
-                    box-shadow: 0 2px 6px rgba(239,68,68,0.4);
+                    margin-top: 8px;
                 }}
-                .curiosidade {{
-                    font-size: 0.78rem;
-                    color: #64748b;
-                    font-style: italic;
-                    margin-top: 6px;
-                    padding: 0 4px;
-                    line-height: 1.4;
-                }}
+
                 /* ── Área de Post-its ── */
+                .recados-section {{
+                    flex-grow: 1;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                }}
+                .recados-titulo {{
+                    font-family: 'Playfair Display', serif;
+                    font-size: 1.8rem;
+                    color: #ffffff;
+                    margin-bottom: 20px;
+                    border-bottom: 2px solid rgba(255,255,255,0.2);
+                    padding-bottom: 10px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }}
                 .area-post-it {{
-                    border: 2px dashed rgba(255,255,255,0.2);
-                    border-radius: 10px;
-                    width: 290px;
-                    min-height: 170px;
-                    padding: 14px;
                     display: flex;
                     flex-wrap: wrap;
-                    gap: 12px;
-                    justify-content: center;
-                    align-content: flex-start;
-                    background: rgba(0,0,0,0.15);
-                    backdrop-filter: blur(4px);
+                    gap: 20px;
+                    justify-content: flex-start;
                 }}
                 .post-it {{
-                    padding: 12px 10px;
-                    width: 120px;
-                    min-height: 90px;
-                    box-shadow:
-                        2px 3px 8px rgba(0,0,0,0.35),
-                        inset 0 -3px 0 rgba(0,0,0,0.08);
+                    padding: 20px 16px 16px;
+                    width: 160px;
+                    min-height: 140px;
+                    box-shadow: 3px 5px 15px rgba(0,0,0,0.2);
                     font-family: 'Caveat', cursive;
-                    font-size: 0.9rem;
-                    border-radius: 2px;
+                    font-size: 1.1rem;
+                    border-radius: 2px 15px 2px 2px;
                     display: flex;
                     flex-direction: column;
                     justify-content: space-between;
-                    gap: 8px;
-                    word-break: break-word;
-                    transition: transform 0.2s ease;
                     position: relative;
+                    transition: transform 0.3s ease;
+                    /* Efeito de iluminação 3D no papel */
+                    background-image: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%) !important;
                 }}
-                .post-it::before {{
+                /* Simulação de um Durex segurando o post-it */
+                .post-it::after {{
                     content: '';
                     position: absolute;
-                    top: 0; left: 50%;
+                    top: -6px; left: 50%;
                     transform: translateX(-50%);
-                    width: 30px; height: 6px;
-                    background: rgba(0,0,0,0.12);
-                    border-radius: 0 0 3px 3px;
+                    width: 40px; height: 12px;
+                    background: rgba(255,255,255,0.5);
+                    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
                 }}
                 .post-it:hover {{
-                    transform: scale(1.06) !important;
+                    transform: scale(1.1) translateY(-5px) !important;
                     z-index: 10;
+                    box-shadow: 5px 15px 25px rgba(0,0,0,0.3);
                 }}
                 .post-it-msg {{
-                    font-size: 0.92rem;
-                    line-height: 1.35;
-                    font-weight: 500;
+                    line-height: 1.3;
+                    font-weight: 700;
+                    color: rgba(0,0,0,0.85);
                 }}
                 .post-it-autor {{
-                    font-size: 0.78rem;
+                    font-size: 0.9rem;
                     font-weight: 700;
-                    opacity: 0.75;
+                    color: rgba(0,0,0,0.6);
                     text-align: right;
-                    border-top: 1px solid rgba(0,0,0,0.1);
-                    padding-top: 5px;
-                    margin-top: auto;
+                    margin-top: 15px;
                 }}
                 .sem-recados {{
-                    color: rgba(255,255,255,0.4);
-                    font-size: 0.82rem;
-                    text-align: center;
-                    padding: 30px 10px;
-                    font-family: 'Lato', sans-serif;
+                    color: rgba(255,255,255,0.6);
+                    font-size: 1.1rem;
                     font-style: italic;
-                    width: 100%;
-                }}
-                /* ── Emoji de bolo decorativo ── */
-                .bolo-emoji {{
-                    font-size: 1.5rem;
-                    position: absolute;
-                    top: -14px;
-                    right: -10px;
-                    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+                    padding: 20px 0;
                 }}
             </style>
         </head>
         <body>
             <div class="mural-header">
-                <p class="subtitulo">🎂 Celebrando</p>
-                <h1>Aniversariantes de<br><span class="mes-destaque">{nome_mes_atual}</span></h1>
-                <div class="header-linha"></div>
+                <p class="subtitulo">Celebrações CGC</p>
+                <h1>Aniversariantes de <span class="mes-destaque">{nome_mes_atual}</span></h1>
             </div>
             <div class="mural-grid">
         """
@@ -500,47 +517,57 @@ if dados:
             texto_curiosidade = str(row.get("curiosidade", "")).strip()
             curiosidade_html = ""
             if texto_curiosidade:
-                curiosidade_html = f'<div class="curiosidade">✨ {texto_curiosidade}</div>'
+                curiosidade_html = f'<div style="font-size:0.85rem; color:#64748b; margin-top:10px; font-style:italic;">"{texto_curiosidade}"</div>'
 
             # ── Post-its ──
             post_its_html = ""
             if not df_recados.empty and 'para_quem' in df_recados.columns:
                 recados_pessoa = df_recados[df_recados['para_quem'] == nome]
                 if recados_pessoa.empty:
-                    post_its_html = '<p class="sem-recados">📌 Aguardando recados...</p>'
+                    post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
                 else:
                     for i, (_, recado) in enumerate(recados_pessoa.iterrows()):
                         mensagem = str(recado.get("mensagem", "")).strip()
                         autor    = str(recado.get("de_quem", "Anônimo")).strip()
-                        rotacao  = random.randint(-6, 6)
+                        rotacao  = random.randint(-4, 4)
                         cor      = POSTIT_COLORS[i % len(POSTIT_COLORS)]
                         post_its_html += f"""
                         <div class="post-it"
-                             style="background:{cor['bg']}; color:{cor['text']}; transform: rotate({rotacao}deg);">
+                             style="background-color:{cor['bg']}; transform: rotate({rotacao}deg);">
                             <div class="post-it-msg">{mensagem}</div>
-                            <div class="post-it-autor">✏️ {autor}</div>
+                            <div class="post-it-autor">~ {autor}</div>
                         </div>
                         """
             else:
-                post_its_html = '<p class="sem-recados">📌 Aguardando recados...</p>'
+                post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
 
-            delay = idx * 0.12
+            delay = idx * 0.2 # Atraso na animação para entrada em cascata
 
             cartoes_html += f"""
-            <div class="aniversariante-card" style="animation-delay: {delay}s;">
-                <div class="polaroid">
-                    <span class="bolo-emoji">🎂</span>
-                    {foto_html}
-                    <div class="nome">{nome}</div>
-                    <div class="data-badge">🎉 {dia} de {nome_mes_atual}</div>
-                    {curiosidade_html}
+            <div class="aniversariante-row" style="animation-delay: {delay}s;">
+                <div class="polaroid-container">
+                    <div class="polaroid">
+                        {foto_html}
+                        <div class="nome">{nome}</div>
+                        <div class="data-badge">🎉 {dia} de {nome_mes_atual}</div>
+                        {curiosidade_html}
+                    </div>
                 </div>
-                <div class="area-post-it">{post_its_html}</div>
+                
+                <div class="recados-section">
+                    <div class="recados-titulo">
+                        <span>Mensagens para {nome.split()[0]}</span>
+                        <span style="font-size: 1.2rem; opacity: 0.6;">💌</span>
+                    </div>
+                    <div class="area-post-it">
+                        {post_its_html}
+                    </div>
+                </div>
             </div>
             """
 
         full_html = html_base + cartoes_html + "</div></body></html>"
-        components.html(full_html, height=1600, scrolling=True)
+        components.html(full_html, height=1800, scrolling=True)
 
     else:
         st.info(f"🗓️ Nenhum aniversariante cadastrado para {nome_mes_atual}.")
