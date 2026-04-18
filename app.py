@@ -9,6 +9,30 @@ import re
 
 st.set_page_config(page_title="Mural de Clima", layout="wide", page_icon="🎉")
 
+# --- MODO TV (TELA LIMPA) ---
+# Se a URL terminar com ?tv=true, esconde toda a interface padrão do Streamlit
+is_tv = st.query_params.get("tv") == "true"
+
+if is_tv:
+    st.markdown("""
+        <style>
+            /* Esconde o cabeçalho (header), menu principal e rodapé */
+            header {visibility: hidden;}
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            
+            /* Esconde a setinha de abrir a sidebar */
+            [data-testid="collapsedControl"] {display: none;}
+            
+            /* Remove as margens e o padding superior padrão do Streamlit */
+            .block-container {
+                padding-top: 0rem !important;
+                padding-bottom: 0rem !important;
+                max-width: 100% !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
 # --- 1. CONEXÃO ---
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
@@ -258,6 +282,8 @@ if dados:
         <html>
         <head>
             <meta charset="UTF-8">
+            <meta http-equiv="refresh" content="300">
+            
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
             <style>
