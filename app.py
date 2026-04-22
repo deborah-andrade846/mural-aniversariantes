@@ -581,41 +581,53 @@ if dados:
                         margin: 0;
                     }}
 
-                    html, body {{
-                        background: white !important;
-                        padding: 0 !important;
+                    .btn-imprimir {{ display: none !important; }}
+
+                    /* Fundo da página = imagem de fundo do mural */
+                    html {{
+                        {estilo_fundo}
+                        background-attachment: scroll !important;
+                        background-size: cover !important;
+                        background-position: center top !important;
+                        background-repeat: no-repeat !important;
+                    }}
+
+                    body {{
                         margin: 0 !important;
-                        display: block !important;
-                        width: 100% !important;
+                        padding: 0 !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        width: 100vw !important;
+                        min-height: 100vh !important;
+                        background: transparent !important;
                         font-family: 'Lato', sans-serif !important;
                     }}
 
-                    .btn-imprimir {{ display: none !important; }}
-
                     /* ── Cabeçalho do poster ── */
                     .mural-header {{
-                        background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0e4a8a 100%) !important;
+                        background: rgba(0, 0, 0, 0.55) !important;
+                        backdrop-filter: none !important;
                         color: white !important;
                         box-shadow: none !important;
                         border: none !important;
                         border-radius: 0 !important;
-                        backdrop-filter: none !important;
-                        margin: 0 0 0 0 !important;
-                        padding: 18px 40px 14px !important;
+                        margin: 0 !important;
+                        padding: 20px 40px 16px !important;
                         text-align: center !important;
                         width: 100% !important;
                         box-sizing: border-box !important;
+                        flex-shrink: 0 !important;
                     }}
                     .mural-header .subtitulo {{
-                        color: #93c5fd !important;
-                        font-size: 0.7rem !important;
-                        letter-spacing: 5px !important;
+                        color: #e0f2fe !important;
+                        font-size: 0.75rem !important;
+                        letter-spacing: 6px !important;
                         margin-bottom: 4px !important;
                     }}
                     .mural-header h1 {{
                         color: white !important;
-                        font-size: 2rem !important;
-                        text-shadow: none !important;
+                        font-size: 2.4rem !important;
+                        text-shadow: 0 2px 8px rgba(0,0,0,0.6) !important;
                         margin: 0 !important;
                     }}
                     .mural-header .mes-destaque {{
@@ -623,60 +635,63 @@ if dados:
                         background: none !important;
                     }}
 
-                    /* ── Grade 2 colunas, até 3 linhas = 6 por página ── */
+                    /*
+                     * ── Grade adaptativa ──
+                     * Usa CSS vars injetadas via JS no body para saber o total de cartões.
+                     * Fallback: 2 colunas, 3 linhas.
+                     * A grade ocupa flex-grow:1 para preencher 100% da altura restante.
+                     */
                     .mural-grid {{
                         display: grid !important;
-                        grid-template-columns: 1fr 1fr !important;
-                        /* Cada linha ocupa fração igual da altura disponível */
-                        grid-auto-rows: auto !important;
-                        gap: 10px !important;
-                        padding: 10px 12px 12px !important;
+                        grid-template-columns: repeat(var(--cols, 2), 1fr) !important;
+                        grid-template-rows: repeat(var(--rows, 3), 1fr) !important;
+                        gap: 12px !important;
+                        padding: 14px !important;
                         width: 100% !important;
-                        max-width: 100% !important;
+                        flex-grow: 1 !important;
                         box-sizing: border-box !important;
+                        align-items: stretch !important;
                     }}
 
-                    /* Quebra de página a cada 6 cartões (3 linhas × 2 colunas) */
+                    /* Quebra de página a cada 6 cartões */
                     .aniversariante-row:nth-child(6n) {{
                         page-break-after: always !important;
                         break-after: page !important;
                     }}
 
-                    /* ── Cartão vertical — estilo ficha de celebração ── */
+                    /* ── Cartão vertical estilo poster ── */
                     .aniversariante-row {{
                         display: flex !important;
                         flex-direction: column !important;
                         align-items: center !important;
-                        gap: 0 !important;
-                        background: white !important;
+                        background: rgba(0, 0, 0, 0.50) !important;
                         backdrop-filter: none !important;
-                        border: 1.5px solid #e2e8f0 !important;
+                        border: 1.5px solid rgba(255,255,255,0.25) !important;
                         border-top: 5px solid #38bdf8 !important;
-                        border-radius: 10px !important;
+                        border-radius: 14px !important;
                         padding: 0 !important;
-                        box-shadow: 0 2px 8px rgba(0,0,0,0.10) !important;
+                        box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
                         break-inside: avoid !important;
                         page-break-inside: avoid !important;
                         overflow: hidden !important;
-                        min-height: 0 !important;
+                        height: 100% !important;
                     }}
 
-                    /* ── Bloco superior: foto + nome + data ── */
+                    /* ── Bloco superior: foto polaroid ── */
                     .polaroid-container {{
                         width: 100% !important;
-                        background: linear-gradient(180deg, #0f172a 0%, #1e3a5f 100%) !important;
                         display: flex !important;
                         flex-direction: column !important;
                         align-items: center !important;
-                        justify-content: center !important;
-                        padding: 14px 14px 10px !important;
+                        padding: 18px 18px 12px !important;
                         margin: 0 !important;
+                        flex-shrink: 0 !important;
                     }}
 
                     .polaroid {{
-                        width: 110px !important;
-                        padding: 6px 6px 28px !important;
-                        box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;
+                        width: clamp(90px, 35%, 160px) !important;
+                        padding: 8px 8px 32px !important;
+                        box-shadow: 0 6px 20px rgba(0,0,0,0.6) !important;
                         transform: none !important;
                         transition: none !important;
                         background: white !important;
@@ -693,22 +708,23 @@ if dados:
                         aspect-ratio: 3 / 4 !important;
                         width: 100% !important;
                         font-size: 2.5rem !important;
+                        background: linear-gradient(135deg, #f1f5f9, #cbd5e1) !important;
                     }}
                     .nome {{
-                        font-size: 0.9rem !important;
+                        font-size: 1rem !important;
                         font-weight: 900 !important;
                         color: white !important;
-                        margin-top: 10px !important;
+                        margin-top: 12px !important;
                         text-align: center !important;
-                        text-shadow: none !important;
+                        text-shadow: 0 2px 6px rgba(0,0,0,0.8) !important;
                     }}
                     .data-badge {{
-                        font-size: 0.62rem !important;
+                        font-size: 0.7rem !important;
                         background: #38bdf8 !important;
                         color: #0f172a !important;
                         font-weight: 800 !important;
-                        margin-top: 5px !important;
-                        padding: 3px 10px !important;
+                        margin-top: 6px !important;
+                        padding: 4px 12px !important;
                     }}
 
                     /* ── Bloco inferior: recados ── */
@@ -718,18 +734,17 @@ if dados:
                         display: flex !important;
                         flex-direction: column !important;
                         justify-content: flex-start !important;
-                        padding: 10px 12px 10px !important;
-                        background: #f8fafc !important;
+                        padding: 10px 14px 14px !important;
                         box-sizing: border-box !important;
                     }}
                     .recados-titulo {{
-                        color: #0f172a !important;
-                        text-shadow: none !important;
-                        font-size: 0.85rem !important;
+                        color: white !important;
+                        text-shadow: 0 1px 4px rgba(0,0,0,0.7) !important;
+                        font-size: 0.9rem !important;
                         font-weight: 700 !important;
-                        border-bottom: 1.5px solid #e2e8f0 !important;
-                        margin-bottom: 8px !important;
-                        padding-bottom: 5px !important;
+                        border-bottom: 1.5px solid rgba(255,255,255,0.3) !important;
+                        margin-bottom: 10px !important;
+                        padding-bottom: 6px !important;
                         width: 100% !important;
                         display: flex !important;
                         align-items: center !important;
@@ -740,38 +755,68 @@ if dados:
                         display: flex !important;
                         flex-wrap: wrap !important;
                         justify-content: center !important;
-                        gap: 6px !important;
+                        gap: 8px !important;
                     }}
                     .post-it {{
-                        width: 90px !important;
+                        width: clamp(80px, 28%, 120px) !important;
                         min-height: 80px !important;
-                        font-size: 0.72rem !important;
-                        padding: 8px 7px 7px !important;
-                        box-shadow: 1px 2px 4px rgba(0,0,0,0.12) !important;
+                        font-size: 0.75rem !important;
+                        padding: 10px 8px 8px !important;
+                        box-shadow: 2px 3px 8px rgba(0,0,0,0.25) !important;
                         transform: none !important;
-                        border-radius: 2px 8px 2px 2px !important;
+                        border-radius: 2px 10px 2px 2px !important;
                     }}
                     .post-it::after {{ display: none !important; }}
                     .post-it:hover {{ transform: none !important; }}
                     .post-it-msg {{
-                        font-size: 0.72rem !important;
-                        line-height: 1.25 !important;
+                        font-size: 0.75rem !important;
+                        line-height: 1.3 !important;
+                        color: rgba(0,0,0,0.85) !important;
                     }}
                     .post-it-autor {{
-                        font-size: 0.65rem !important;
-                        margin-top: 6px !important;
+                        font-size: 0.68rem !important;
+                        margin-top: 8px !important;
+                        color: rgba(0,0,0,0.65) !important;
                     }}
                     .sem-recados {{
-                        color: #94a3b8 !important;
-                        text-shadow: none !important;
-                        font-size: 0.75rem !important;
-                        padding: 5px 0 !important;
+                        color: rgba(255,255,255,0.75) !important;
+                        text-shadow: 0 1px 3px rgba(0,0,0,0.6) !important;
+                        font-size: 0.8rem !important;
+                        padding: 8px 0 !important;
                         text-align: center !important;
                     }}
                 }}
-            </style>
+        </style>
         </head>
         <body>
+            <script>
+                // Injeta variáveis CSS para a grade se adaptar ao número de cartões
+                (function() {{
+                    function setGridVars() {{
+                        var cards = document.querySelectorAll('.aniversariante-row').length;
+                        var cols, rows;
+                        if      (cards <= 1) {{ cols = 1; rows = 1; }}
+                        else if (cards == 2) {{ cols = 2; rows = 1; }}
+                        else if (cards == 3) {{ cols = 3; rows = 1; }}
+                        else if (cards == 4) {{ cols = 2; rows = 2; }}
+                        else if (cards == 5) {{ cols = 3; rows = 2; }}
+                        else                {{ cols = 2; rows = 3; }}
+                        document.body.style.setProperty('--cols', cols);
+                        document.body.style.setProperty('--rows', rows);
+                        // Propaga para .mural-grid também
+                        var grid = document.querySelector('.mural-grid');
+                        if (grid) {{
+                            grid.style.setProperty('--cols', cols);
+                            grid.style.setProperty('--rows', rows);
+                        }}
+                    }}
+                    if (document.readyState === 'loading') {{
+                        document.addEventListener('DOMContentLoaded', setGridVars);
+                    }} else {{
+                        setGridVars();
+                    }}
+                }})();
+            </script>
             <button class="btn-imprimir" onclick="window.print()">🖨️ Extrair para PDF / Imprimir A3</button>
 
             <div class="mural-header">
