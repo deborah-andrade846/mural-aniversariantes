@@ -98,10 +98,12 @@ if modo_admin:
         st.sidebar.success("Atualizado!")
         st.rerun()
 
+    # Aplicação do fundo CONTAIN para garantir visualização total sem distorcer
     if img_b64_admin is not None:
         estilo_fundo = (
+            f"background-color: {cor_fundo}; "
             f"background-image: url('data:{img_tipo_admin};base64,{img_b64_admin}'); "
-            f"background-size: 100% 100%; background-position: center; background-attachment: fixed;"
+            f"background-size: contain; background-position: center; background-repeat: no-repeat; background-attachment: fixed;"
         )
     else:
         estilo_fundo = f"background-color: {cor_fundo};"
@@ -112,8 +114,9 @@ elif senha_digitada != "":
     cor_salva    = config.get("cor_fundo")
     if imagem_salva:
         estilo_fundo = (
+            f"background-color: {cor_salva}; "
             f"background-image: url('{imagem_salva}'); "
-            f"background-size: 100% 100%; background-position: center; background-attachment: fixed;"
+            f"background-size: contain; background-position: center; background-repeat: no-repeat; background-attachment: fixed;"
         )
     elif cor_hex_valida(cor_salva):
         estilo_fundo = f"background-color: {cor_salva};"
@@ -124,8 +127,9 @@ else:
     cor_salva    = config.get("cor_fundo")
     if imagem_salva:
         estilo_fundo = (
+            f"background-color: {cor_salva}; "
             f"background-image: url('{imagem_salva}'); "
-            f"background-size: 100% 100%; background-position: center; background-attachment: fixed;"
+            f"background-size: contain; background-position: center; background-repeat: no-repeat; background-attachment: fixed;"
         )
     elif cor_hex_valida(cor_salva):
         estilo_fundo = f"background-color: {cor_salva};"
@@ -248,8 +252,8 @@ if dados:
         img_print = config.get("imagem_fundo", "")
         cor_print = config.get("cor_fundo", "")
         if img_print:
-            # Também forçamos o 100% 100% na impressão para a imagem caber certinho no cartão!
-            estilo_fundo_print = f"background-image: url('{img_print}') !important; background-size: 100% 100% !important; background-position: center !important;"
+            # Container na impressão também para a imagem não sair cortada no PDF
+            estilo_fundo_print = f"background-color: {cor_print} !important; background-image: url('{img_print}') !important; background-size: contain !important; background-position: center !important; background-repeat: no-repeat !important;"
         elif cor_hex_valida(cor_print):
             estilo_fundo_print = f"background-color: {cor_print} !important;"
         else:
@@ -388,7 +392,7 @@ if dados:
                 .foto {{
                     width: 100%;
                     height: 250px;
-                    background-size: cover; /* Esse aqui continua cover para não distorcer o rosto da pessoa! */
+                    background-size: cover; 
                     background-position: center 20%;
                     border-radius: 2px;
                     border: 1px solid #cbd5e1;
