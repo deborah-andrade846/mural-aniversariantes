@@ -235,7 +235,7 @@ except Exception as e:
     dados      = []
     df_recados = pd.DataFrame()
 
-# Paleta de cores para os post-its (vamos usar apenas a cor de fundo e calcular o texto dinamicamente)
+# Paleta de cores para os post-its
 POSTIT_COLORS = [
     {"bg": "#fef08a"},  # Amarelo
     {"bg": "#bbf7d0"},  # Verde
@@ -332,7 +332,7 @@ if dados:
                     display: flex;
                     flex-direction: column;
                     gap: 40px;
-                    max-width: 1200px;
+                    max-width: 1400px; /* <--- AUMENTADO PARA O FUNDO FICAR MAIS LARGO */
                     width: 100%;
                 }}
 
@@ -340,13 +340,16 @@ if dados:
                 .aniversariante-row {{
                     display: flex;
                     flex-direction: row;
-                    gap: 120px;
+                    gap: 40px;
                     background: rgba(255, 255, 255, 0.08);
                     backdrop-filter: blur(16px);
                     -webkit-backdrop-filter: blur(16px);
                     border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 24px;
-                    padding: 40px 400px;
+                    
+                    padding: 25px 60px; /* <--- AJUSTE DE PADDING PARA FORMATO RETANGULAR DE FAIXA */
+                    width: 100%; /* <--- FORÇA Ocupar o espaço */
+                    
                     box-shadow: 0 15px 35px rgba(0,0,0,0.2);
                     animation: fadeInUp 0.8s ease both;
                     align-items: center;
@@ -375,7 +378,9 @@ if dados:
                     box-shadow: 
                         0 10px 20px rgba(0,0,0,0.3),
                         inset 0 1px 0 rgba(255,255,255,1);
-                    width: 480px;
+                        
+                    width: 300px; /* <--- POLAROID MAIS LARGA PARA NÃO QUEBRAR O NOME */
+                    
                     color: #1e293b;
                     text-align: center;
                     position: relative;
@@ -401,7 +406,7 @@ if dados:
                 }}
                 .foto {{
                     width: 100%;
-                    height: 460px;
+                    height: 230px;
                     background-size: cover;
                     background-position: center 20%;
                     border-radius: 2px;
@@ -419,7 +424,10 @@ if dados:
                 }}
                 .nome {{
                     font-family: 'Playfair Display', serif;
-                    font-size: 1.4rem;
+                    
+                    font-size: 1.25rem; /* <--- FONTE LEVEMENTE MENOR */
+                    line-height: 1.1;   /* <--- AJUSTE DE LINHA */
+                    
                     font-weight: 900;
                     margin-top: 15px;
                     color: #0f172a;
@@ -447,7 +455,7 @@ if dados:
                 .recados-titulo {{
                     font-family: 'Playfair Display', serif;
                     font-size: 1.8rem;
-                    color: {cor_contraste_geral}; /* MUDANÇA AQUI: Adapta ao fundo */
+                    color: {cor_contraste_geral}; /* MUDANÇA: Adapta ao fundo */
                     margin-bottom: 20px;
                     border-bottom: 2px solid {cor_contraste_geral}40;
                     padding-bottom: 10px;
@@ -463,11 +471,11 @@ if dados:
                 }}
                 .post-it {{
                     padding: 20px 16px 16px;
-                    width: 210px;
-                    min-height: 180px;
+                    width: 160px;
+                    min-height: 140px;
                     box-shadow: 3px 5px 15px rgba(0,0,0,0.2);
                     font-family: 'Caveat', cursive;
-                    font-size: 1.5rem;
+                    font-size: 1.1rem;
                     border-radius: 2px 15px 2px 2px;
                     display: flex;
                     flex-direction: column;
@@ -493,18 +501,18 @@ if dados:
                 .post-it-msg {{
                     line-height: 1.3;
                     font-weight: 700;
-                    color: inherit; /* MUDANÇA AQUI: Puxa dinamicamente a cor injetada no post-it */
+                    color: inherit; 
                 }}
                 .post-it-autor {{
                     font-size: 0.9rem;
                     font-weight: 700;
-                    color: inherit; /* MUDANÇA AQUI */
+                    color: inherit; 
                     opacity: 0.8;
                     text-align: right;
                     margin-top: 15px;
                 }}
                 .sem-recados {{
-                    color: {cor_contraste_geral}; /* MUDANÇA AQUI: Adapta ao fundo */
+                    color: {cor_contraste_geral}; 
                     opacity: 0.8;
                     font-size: 1.1rem;
                     font-style: italic;
@@ -538,7 +546,7 @@ if dados:
                     box-shadow: 0 12px 25px rgba(0,0,0,0.5);
                 }}
 
-                /* ── CONFIGURAÇÕES EXCLUSIVAS PARA A IMPRESSORA (Folha A3 com Cartões Temáticos) ── */
+                /* ── CONFIGURAÇÕES EXCLUSIVAS PARA A IMPRESSORA (Folha A3) ── */
                 @media print {{
                     * {{
                         -webkit-print-color-adjust: exact !important;
@@ -548,7 +556,6 @@ if dados:
                         size: A3 portrait;
                         margin: 1cm;
                     }}
-                    /* Remove o fundo de toda a folha para não gastar tinta */
                     body {{
                         background: white !important;
                         color: black !important;
@@ -573,7 +580,6 @@ if dados:
                         -webkit-text-fill-color: #0284c7 !important;
                     }}
                     
-                    /* Mágica da Grade de Impressão A3 (2 Colunas) */
                     .mural-grid {{
                         display: grid !important;
                         grid-template-columns: repeat(2, 1fr) !important;
@@ -582,29 +588,20 @@ if dados:
                         min-height: 85vh !important;
                     }}
                     
-                    /* CARTÃO DO ANIVERSARIANTE NA IMPRESSÃO */
                     .aniversariante-row {{
-                        /* Aplica a imagem ou cor escolhida no admin SÓ AQUI dentro! */
                         {estilo_fundo_print}
-                        
-                        /* Película escura (insulfilm) para garantir que o texto branco apareça na impressão */
                         box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.6) !important;
-                        
                         border: 2px solid #cbd5e1 !important;
                         border-radius: 20px !important;
                         margin-bottom: 0 !important;
-                        
-                        /* Layout para a coluna da grade */
                         flex-direction: column !important;
                         align-items: center !important;
                         padding: 20px !important;
                         height: 100% !important;
-                        
                         break-inside: avoid !important;
                         page-break-inside: avoid !important;
                     }}
                     
-                    /* Força a impressora a puxar uma folha nova a cada 6 pessoas */
                     .aniversariante-row:nth-child(6n) {{
                         page-break-after: always !important;
                         break-after: page !important;
@@ -620,7 +617,7 @@ if dados:
                         align-items: center !important;
                     }}
                     .recados-titulo {{
-                        color: #ffffff !important; /* Mantém branco pois a película do fundo será escura */
+                        color: #ffffff !important; 
                         border-bottom: 2px solid rgba(255,255,255,0.3) !important;
                         width: 100% !important;
                         justify-content: center !important;
@@ -648,7 +645,14 @@ if dados:
         cartoes_html = ""
 
         for idx, (_, row) in enumerate(df_mes.iterrows()):
-            nome = str(row.get("nome", "Sem nome"))
+            # LÓGICA DE TRUNCAR O NOME NO PYTHON PARA NÃO QUEBRAR O LAYOUT
+            nome_completo = str(row.get("nome", "Sem nome"))
+            partes_nome = nome_completo.split()
+            if len(partes_nome) > 1:
+                nome_display = f"{partes_nome[0]} {partes_nome[1]}"
+            else:
+                nome_display = nome_completo
+
             dia  = row['data_nascimento'].day if pd.notna(row['data_nascimento']) else "?"
 
             img_url = str(row.get("foto_url", "")).strip()
@@ -665,7 +669,8 @@ if dados:
             # ── Post-its ──
             post_its_html = ""
             if not df_recados.empty and 'para_quem' in df_recados.columns:
-                recados_pessoa = df_recados[df_recados['para_quem'] == nome]
+                # Comparamos com o nome completo original que está no banco de dados para puxar os recados corretamente
+                recados_pessoa = df_recados[df_recados['para_quem'] == nome_completo]
                 if recados_pessoa.empty:
                     post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
                 else:
@@ -695,7 +700,7 @@ if dados:
                 <div class="polaroid-container">
                     <div class="polaroid">
                         {foto_html}
-                        <div class="nome">{nome}</div>
+                        <div class="nome">{nome_display}</div>
                         <div class="data-badge">🎉 {dia} de {nome_mes_atual}</div>
                         {curiosidade_html}
                     </div>
@@ -703,7 +708,7 @@ if dados:
                 
                 <div class="recados-section">
                     <div class="recados-titulo">
-                        <span>Mensagens para {nome.split()[0]}</span>
+                        <span>Mensagens para {nome_display.split()[0]}</span>
                         <span style="font-size: 1.9rem; opacity:1;">🎂</span>
                     </div>
                     <div class="area-post-it">
