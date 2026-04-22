@@ -375,7 +375,7 @@ if dados:
                     box-shadow: 
                         0 10px 20px rgba(0,0,0,0.3),
                         inset 0 1px 0 rgba(255,255,255,1);
-                    width: 520px;
+                    width: 480px;
                     color: #1e293b;
                     text-align: center;
                     position: relative;
