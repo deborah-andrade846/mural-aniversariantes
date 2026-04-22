@@ -570,99 +570,180 @@ if dados:
                     box-shadow: 0 12px 25px rgba(0,0,0,0.5);
                 }}
 
-                /* ── CONFIGURAÇÕES EXCLUSIVAS PARA A IMPRESSORA (Folha A3 com Cartões Temáticos) ── */
+                /* ── CONFIGURAÇÕES EXCLUSIVAS PARA A IMPRESSORA (Folha A3 paisagem) ── */
                 @media print {{
                     * {{
                         -webkit-print-color-adjust: exact !important;
                         print-color-adjust: exact !important;
                     }}
                     @page {{
-                        size: A3 portrait;
-                        margin: 1cm;
+                        size: A3 landscape;
+                        margin: 1.2cm 1.5cm;
                     }}
-                    /* Remove o fundo de toda a folha para não gastar tinta */
-                    body {{
+
+                    /* Fundo branco — economiza tinta e melhora legibilidade */
+                    html, body {{
                         background: white !important;
-                        color: black !important;
+                        color: #0f172a !important;
                         padding: 0 !important;
+                        display: block !important;
+                        align-items: unset !important;
                     }}
                     .btn-imprimir {{
                         display: none !important;
                     }}
+
+                    /* Cabeçalho limpo */
                     .mural-header {{
-                        background: #f1f5f9 !important;
-                        color: #0f172a !important;
+                        background: linear-gradient(135deg, #0f172a, #1e3a5f) !important;
+                        color: white !important;
                         box-shadow: none !important;
-                        border: 2px solid #cbd5e1 !important;
-                        margin-bottom: 20px !important;
-                        padding: 15px !important;
+                        border: none !important;
+                        border-radius: 12px !important;
+                        margin-bottom: 16px !important;
+                        padding: 14px 30px !important;
+                        text-align: center !important;
+                        backdrop-filter: none !important;
                     }}
-                    .mural-header h1, .mural-header .subtitulo {{
-                        color: #0f172a !important;
+                    .mural-header .subtitulo {{
+                        color: #93c5fd !important;
+                        font-size: 0.75rem !important;
+                        letter-spacing: 4px !important;
+                    }}
+                    .mural-header h1 {{
+                        color: white !important;
+                        font-size: 2rem !important;
                         text-shadow: none !important;
                     }}
                     .mural-header .mes-destaque {{
-                        -webkit-text-fill-color: #0284c7 !important;
+                        -webkit-text-fill-color: #38bdf8 !important;
+                        background: none !important;
                     }}
-                    
-                    /* Mágica da Grade de Impressão A3 (2 Colunas) */
+
+                    /* Grade: 1 cartão por linha, layout HORIZONTAL */
                     .mural-grid {{
-                        display: grid !important;
-                        grid-template-columns: repeat(2, 1fr) !important;
-                        grid-auto-rows: 1fr !important;
-                        gap: 20px !important;
-                        min-height: 85vh !important;
-                    }}
-                    
-                    /* CARTÃO DO ANIVERSARIANTE NA IMPRESSÃO */
-                    .aniversariante-row {{
-                        /* Aplica a imagem ou cor escolhida no admin SÓ AQUI dentro! */
-                        {estilo_fundo_print}
-                        
-                        /* Película escura (insulfilm) para garantir que o texto branco apareça na impressão */
-                        box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.6) !important;
-                        
-                        border: 2px solid #cbd5e1 !important;
-                        border-radius: 20px !important;
-                        margin-bottom: 0 !important;
-                        
-                        /* Layout para a coluna da grade */
+                        display: flex !important;
                         flex-direction: column !important;
-                        align-items: center !important;
-                        padding: 20px !important;
-                        height: 100% !important;
-                        
+                        gap: 14px !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                    }}
+
+                    /* CARTÃO HORIZONTAL limpo */
+                    .aniversariante-row {{
+                        display: flex !important;
+                        flex-direction: row !important;
+                        align-items: stretch !important;
+                        gap: 0 !important;
+                        background: white !important;
+                        backdrop-filter: none !important;
+                        border: 2px solid #e2e8f0 !important;
+                        border-left: 6px solid #38bdf8 !important;
+                        border-radius: 12px !important;
+                        padding: 0 !important;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.08) !important;
                         break-inside: avoid !important;
                         page-break-inside: avoid !important;
+                        overflow: hidden !important;
                     }}
-                    
-                    /* Força a impressora a puxar uma folha nova a cada 6 pessoas */
-                    .aniversariante-row:nth-child(6n) {{
+
+                    /* Quebra de página a cada 3 cartões */
+                    .aniversariante-row:nth-child(3n) {{
                         page-break-after: always !important;
                         break-after: page !important;
                     }}
 
+                    /* Coluna da foto — fundo azul escuro */
                     .polaroid-container {{
-                        margin-bottom: 20px !important;
+                        flex-shrink: 0 !important;
+                        width: 180px !important;
+                        background: #0f172a !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        padding: 16px !important;
+                        margin: 0 !important;
                     }}
-                    .recados-section {{
+
+                    /* Polaroid compacto na impressão */
+                    .polaroid {{
+                        width: 140px !important;
+                        padding: 8px 8px 36px !important;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+                        transform: none !important;
+                        transition: none !important;
+                    }}
+                    .polaroid::after {{
+                        display: none !important;
+                    }}
+                    .polaroid:hover {{
+                        transform: none !important;
+                    }}
+                    .foto {{
+                        aspect-ratio: 1 / 1 !important;
                         width: 100% !important;
+                    }}
+                    .foto-placeholder {{
+                        aspect-ratio: 1 / 1 !important;
+                        width: 100% !important;
+                        font-size: 3rem !important;
+                    }}
+                    .nome {{
+                        font-size: 0.85rem !important;
+                        color: #0f172a !important;
+                        margin-top: 8px !important;
+                    }}
+                    .data-badge {{
+                        font-size: 0.65rem !important;
+                        background: #0f172a !important;
+                        color: white !important;
+                        margin-top: 4px !important;
+                    }}
+
+                    /* Coluna dos recados — fundo branco, texto escuro */
+                    .recados-section {{
+                        flex-grow: 1 !important;
                         display: flex !important;
                         flex-direction: column !important;
-                        align-items: center !important;
+                        justify-content: flex-start !important;
+                        padding: 16px 20px !important;
+                        background: white !important;
                     }}
                     .recados-titulo {{
-                        color: #ffffff !important; /* Mantém branco pois a película do fundo será escura */
-                        border-bottom: 2px solid rgba(255,255,255,0.3) !important;
+                        color: #0f172a !important;
+                        text-shadow: none !important;
+                        font-size: 1.2rem !important;
+                        border-bottom: 2px solid #e2e8f0 !important;
+                        margin-bottom: 12px !important;
+                        padding-bottom: 8px !important;
                         width: 100% !important;
-                        justify-content: center !important;
                     }}
                     .area-post-it {{
-                        justify-content: center !important;
-                        width: 100% !important;
+                        justify-content: flex-start !important;
+                        gap: 10px !important;
+                        flex-wrap: wrap !important;
+                    }}
+                    .post-it {{
+                        width: 130px !important;
+                        min-height: 100px !important;
+                        font-size: 0.85rem !important;
+                        padding: 12px 10px 10px !important;
+                        box-shadow: 2px 3px 6px rgba(0,0,0,0.12) !important;
+                    }}
+                    .post-it::after {{
+                        display: none !important;
+                    }}
+                    .post-it-msg {{
+                        font-size: 0.85rem !important;
+                    }}
+                    .post-it-autor {{
+                        font-size: 0.75rem !important;
                     }}
                     .sem-recados {{
-                        color: rgba(255,255,255,0.8) !important;
+                        color: #94a3b8 !important;
+                        text-shadow: none !important;
+                        font-size: 0.9rem !important;
+                        padding: 8px 0 !important;
                     }}
                 }}
             </style>
