@@ -543,31 +543,58 @@ if dados:
                     text-shadow: 0 1px 4px rgba(0,0,0,0.6);
                 }}
 
-                /* ── Botão de Impressão ── */
-                .btn-imprimir {{
+                /* ── Botões de Impressão ── */
+                .print-toolbar {{
                     position: fixed;
                     bottom: 30px;
                     right: 30px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    z-index: 1000;
+                }}
+                .btn-imprimir {{
                     background-color: #38bdf8;
                     color: #0f172a;
                     border: none;
-                    padding: 15px 25px;
+                    padding: 13px 22px;
                     border-radius: 50px;
                     font-family: 'Lato', sans-serif;
-                    font-size: 1.1rem;
+                    font-size: 1rem;
                     font-weight: 700;
                     box-shadow: 0 8px 20px rgba(0,0,0,0.4);
                     cursor: pointer;
-                    z-index: 1000;
                     transition: all 0.3s ease;
                     display: flex;
                     align-items: center;
-                    gap: 10px;
+                    gap: 8px;
+                    white-space: nowrap;
                 }}
                 .btn-imprimir:hover {{
-                    transform: translateY(-5px);
+                    transform: translateY(-3px);
                     background-color: #7dd3fc;
                     box-shadow: 0 12px 25px rgba(0,0,0,0.5);
+                }}
+                .btn-paisagem {{
+                    background-color: #818cf8;
+                }}
+                .btn-paisagem:hover {{
+                    background-color: #a5b4fc;
+                }}
+                /* Indicador de orientação ativa */
+                .orientacao-badge {{
+                    position: fixed;
+                    bottom: 145px;
+                    right: 30px;
+                    background: rgba(0,0,0,0.6);
+                    color: #fff;
+                    font-family: 'Lato', sans-serif;
+                    font-size: 0.75rem;
+                    padding: 4px 12px;
+                    border-radius: 20px;
+                    z-index: 1001;
+                    letter-spacing: 1px;
+                    display: none;
                 }}
 
                 /* ── POSTER A3 PARA IMPRESSÃO ── */
@@ -581,7 +608,7 @@ if dados:
                         margin: 0;
                     }}
 
-                    .btn-imprimir {{ display: none !important; }}
+                    .btn-imprimir, .print-toolbar, .orientacao-badge {{ display: none !important; }}
 
                     /* Fundo da página = imagem de fundo do mural */
                     html {{
@@ -787,37 +814,77 @@ if dados:
                     }}
                 }}
         </style>
+        <style id="orientacao-style">
+            /* Estilo de @page dinâmico — sobrescrito via JS */
+            @media print {{ @page {{ size: A3 portrait; margin: 0; }} }}
+        </style>
         </head>
         <body>
             <script>
-                // Injeta variáveis CSS para a grade se adaptar ao número de cartões
-                (function() {{
-                    function setGridVars() {{
-                        var cards = document.querySelectorAll('.aniversariante-row').length;
-                        var cols, rows;
+                // ── Orientação e grade adaptativa ──────────────────────────────
+                var orientacao = 'portrait'; // padrão
+
+                function calcGridVars(isLandscape) {{
+                    var cards = document.querySelectorAll('.aniversariante-row').length;
+                    var cols, rows;
+                    if (isLandscape) {{
+                        // Paisagem: mais colunas, menos linhas
+                        if      (cards <= 1) {{ cols = 1; rows = 1; }}
+                        else if (cards == 2) {{ cols = 2; rows = 1; }}
+                        else if (cards == 3) {{ cols = 3; rows = 1; }}
+                        else if (cards == 4) {{ cols = 4; rows = 1; }}
+                        else if (cards == 5) {{ cols = 3; rows = 2; }}
+                        else                {{ cols = 3; rows = 2; }}
+                    }} else {{
+                        // Retrato: layout original
                         if      (cards <= 1) {{ cols = 1; rows = 1; }}
                         else if (cards == 2) {{ cols = 2; rows = 1; }}
                         else if (cards == 3) {{ cols = 3; rows = 1; }}
                         else if (cards == 4) {{ cols = 2; rows = 2; }}
                         else if (cards == 5) {{ cols = 3; rows = 2; }}
                         else                {{ cols = 2; rows = 3; }}
-                        document.body.style.setProperty('--cols', cols);
-                        document.body.style.setProperty('--rows', rows);
-                        // Propaga para .mural-grid também
-                        var grid = document.querySelector('.mural-grid');
-                        if (grid) {{
-                            grid.style.setProperty('--cols', cols);
-                            grid.style.setProperty('--rows', rows);
-                        }}
                     }}
-                    if (document.readyState === 'loading') {{
-                        document.addEventListener('DOMContentLoaded', setGridVars);
-                    }} else {{
-                        setGridVars();
+                    return {{ cols: cols, rows: rows }};
+                }}
+
+                function applyOrientation(ori) {{
+                    orientacao = ori;
+                    var isLandscape = (ori === 'landscape');
+
+                    // Atualiza @page via <style> injetado no <head>
+                    var styleEl = document.getElementById('orientacao-style');
+                    styleEl.textContent = '@media print {{ @page {{ size: A3 ' + ori + '; margin: 0; }} }}';
+
+                    // Atualiza grid
+                    var v = calcGridVars(isLandscape);
+                    var grid = document.querySelector('.mural-grid');
+                    if (grid) {{
+                        grid.style.setProperty('--cols', v.cols);
+                        grid.style.setProperty('--rows', v.rows);
                     }}
-                }})();
+
+                    // Atualiza badge
+                    var badge = document.getElementById('badge-orientacao');
+                    badge.textContent = isLandscape ? '↔ PAISAGEM A3' : '↕ RETRATO A3';
+                    badge.style.display = 'block';
+                }}
+
+                function imprimirCom(ori) {{
+                    applyOrientation(ori);
+                    setTimeout(function() {{ window.print(); }}, 80);
+                }}
+
+                // Inicializa com retrato ao carregar
+                document.addEventListener('DOMContentLoaded', function() {{
+                    applyOrientation('portrait');
+                }});
             </script>
-            <button class="btn-imprimir" onclick="window.print()">🖨️ Extrair para PDF / Imprimir A3</button>
+
+            <div id="badge-orientacao" class="orientacao-badge"></div>
+            <div class="print-toolbar">
+                <button class="btn-imprimir" onclick="imprimirCom('portrait')">🖨️ Imprimir A3 — Retrato</button>
+                <button class="btn-imprimir btn-paisagem" onclick="imprimirCom('landscape')">🖨️ Imprimir A3 — Paisagem</button>
+            </div>
 
             <div class="mural-header">
                 <p class="subtitulo">Celebrações GAFI</p>
