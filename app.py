@@ -98,12 +98,11 @@ if modo_admin:
         st.sidebar.success("Atualizado!")
         st.rerun()
 
-    # Aplicação do fundo CONTAIN para garantir visualização total sem distorcer
+    # O estilo de fundo original que não corta a imagem na TV
     if img_b64_admin is not None:
         estilo_fundo = (
-            f"background-color: {cor_fundo}; "
             f"background-image: url('data:{img_tipo_admin};base64,{img_b64_admin}'); "
-            f"background-size: contain; background-position: center; background-repeat: no-repeat; background-attachment: fixed;"
+            f"background-size: cover; background-position: center; background-attachment: fixed;"
         )
     else:
         estilo_fundo = f"background-color: {cor_fundo};"
@@ -114,9 +113,8 @@ elif senha_digitada != "":
     cor_salva    = config.get("cor_fundo")
     if imagem_salva:
         estilo_fundo = (
-            f"background-color: {cor_salva}; "
             f"background-image: url('{imagem_salva}'); "
-            f"background-size: contain; background-position: center; background-repeat: no-repeat; background-attachment: fixed;"
+            f"background-size: cover; background-position: center; background-attachment: fixed;"
         )
     elif cor_hex_valida(cor_salva):
         estilo_fundo = f"background-color: {cor_salva};"
@@ -127,9 +125,8 @@ else:
     cor_salva    = config.get("cor_fundo")
     if imagem_salva:
         estilo_fundo = (
-            f"background-color: {cor_salva}; "
             f"background-image: url('{imagem_salva}'); "
-            f"background-size: contain; background-position: center; background-repeat: no-repeat; background-attachment: fixed;"
+            f"background-size: cover; background-position: center; background-attachment: fixed;"
         )
     elif cor_hex_valida(cor_salva):
         estilo_fundo = f"background-color: {cor_salva};"
@@ -252,8 +249,7 @@ if dados:
         img_print = config.get("imagem_fundo", "")
         cor_print = config.get("cor_fundo", "")
         if img_print:
-            # Container na impressão também para a imagem não sair cortada no PDF
-            estilo_fundo_print = f"background-color: {cor_print} !important; background-image: url('{img_print}') !important; background-size: contain !important; background-position: center !important; background-repeat: no-repeat !important;"
+            estilo_fundo_print = f"background-image: url('{img_print}') !important; background-size: cover !important; background-position: center !important;"
         elif cor_hex_valida(cor_print):
             estilo_fundo_print = f"background-color: {cor_print} !important;"
         else:
@@ -284,7 +280,7 @@ if dados:
                 /* ── Header ── */
                 .mural-header {{
                     text-align: center;
-                    margin-bottom: 50px;
+                    margin-bottom: 70px;
                     background: rgba(0, 0, 0, 0.4);
                     padding: 30px 60px;
                     border-radius: 20px;
@@ -319,10 +315,9 @@ if dados:
                 .mural-grid {{
                     display: flex;
                     flex-direction: column;
-                    gap: 50px;
-                    max-width: 1100px;
+                    gap: 40px;
+                    max-width: 1200px; /* <--- O tamanho original que funcionava bem */
                     width: 100%;
-                    margin: 0 auto;
                 }}
 
                 /* ── Bloco de Celebração (Web/TV Horizontal) ── */
@@ -335,8 +330,9 @@ if dados:
                     -webkit-backdrop-filter: blur(16px);
                     border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 24px;
-                    padding: 30px 50px;
-                    width: 100%;
+                    
+                    padding: 30px 50px; /* <--- Levemente retangular, sem esticar demais */
+                    
                     box-shadow: 0 15px 35px rgba(0,0,0,0.2);
                     animation: fadeInUp 0.8s ease both;
                     align-items: center;
@@ -365,7 +361,9 @@ if dados:
                     box-shadow: 
                         0 10px 20px rgba(0,0,0,0.3),
                         inset 0 1px 0 rgba(255,255,255,1);
-                    width: 300px;
+                        
+                    width: 300px; /* <--- Um pouquinho maior só para acomodar o nome longo */
+                    
                     color: #1e293b;
                     text-align: center;
                     position: relative;
@@ -391,8 +389,8 @@ if dados:
                 }}
                 .foto {{
                     width: 100%;
-                    height: 250px;
-                    background-size: cover; 
+                    height: 240px;
+                    background-size: cover;
                     background-position: center 20%;
                     border-radius: 2px;
                     border: 1px solid #cbd5e1;
@@ -400,7 +398,7 @@ if dados:
                 }}
                 .foto-placeholder {{
                     width: 100%;
-                    height: 250px;
+                    height: 240px;
                     background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
                     display: flex;
                     align-items: center;
@@ -409,8 +407,7 @@ if dados:
                 }}
                 .nome {{
                     font-family: 'Playfair Display', serif;
-                    font-size: 1.25rem;
-                    line-height: 1.1; 
+                    font-size: 1.3rem;
                     font-weight: 900;
                     margin-top: 15px;
                     color: #0f172a;
@@ -454,11 +451,11 @@ if dados:
                 }}
                 .post-it {{
                     padding: 20px 16px 16px;
-                    width: 170px;
-                    min-height: 150px;
-                    font-size: 1.2rem;
+                    width: 160px;
+                    min-height: 140px;
                     box-shadow: 3px 5px 15px rgba(0,0,0,0.2);
                     font-family: 'Caveat', cursive;
+                    font-size: 1.1rem;
                     border-radius: 2px 15px 2px 2px;
                     display: flex;
                     flex-direction: column;
@@ -628,6 +625,7 @@ if dados:
         cartoes_html = ""
 
         for idx, (_, row) in enumerate(df_mes.iterrows()):
+            # LÓGICA DE TRUNCAR O NOME NO PYTHON PARA NÃO QUEBRAR O LAYOUT
             nome_completo = str(row.get("nome", "Sem nome"))
             partes_nome = nome_completo.split()
             if len(partes_nome) > 1:
