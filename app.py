@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 import random
 import base64
-from utils import get_supabase, to_bool, cor_hex_valida, carregar_config
+from utils import get_supabase, to_bool, cor_hex_valida, carregar_config, cor_texto_contraste
 
 st.set_page_config(page_title="Mural de Aniversariantes", layout="wide", page_icon="🎉")
 
@@ -486,12 +486,13 @@ if dados:
                 .post-it-msg {{
                     line-height: 1.3;
                     font-weight: 700;
-                    color: rgba(0,0,0,0.85);
+                    color: inherit;
                 }}
                 .post-it-autor {{
                     font-size: 0.9rem;
                     font-weight: 700;
-                    color: rgba(0,0,0,0.6);
+                    color: inherit;
+                    opacity: 0.8;
                     text-align: right;
                     margin-top: 15px;
                 }}
@@ -665,9 +666,11 @@ if dados:
                         autor    = str(recado.get("de_quem", "Anônimo")).strip()
                         rotacao  = random.randint(-4, 4)
                         cor      = POSTIT_COLORS[i % len(POSTIT_COLORS)]
+                        cor_fundo = cor['bg']
+                        cor_texto = cor_texto_contraste(cor_fundo)
                         post_its_html += f"""
                         <div class="post-it"
-                             style="background-color:{cor['bg']}; transform: rotate({rotacao}deg);">
+                             style="background-color:{cor_fundo}; transform: rotate({rotacao}deg); color: {cor_texto};">
                             <div class="post-it-msg">{mensagem}</div>
                             <div class="post-it-autor">~ {autor}</div>
                         </div>
