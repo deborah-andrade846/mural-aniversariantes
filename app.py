@@ -340,7 +340,7 @@ if dados:
                 .aniversariante-row {{
                     display: flex;
                     flex-direction: row;
-                    gap: 120px;
+                    gap: 20px;
                     background: rgba(255, 255, 255, 0.08);
                     backdrop-filter: blur(16px);
                     -webkit-backdrop-filter: blur(16px);
