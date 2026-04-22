@@ -45,3 +45,21 @@ def carregar_config() -> dict:
         return {item['chave']: item['valor'] for item in resp.data}
     except Exception:
         return {}
+
+
+def cor_texto_contraste(hex_bg: str) -> str:
+    """
+    Analisa uma cor hexadecimal de fundo e retorna #000000 (preto) 
+    ou #FFFFFF (branco) para garantir a melhor leitura do texto.
+    """
+    hex_bg = hex_bg.lstrip('#')
+    if len(hex_bg) != 6:
+        return "#000000"
+        
+    r, g, b = tuple(int(hex_bg[i:i+2], 16) for i in (0, 2, 4))
+    luminosidade = (0.299 * r + 0.587 * g + 0.114 * b)
+    
+    if luminosidade > 128:
+        return "#000000"
+    else:
+        return "#FFFFFF"
