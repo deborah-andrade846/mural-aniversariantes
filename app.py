@@ -346,7 +346,7 @@ if dados:
                     -webkit-backdrop-filter: blur(16px);
                     border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 24px;
-                    padding: 40px 120px;
+                    padding: 40px 400px;
                     width: 100%;
                     box-shadow: 0 15px 35px rgba(0,0,0,0.2);
                     animation: fadeInUp 0.8s ease both;
