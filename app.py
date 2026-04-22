@@ -346,7 +346,7 @@ if dados:
                     -webkit-backdrop-filter: blur(16px);
                     border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 24px;
-                    padding: 40px;
+                    padding: 80px;
                     box-shadow: 0 15px 35px rgba(0,0,0,0.2);
                     animation: fadeInUp 0.8s ease both;
                     align-items: center;
@@ -467,7 +467,7 @@ if dados:
                     min-height: 180px;
                     box-shadow: 3px 5px 15px rgba(0,0,0,0.2);
                     font-family: 'Caveat', cursive;
-                    font-size: 1.1rem;
+                    font-size: 1.5rem;
                     border-radius: 2px 15px 2px 2px;
                     display: flex;
                     flex-direction: column;
