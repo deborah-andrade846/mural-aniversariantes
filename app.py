@@ -261,7 +261,40 @@ if dados:
 
     if not df_mes.empty:
         df_mes = df_mes.sort_values(by='data_nascimento')
-        
+
+        # ── FUNDO aplicado no .stApp (fora do iframe) ──────────────────────────
+        # O components.html roda dentro de um <iframe>, então position:fixed dentro
+        # dele fica preso às bordas do iframe, não da tela real.
+        # A solução é aplicar o fundo diretamente no .stApp via st.markdown,
+        # deixar o iframe e o body internos com fundo transparente.
+        st.markdown(f"""
+        <style>
+            /* Fundo cobre 100% da viewport real, atrás do iframe */
+            .stApp {{
+                min-height: 100vh;
+            }}
+            .stApp::before {{
+                content: '';
+                position: fixed;
+                inset: 0;
+                z-index: -1;
+                {estilo_fundo}
+            }}
+            /* Remove padding lateral do Streamlit para o iframe ocupar tela toda */
+            .block-container {{
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                max-width: 100% !important;
+            }}
+            /* Iframe sem borda e 100% da largura */
+            iframe[title="streamlit_components_v1.html"] {{
+                width: 100% !important;
+                border: none !important;
+                background: transparent !important;
+            }}
+        </style>
+        """, unsafe_allow_html=True)
+
         # Prepara a variável de fundo EXCLUSIVA para os cartões na hora da impressão
         img_print = config.get("imagem_fundo", "")
         cor_print = config.get("cor_fundo", "")
@@ -284,23 +317,17 @@ if dados:
                 *, *::before, *::after {{
                     margin: 0; padding: 0; box-sizing: border-box;
                 }}
-                body {{
+                /* body transparente — o fundo real fica no .stApp fora do iframe */
+                html, body {{
+                    background: transparent !important;
                     font-family: 'Lato', sans-serif;
                     color: #f8fafc;
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    padding: 60px 20px;
+                    padding: 40px 20px 60px;
                     min-height: 100vh;
-                    position: relative;
-                }}
-                /* Fundo fixo que cobre toda a viewport sem cortes */
-                body::before {{
-                    content: '';
-                    position: fixed;
-                    inset: 0;
-                    z-index: -1;
-                    {estilo_fundo}
+                    width: 100%;
                 }}
                 /* ── Header ── */
                 .mural-header {{
@@ -340,8 +367,8 @@ if dados:
                 .mural-grid {{
                     display: flex;
                     flex-direction: column;
-                    gap: 40px;
-                    max-width: 1200px;
+                    gap: 30px;
+                    max-width: min(1400px, 96vw);
                     width: 100%;
                 }}
 
@@ -718,7 +745,9 @@ if dados:
             """
 
         full_html = html_base + cartoes_html + "</div></body></html>"
-        components.html(full_html, height=1800, scrolling=True)
+        # Altura dinâmica: ~550px por cartão + 300px de header/padding
+        altura_iframe = max(1200, len(df_mes) * 550 + 300)
+        components.html(full_html, height=altura_iframe, scrolling=True)
 
     else:
         st.info(f"🗓️ Nenhum aniversariante cadastrado para {nome_mes_atual}.")
