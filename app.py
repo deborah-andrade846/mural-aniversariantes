@@ -463,8 +463,8 @@ if dados:
                 }}
                 .post-it {{
                     padding: 20px 16px 16px;
-                    width: 320px;
-                    min-height: 140px;
+                    width: 210px;
+                    min-height: 180px;
                     box-shadow: 3px 5px 15px rgba(0,0,0,0.2);
                     font-family: 'Caveat', cursive;
                     font-size: 1.1rem;
