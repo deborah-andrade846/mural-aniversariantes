@@ -340,7 +340,7 @@ if dados:
                 .aniversariante-row {{
                     display: flex;
                     flex-direction: row;
-                    gap: 40px;
+                    gap: 60px;
                     background: rgba(255, 255, 255, 0.08);
                     backdrop-filter: blur(16px);
                     -webkit-backdrop-filter: blur(16px);
@@ -463,7 +463,7 @@ if dados:
                 }}
                 .post-it {{
                     padding: 20px 16px 16px;
-                    width: 160px;
+                    width: 320px;
                     min-height: 140px;
                     box-shadow: 3px 5px 15px rgba(0,0,0,0.2);
                     font-family: 'Caveat', cursive;
