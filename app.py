@@ -375,7 +375,7 @@ if dados:
                     box-shadow: 
                         0 10px 20px rgba(0,0,0,0.3),
                         inset 0 1px 0 rgba(255,255,255,1);
-                    width: 260px;
+                    width: 520px;
                     color: #1e293b;
                     text-align: center;
                     position: relative;
@@ -401,7 +401,7 @@ if dados:
                 }}
                 .foto {{
                     width: 100%;
-                    height: 230px;
+                    height: 460px;
                     background-size: cover;
                     background-position: center 20%;
                     border-radius: 2px;
