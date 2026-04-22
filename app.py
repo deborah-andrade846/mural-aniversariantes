@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 import random
 import base64
-from utils import get_supabase, to_bool, cor_hex_valida, carregar_config, cor_texto_contraste
+from utils import get_supabase, to_bool, cor_hex_valida, carregar_config
 
 st.set_page_config(page_title="Mural de Aniversariantes", layout="wide", page_icon="🎉")
 
@@ -46,16 +46,24 @@ if modo_admin:
 
     def atualizar_config(chave, valor):
         try:
+            # Garante que o valor vai como texto para o banco
             valor_str = str(valor)
+            
+            # 1. Verifica se a chave já existe na tabela
             busca = supabase.table("configuracoes_mural").select("id").eq("chave", chave).execute()
+            
             if busca.data and len(busca.data) > 0:
+                # 2. Se a chave existir, atualiza o valor
                 supabase.table("configuracoes_mural").update({"valor": valor_str}).eq("chave", chave).execute()
             else:
+                # 3. Se a chave não existir, insere um novo registro
                 supabase.table("configuracoes_mural").insert({"chave": chave, "valor": valor_str}).execute()
+                    
         except Exception as e:
             st.error(f"Erro ao salvar configuração: {e}")
             raise e
 
+    # Recarrega sempre do banco antes de renderizar os inputs do admin
     config = carregar_config()
     exibir_mural = to_bool(config.get("exibir_mural", False))
     liberar_recados = to_bool(config.get("liberar_recados", False))
@@ -63,11 +71,13 @@ if modo_admin:
 
     st.sidebar.divider()
     
+    # Agrupando os controles de acesso
     with st.sidebar.expander("🔐 Controles de Acesso", expanded=True):
         novo_cadastro = st.checkbox("Liberar Aba de Cadastro", value=liberar_cadastro)
         novo_recados = st.checkbox("Liberar Aba de Recados", value=liberar_recados)
         novo_exibir = st.checkbox("🎉 REVELAR MURAL FINAL", value=exibir_mural)
 
+    # Agrupando a personalização de cores e imagens
     with st.sidebar.expander("🎨 Personalização Visual", expanded=False):
         cor_fundo_banco = config.get("cor_fundo")
         if cor_hex_valida(cor_fundo_banco):
@@ -77,6 +87,7 @@ if modo_admin:
             
         imagem_fundo  = st.file_uploader("Imagem de Fundo", type=["jpg", "png", "jpeg"])
 
+    # Lê o arquivo UMA ÚNICA VEZ e reutiliza
     img_bytes_admin  = None
     img_b64_admin    = None
     img_tipo_admin   = None
@@ -85,7 +96,8 @@ if modo_admin:
         img_b64_admin   = base64.b64encode(img_bytes_admin).decode()
         img_tipo_admin  = imagem_fundo.type
 
-    st.sidebar.write("") 
+    st.sidebar.write("") # Espaçamento
+    # Botão de salvar mais destacado ocupando toda a largura
     if st.sidebar.button("💾 Salvar alterações", type="primary", use_container_width=True):
         atualizar_config("liberar_cadastro", novo_cadastro)
         atualizar_config("liberar_recados",  novo_recados)
@@ -94,15 +106,16 @@ if modo_admin:
         if img_b64_admin is not None:
             fundo_data_url = f"data:{img_tipo_admin};base64,{img_b64_admin}"
             atualizar_config("imagem_fundo", fundo_data_url)
+        # Depois de salvar, buscar novamente do banco para evitar dependência de sessão
         config = carregar_config()
         st.sidebar.success("Atualizado!")
         st.rerun()
 
-    # O estilo de fundo original que não corta a imagem na TV
+    # Preview do fundo para o admin
     if img_b64_admin is not None:
         estilo_fundo = (
             f"background-image: url('data:{img_tipo_admin};base64,{img_b64_admin}'); "
-            f"background-size: cover; background-position: center; background-attachment: fixed;"
+            f"background-size: cover; background-position: center top; background-repeat: no-repeat;"
         )
     else:
         estilo_fundo = f"background-color: {cor_fundo};"
@@ -114,7 +127,7 @@ elif senha_digitada != "":
     if imagem_salva:
         estilo_fundo = (
             f"background-image: url('{imagem_salva}'); "
-            f"background-size: cover; background-position: center; background-attachment: fixed;"
+            f"background-size: cover; background-position: center top; background-repeat: no-repeat;"
         )
     elif cor_hex_valida(cor_salva):
         estilo_fundo = f"background-color: {cor_salva};"
@@ -126,7 +139,7 @@ else:
     if imagem_salva:
         estilo_fundo = (
             f"background-image: url('{imagem_salva}'); "
-            f"background-size: cover; background-position: center; background-attachment: fixed;"
+            f"background-size: cover; background-position: center top; background-repeat: no-repeat;"
         )
     elif cor_hex_valida(cor_salva):
         estilo_fundo = f"background-color: {cor_salva};"
@@ -137,20 +150,29 @@ else:
 if not exibir_mural:
     st.markdown(f"""
     <style>
+        /* Aplica o fundo escolhido no admin também na tela de espera */
+        /* Garante que o fundo cubra 100% da viewport sem cortes */
         .stApp {{
+            min-height: 100vh;
+        }}
+        .stApp::before {{
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -1;
             {estilo_fundo}
         }}
         .porteiro-card {{
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 50px 30px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            padding: clamp(30px, 5vw, 60px) clamp(20px, 4vw, 50px);
             text-align: center;
-            max-width: 600px;
-            margin: 10vh auto;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            width: min(90vw, 560px);
+            margin: clamp(6vh, 10vh, 15vh) auto;
+            box-shadow: 0 8px 40px 0 rgba(0, 0, 0, 0.4);
             color: white;
             animation: fadeIn 1s ease-in-out;
         }}
@@ -223,12 +245,12 @@ except Exception as e:
 
 # Paleta de cores para os post-its
 POSTIT_COLORS = [
-    {"bg": "#fef08a"},  # Amarelo
-    {"bg": "#bbf7d0"},  # Verde
-    {"bg": "#fed7aa"},  # Laranja
-    {"bg": "#fecdd3"},  # Rosa
-    {"bg": "#bfdbfe"},  # Azul
-    {"bg": "#e9d5ff"},  # Roxo
+    {"bg": "#fef08a", "text": "#3f6212"},  # Amarelo
+    {"bg": "#bbf7d0", "text": "#14532d"},  # Verde
+    {"bg": "#fed7aa", "text": "#7c2d12"},  # Laranja
+    {"bg": "#fecdd3", "text": "#881337"},  # Rosa
+    {"bg": "#bfdbfe", "text": "#1e3a5f"},  # Azul
+    {"bg": "#e9d5ff", "text": "#4c1d95"},  # Roxo
 ]
 
 # --- 6. MURAL ---
@@ -240,12 +262,7 @@ if dados:
     if not df_mes.empty:
         df_mes = df_mes.sort_values(by='data_nascimento')
         
-        cor_base_mural = config.get("cor_fundo", "#334155")
-        if not cor_hex_valida(cor_base_mural):
-            cor_base_mural = "#334155"
-        
-        cor_contraste_geral = cor_texto_contraste(cor_base_mural)
-
+        # Prepara a variável de fundo EXCLUSIVA para os cartões na hora da impressão
         img_print = config.get("imagem_fundo", "")
         cor_print = config.get("cor_fundo", "")
         if img_print:
@@ -268,7 +285,6 @@ if dados:
                     margin: 0; padding: 0; box-sizing: border-box;
                 }}
                 body {{
-                    {estilo_fundo}
                     font-family: 'Lato', sans-serif;
                     color: #f8fafc;
                     display: flex;
@@ -276,6 +292,15 @@ if dados:
                     align-items: center;
                     padding: 60px 20px;
                     min-height: 100vh;
+                    position: relative;
+                }}
+                /* Fundo fixo que cobre toda a viewport sem cortes */
+                body::before {{
+                    content: '';
+                    position: fixed;
+                    inset: 0;
+                    z-index: -1;
+                    {estilo_fundo}
                 }}
                 /* ── Header ── */
                 .mural-header {{
@@ -316,7 +341,7 @@ if dados:
                     display: flex;
                     flex-direction: column;
                     gap: 40px;
-                    max-width: 1200px; /* <--- O tamanho original que funcionava bem */
+                    max-width: 1200px;
                     width: 100%;
                 }}
 
@@ -324,18 +349,16 @@ if dados:
                 .aniversariante-row {{
                     display: flex;
                     flex-direction: row;
-                    gap: 40px;
+                    gap: clamp(20px, 3vw, 40px);
                     background: rgba(255, 255, 255, 0.08);
                     backdrop-filter: blur(16px);
                     -webkit-backdrop-filter: blur(16px);
                     border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 24px;
-                    
-                    padding: 30px 50px; /* <--- Levemente retangular, sem esticar demais */
-                    
+                    padding: clamp(20px, 3vw, 40px);
                     box-shadow: 0 15px 35px rgba(0,0,0,0.2);
                     animation: fadeInUp 0.8s ease both;
-                    align-items: center;
+                    align-items: flex-start;
                 }}
                 @media (max-width: 800px) {{
                     .aniversariante-row {{
@@ -356,14 +379,12 @@ if dados:
                 }}
                 .polaroid {{
                     background: #ffffff;
-                    padding: 16px 16px 50px;
+                    padding: 14px 14px 50px;
                     border-radius: 4px;
                     box-shadow: 
                         0 10px 20px rgba(0,0,0,0.3),
                         inset 0 1px 0 rgba(255,255,255,1);
-                        
-                    width: 300px; /* <--- Um pouquinho maior só para acomodar o nome longo */
-                    
+                    width: clamp(180px, 22vw, 280px);
                     color: #1e293b;
                     text-align: center;
                     position: relative;
@@ -389,7 +410,8 @@ if dados:
                 }}
                 .foto {{
                     width: 100%;
-                    height: 240px;
+                    /* Mantém proporção quadrada (~1:1) independente do tamanho do polaroid */
+                    aspect-ratio: 1 / 1;
                     background-size: cover;
                     background-position: center 20%;
                     border-radius: 2px;
@@ -398,7 +420,7 @@ if dados:
                 }}
                 .foto-placeholder {{
                     width: 100%;
-                    height: 240px;
+                    aspect-ratio: 1 / 1;
                     background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
                     display: flex;
                     align-items: center;
@@ -407,7 +429,7 @@ if dados:
                 }}
                 .nome {{
                     font-family: 'Playfair Display', serif;
-                    font-size: 1.3rem;
+                    font-size: 1.4rem;
                     font-weight: 900;
                     margin-top: 15px;
                     color: #0f172a;
@@ -435,9 +457,9 @@ if dados:
                 .recados-titulo {{
                     font-family: 'Playfair Display', serif;
                     font-size: 1.8rem;
-                    color: {cor_contraste_geral};
+                    color: #ffffff;
                     margin-bottom: 20px;
-                    border-bottom: 2px solid {cor_contraste_geral}40;
+                    border-bottom: 2px solid rgba(255,255,255,0.2);
                     padding-bottom: 10px;
                     display: flex;
                     justify-content: space-between;
@@ -481,19 +503,17 @@ if dados:
                 .post-it-msg {{
                     line-height: 1.3;
                     font-weight: 700;
-                    color: inherit; 
+                    color: rgba(0,0,0,0.85);
                 }}
                 .post-it-autor {{
                     font-size: 0.9rem;
                     font-weight: 700;
-                    color: inherit; 
-                    opacity: 0.8;
+                    color: rgba(0,0,0,0.6);
                     text-align: right;
                     margin-top: 15px;
                 }}
                 .sem-recados {{
-                    color: {cor_contraste_geral}; 
-                    opacity: 0.8;
+                    color: rgba(255,255,255,0.6);
                     font-size: 1.1rem;
                     font-style: italic;
                     padding: 20px 0;
@@ -526,7 +546,7 @@ if dados:
                     box-shadow: 0 12px 25px rgba(0,0,0,0.5);
                 }}
 
-                /* ── CONFIGURAÇÕES EXCLUSIVAS PARA A IMPRESSORA (Folha A3) ── */
+                /* ── CONFIGURAÇÕES EXCLUSIVAS PARA A IMPRESSORA (Folha A3 com Cartões Temáticos) ── */
                 @media print {{
                     * {{
                         -webkit-print-color-adjust: exact !important;
@@ -536,6 +556,7 @@ if dados:
                         size: A3 portrait;
                         margin: 1cm;
                     }}
+                    /* Remove o fundo de toda a folha para não gastar tinta */
                     body {{
                         background: white !important;
                         color: black !important;
@@ -560,6 +581,7 @@ if dados:
                         -webkit-text-fill-color: #0284c7 !important;
                     }}
                     
+                    /* Mágica da Grade de Impressão A3 (2 Colunas) */
                     .mural-grid {{
                         display: grid !important;
                         grid-template-columns: repeat(2, 1fr) !important;
@@ -568,20 +590,29 @@ if dados:
                         min-height: 85vh !important;
                     }}
                     
+                    /* CARTÃO DO ANIVERSARIANTE NA IMPRESSÃO */
                     .aniversariante-row {{
+                        /* Aplica a imagem ou cor escolhida no admin SÓ AQUI dentro! */
                         {estilo_fundo_print}
+                        
+                        /* Película escura (insulfilm) para garantir que o texto branco apareça na impressão */
                         box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.6) !important;
+                        
                         border: 2px solid #cbd5e1 !important;
                         border-radius: 20px !important;
                         margin-bottom: 0 !important;
+                        
+                        /* Layout para a coluna da grade */
                         flex-direction: column !important;
                         align-items: center !important;
                         padding: 20px !important;
                         height: 100% !important;
+                        
                         break-inside: avoid !important;
                         page-break-inside: avoid !important;
                     }}
                     
+                    /* Força a impressora a puxar uma folha nova a cada 6 pessoas */
                     .aniversariante-row:nth-child(6n) {{
                         page-break-after: always !important;
                         break-after: page !important;
@@ -597,7 +628,7 @@ if dados:
                         align-items: center !important;
                     }}
                     .recados-titulo {{
-                        color: #ffffff !important; 
+                        color: #ffffff !important; /* Mantém branco pois a película do fundo será escura */
                         border-bottom: 2px solid rgba(255,255,255,0.3) !important;
                         width: 100% !important;
                         justify-content: center !important;
@@ -625,14 +656,7 @@ if dados:
         cartoes_html = ""
 
         for idx, (_, row) in enumerate(df_mes.iterrows()):
-            # LÓGICA DE TRUNCAR O NOME NO PYTHON PARA NÃO QUEBRAR O LAYOUT
-            nome_completo = str(row.get("nome", "Sem nome"))
-            partes_nome = nome_completo.split()
-            if len(partes_nome) > 1:
-                nome_display = f"{partes_nome[0]} {partes_nome[1]}"
-            else:
-                nome_display = nome_completo
-
+            nome = str(row.get("nome", "Sem nome"))
             dia  = row['data_nascimento'].day if pd.notna(row['data_nascimento']) else "?"
 
             img_url = str(row.get("foto_url", "")).strip()
@@ -649,7 +673,7 @@ if dados:
             # ── Post-its ──
             post_its_html = ""
             if not df_recados.empty and 'para_quem' in df_recados.columns:
-                recados_pessoa = df_recados[df_recados['para_quem'] == nome_completo]
+                recados_pessoa = df_recados[df_recados['para_quem'] == nome]
                 if recados_pessoa.empty:
                     post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
                 else:
@@ -657,13 +681,10 @@ if dados:
                         mensagem = str(recado.get("mensagem", "")).strip()
                         autor    = str(recado.get("de_quem", "Anônimo")).strip()
                         rotacao  = random.randint(-4, 4)
-                        
-                        cor_fundo_postit = POSTIT_COLORS[i % len(POSTIT_COLORS)]['bg']
-                        cor_texto_postit = cor_texto_contraste(cor_fundo_postit)
-                        
+                        cor      = POSTIT_COLORS[i % len(POSTIT_COLORS)]
                         post_its_html += f"""
                         <div class="post-it"
-                             style="background-color:{cor_fundo_postit}; color:{cor_texto_postit}; transform: rotate({rotacao}deg);">
+                             style="background-color:{cor['bg']}; transform: rotate({rotacao}deg);">
                             <div class="post-it-msg">{mensagem}</div>
                             <div class="post-it-autor">~ {autor}</div>
                         </div>
@@ -671,14 +692,14 @@ if dados:
             else:
                 post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
 
-            delay = idx * 0.2 
+            delay = idx * 0.2 # Atraso na animação para entrada em cascata
 
             cartoes_html += f"""
             <div class="aniversariante-row" style="animation-delay: {delay}s;">
                 <div class="polaroid-container">
                     <div class="polaroid">
                         {foto_html}
-                        <div class="nome">{nome_display}</div>
+                        <div class="nome">{nome}</div>
                         <div class="data-badge">🎉 {dia} de {nome_mes_atual}</div>
                         {curiosidade_html}
                     </div>
@@ -686,7 +707,7 @@ if dados:
                 
                 <div class="recados-section">
                     <div class="recados-titulo">
-                        <span>Mensagens para {nome_display.split()[0]}</span>
+                        <span>Mensagens para {nome.split()[0]}</span>
                         <span style="font-size: 1.9rem; opacity:1;">🎂</span>
                     </div>
                     <div class="area-post-it">
