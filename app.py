@@ -101,7 +101,7 @@ if modo_admin:
     if img_b64_admin is not None:
         estilo_fundo = (
             f"background-image: url('data:{img_tipo_admin};base64,{img_b64_admin}'); "
-            f"background-size: cover; background-position: center; background-attachment: fixed;"
+            f"background-size: 100% 100%; background-position: center; background-attachment: fixed;"
         )
     else:
         estilo_fundo = f"background-color: {cor_fundo};"
@@ -113,7 +113,7 @@ elif senha_digitada != "":
     if imagem_salva:
         estilo_fundo = (
             f"background-image: url('{imagem_salva}'); "
-            f"background-size: cover; background-position: center; background-attachment: fixed;"
+            f"background-size: 100% 100%; background-position: center; background-attachment: fixed;"
         )
     elif cor_hex_valida(cor_salva):
         estilo_fundo = f"background-color: {cor_salva};"
@@ -125,7 +125,7 @@ else:
     if imagem_salva:
         estilo_fundo = (
             f"background-image: url('{imagem_salva}'); "
-            f"background-size: cover; background-position: center; background-attachment: fixed;"
+            f"background-size: 100% 100%; background-position: center; background-attachment: fixed;"
         )
     elif cor_hex_valida(cor_salva):
         estilo_fundo = f"background-color: {cor_salva};"
@@ -248,7 +248,8 @@ if dados:
         img_print = config.get("imagem_fundo", "")
         cor_print = config.get("cor_fundo", "")
         if img_print:
-            estilo_fundo_print = f"background-image: url('{img_print}') !important; background-size: cover !important; background-position: center !important;"
+            # Também forçamos o 100% 100% na impressão para a imagem caber certinho no cartão!
+            estilo_fundo_print = f"background-image: url('{img_print}') !important; background-size: 100% 100% !important; background-position: center !important;"
         elif cor_hex_valida(cor_print):
             estilo_fundo_print = f"background-color: {cor_print} !important;"
         else:
@@ -315,9 +316,9 @@ if dados:
                     display: flex;
                     flex-direction: column;
                     gap: 50px;
-                    max-width: 1100px; /* <--- TETO DE LARGURA: Não deixa o painel esticar demais */
+                    max-width: 1100px;
                     width: 100%;
-                    margin: 0 auto; /* <--- MÁGICA: Centraliza o painel no meio da tela */
+                    margin: 0 auto;
                 }}
 
                 /* ── Bloco de Celebração (Web/TV Horizontal) ── */
@@ -330,7 +331,7 @@ if dados:
                     -webkit-backdrop-filter: blur(16px);
                     border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 24px;
-                    padding: 30px 50px; /* <--- Padding elegante e proporcional */
+                    padding: 30px 50px;
                     width: 100%;
                     box-shadow: 0 15px 35px rgba(0,0,0,0.2);
                     animation: fadeInUp 0.8s ease both;
@@ -360,7 +361,7 @@ if dados:
                     box-shadow: 
                         0 10px 20px rgba(0,0,0,0.3),
                         inset 0 1px 0 rgba(255,255,255,1);
-                    width: 300px; /* <--- Tamanho ajustado e proporcional */
+                    width: 300px;
                     color: #1e293b;
                     text-align: center;
                     position: relative;
@@ -386,8 +387,8 @@ if dados:
                 }}
                 .foto {{
                     width: 100%;
-                    height: 250px; /* <--- Altura ajustada */
-                    background-size: cover;
+                    height: 250px;
+                    background-size: cover; /* Esse aqui continua cover para não distorcer o rosto da pessoa! */
                     background-position: center 20%;
                     border-radius: 2px;
                     border: 1px solid #cbd5e1;
