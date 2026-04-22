@@ -331,8 +331,8 @@ if dados:
                 .mural-grid {{
                     display: flex;
                     flex-direction: column;
-                    gap: 40px;
-                    max-width: 1400px; /* <--- AUMENTADO PARA O FUNDO FICAR MAIS LARGO */
+                    gap: 50px;
+                    max-width: 95%; /* <--- A MÁGICA AQUI: Vai ocupar 95% de qualquer TV */
                     width: 100%;
                 }}
 
@@ -373,13 +373,13 @@ if dados:
                 }}
                 .polaroid {{
                     background: #ffffff;
-                    padding: 16px 16px 50px;
+                    padding: 20px 20px 60px; /* Margens internas levemente maiores */
                     border-radius: 4px;
                     box-shadow: 
                         0 10px 20px rgba(0,0,0,0.3),
                         inset 0 1px 0 rgba(255,255,255,1);
                         
-                    width: 300px; /* <--- POLAROID MAIS LARGA PARA NÃO QUEBRAR O NOME */
+                    width: 360px; /* <--- POLAROID MAIOR */
                     
                     color: #1e293b;
                     text-align: center;
@@ -406,7 +406,7 @@ if dados:
                 }}
                 .foto {{
                     width: 100%;
-                    height: 230px;
+                    height: 280px; /* <--- FOTO MAIOR PARA ACOMPANHAR */
                     background-size: cover;
                     background-position: center 20%;
                     border-radius: 2px;
@@ -415,7 +415,7 @@ if dados:
                 }}
                 .foto-placeholder {{
                     width: 100%;
-                    height: 230px;
+                    height: 280px;
                     background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
                     display: flex;
                     align-items: center;
@@ -425,8 +425,8 @@ if dados:
                 .nome {{
                     font-family: 'Playfair Display', serif;
                     
-                    font-size: 1.25rem; /* <--- FONTE LEVEMENTE MENOR */
-                    line-height: 1.1;   /* <--- AJUSTE DE LINHA */
+                    font-size: 1.25rem;
+                    line-height: 1.1; 
                     
                     font-weight: 900;
                     margin-top: 15px;
@@ -455,7 +455,7 @@ if dados:
                 .recados-titulo {{
                     font-family: 'Playfair Display', serif;
                     font-size: 1.8rem;
-                    color: {cor_contraste_geral}; /* MUDANÇA: Adapta ao fundo */
+                    color: {cor_contraste_geral};
                     margin-bottom: 20px;
                     border-bottom: 2px solid {cor_contraste_geral}40;
                     padding-bottom: 10px;
@@ -471,11 +471,11 @@ if dados:
                 }}
                 .post-it {{
                     padding: 20px 16px 16px;
-                    width: 160px;
-                    min-height: 140px;
+                    width: 190px; /* <--- POST-IT MAIS LARGO */
+                    min-height: 160px; /* <--- POST-IT MAIS ALTO */
+                    font-size: 1.3rem; /* <--- LETRA MAIOR */
                     box-shadow: 3px 5px 15px rgba(0,0,0,0.2);
                     font-family: 'Caveat', cursive;
-                    font-size: 1.1rem;
                     border-radius: 2px 15px 2px 2px;
                     display: flex;
                     flex-direction: column;
