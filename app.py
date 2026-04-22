@@ -46,24 +46,16 @@ if modo_admin:
 
     def atualizar_config(chave, valor):
         try:
-            # Garante que o valor vai como texto para o banco
             valor_str = str(valor)
-            
-            # 1. Verifica se a chave já existe na tabela
             busca = supabase.table("configuracoes_mural").select("id").eq("chave", chave).execute()
-            
             if busca.data and len(busca.data) > 0:
-                # 2. Se a chave existir, atualiza o valor
                 supabase.table("configuracoes_mural").update({"valor": valor_str}).eq("chave", chave).execute()
             else:
-                # 3. Se a chave não existir, insere um novo registro
                 supabase.table("configuracoes_mural").insert({"chave": chave, "valor": valor_str}).execute()
-                    
         except Exception as e:
             st.error(f"Erro ao salvar configuração: {e}")
             raise e
 
-    # Recarrega sempre do banco antes de renderizar os inputs do admin
     config = carregar_config()
     exibir_mural = to_bool(config.get("exibir_mural", False))
     liberar_recados = to_bool(config.get("liberar_recados", False))
@@ -71,13 +63,11 @@ if modo_admin:
 
     st.sidebar.divider()
     
-    # Agrupando os controles de acesso
     with st.sidebar.expander("🔐 Controles de Acesso", expanded=True):
         novo_cadastro = st.checkbox("Liberar Aba de Cadastro", value=liberar_cadastro)
         novo_recados = st.checkbox("Liberar Aba de Recados", value=liberar_recados)
         novo_exibir = st.checkbox("🎉 REVELAR MURAL FINAL", value=exibir_mural)
 
-    # Agrupando a personalização de cores e imagens
     with st.sidebar.expander("🎨 Personalização Visual", expanded=False):
         cor_fundo_banco = config.get("cor_fundo")
         if cor_hex_valida(cor_fundo_banco):
@@ -87,7 +77,6 @@ if modo_admin:
             
         imagem_fundo  = st.file_uploader("Imagem de Fundo", type=["jpg", "png", "jpeg"])
 
-    # Lê o arquivo UMA ÚNICA VEZ e reutiliza
     img_bytes_admin  = None
     img_b64_admin    = None
     img_tipo_admin   = None
@@ -96,8 +85,7 @@ if modo_admin:
         img_b64_admin   = base64.b64encode(img_bytes_admin).decode()
         img_tipo_admin  = imagem_fundo.type
 
-    st.sidebar.write("") # Espaçamento
-    # Botão de salvar mais destacado ocupando toda a largura
+    st.sidebar.write("") 
     if st.sidebar.button("💾 Salvar alterações", type="primary", use_container_width=True):
         atualizar_config("liberar_cadastro", novo_cadastro)
         atualizar_config("liberar_recados",  novo_recados)
@@ -106,12 +94,10 @@ if modo_admin:
         if img_b64_admin is not None:
             fundo_data_url = f"data:{img_tipo_admin};base64,{img_b64_admin}"
             atualizar_config("imagem_fundo", fundo_data_url)
-        # Depois de salvar, buscar novamente do banco para evitar dependência de sessão
         config = carregar_config()
         st.sidebar.success("Atualizado!")
         st.rerun()
 
-    # Preview do fundo para o admin
     if img_b64_admin is not None:
         estilo_fundo = (
             f"background-image: url('data:{img_tipo_admin};base64,{img_b64_admin}'); "
@@ -150,7 +136,6 @@ else:
 if not exibir_mural:
     st.markdown(f"""
     <style>
-        /* Aplica o fundo escolhido no admin também na tela de espera */
         .stApp {{
             {estilo_fundo}
         }}
@@ -254,14 +239,12 @@ if dados:
     if not df_mes.empty:
         df_mes = df_mes.sort_values(by='data_nascimento')
         
-        # Puxa a cor de fundo para calcular se os títulos ficam brancos ou pretos
         cor_base_mural = config.get("cor_fundo", "#334155")
         if not cor_hex_valida(cor_base_mural):
             cor_base_mural = "#334155"
         
         cor_contraste_geral = cor_texto_contraste(cor_base_mural)
 
-        # Prepara a variável de fundo EXCLUSIVA para os cartões na hora da impressão
         img_print = config.get("imagem_fundo", "")
         cor_print = config.get("cor_fundo", "")
         if img_print:
@@ -296,7 +279,7 @@ if dados:
                 /* ── Header ── */
                 .mural-header {{
                     text-align: center;
-                    margin-bottom: 70px;
+                    margin-bottom: 50px;
                     background: rgba(0, 0, 0, 0.4);
                     padding: 30px 60px;
                     border-radius: 20px;
@@ -332,8 +315,9 @@ if dados:
                     display: flex;
                     flex-direction: column;
                     gap: 50px;
-                    max-width: 50%; /* <--- A MÁGICA AQUI: Vai ocupar 95% de qualquer TV */
+                    max-width: 1100px; /* <--- TETO DE LARGURA: Não deixa o painel esticar demais */
                     width: 100%;
+                    margin: 0 auto; /* <--- MÁGICA: Centraliza o painel no meio da tela */
                 }}
 
                 /* ── Bloco de Celebração (Web/TV Horizontal) ── */
@@ -346,10 +330,8 @@ if dados:
                     -webkit-backdrop-filter: blur(16px);
                     border: 1px solid rgba(255, 255, 255, 0.2);
                     border-radius: 24px;
-                    
-                    padding: 25px 60px; /* <--- AJUSTE DE PADDING PARA FORMATO RETANGULAR DE FAIXA */
-                    width: 100%; /* <--- FORÇA Ocupar o espaço */
-                    
+                    padding: 30px 50px; /* <--- Padding elegante e proporcional */
+                    width: 100%;
                     box-shadow: 0 15px 35px rgba(0,0,0,0.2);
                     animation: fadeInUp 0.8s ease both;
                     align-items: center;
@@ -373,14 +355,12 @@ if dados:
                 }}
                 .polaroid {{
                     background: #ffffff;
-                    padding: 20px 20px 60px; /* Margens internas levemente maiores */
+                    padding: 16px 16px 50px;
                     border-radius: 4px;
                     box-shadow: 
                         0 10px 20px rgba(0,0,0,0.3),
                         inset 0 1px 0 rgba(255,255,255,1);
-                        
-                    width: 360px; /* <--- POLAROID MAIOR */
-                    
+                    width: 300px; /* <--- Tamanho ajustado e proporcional */
                     color: #1e293b;
                     text-align: center;
                     position: relative;
@@ -406,7 +386,7 @@ if dados:
                 }}
                 .foto {{
                     width: 100%;
-                    height: 280px; /* <--- FOTO MAIOR PARA ACOMPANHAR */
+                    height: 250px; /* <--- Altura ajustada */
                     background-size: cover;
                     background-position: center 20%;
                     border-radius: 2px;
@@ -415,7 +395,7 @@ if dados:
                 }}
                 .foto-placeholder {{
                     width: 100%;
-                    height: 280px;
+                    height: 250px;
                     background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
                     display: flex;
                     align-items: center;
@@ -424,10 +404,8 @@ if dados:
                 }}
                 .nome {{
                     font-family: 'Playfair Display', serif;
-                    
                     font-size: 1.25rem;
                     line-height: 1.1; 
-                    
                     font-weight: 900;
                     margin-top: 15px;
                     color: #0f172a;
@@ -471,9 +449,9 @@ if dados:
                 }}
                 .post-it {{
                     padding: 20px 16px 16px;
-                    width: 190px; /* <--- POST-IT MAIS LARGO */
-                    min-height: 160px; /* <--- POST-IT MAIS ALTO */
-                    font-size: 1.3rem; /* <--- LETRA MAIOR */
+                    width: 170px;
+                    min-height: 150px;
+                    font-size: 1.2rem;
                     box-shadow: 3px 5px 15px rgba(0,0,0,0.2);
                     font-family: 'Caveat', cursive;
                     border-radius: 2px 15px 2px 2px;
@@ -645,7 +623,6 @@ if dados:
         cartoes_html = ""
 
         for idx, (_, row) in enumerate(df_mes.iterrows()):
-            # LÓGICA DE TRUNCAR O NOME NO PYTHON PARA NÃO QUEBRAR O LAYOUT
             nome_completo = str(row.get("nome", "Sem nome"))
             partes_nome = nome_completo.split()
             if len(partes_nome) > 1:
@@ -669,7 +646,6 @@ if dados:
             # ── Post-its ──
             post_its_html = ""
             if not df_recados.empty and 'para_quem' in df_recados.columns:
-                # Comparamos com o nome completo original que está no banco de dados para puxar os recados corretamente
                 recados_pessoa = df_recados[df_recados['para_quem'] == nome_completo]
                 if recados_pessoa.empty:
                     post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
@@ -679,7 +655,6 @@ if dados:
                         autor    = str(recado.get("de_quem", "Anônimo")).strip()
                         rotacao  = random.randint(-4, 4)
                         
-                        # Calcula a cor do texto do post-it dinamicamente
                         cor_fundo_postit = POSTIT_COLORS[i % len(POSTIT_COLORS)]['bg']
                         cor_texto_postit = cor_texto_contraste(cor_fundo_postit)
                         
@@ -693,7 +668,7 @@ if dados:
             else:
                 post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
 
-            delay = idx * 0.2 # Atraso na animação para entrada em cascata
+            delay = idx * 0.2 
 
             cartoes_html += f"""
             <div class="aniversariante-row" style="animation-delay: {delay}s;">
