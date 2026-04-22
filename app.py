@@ -821,6 +821,9 @@ if dados:
         </head>
         <body>
             <script>
+                // ── Modo TV: esconde toolbar de impressão ──────────────────────
+                var IS_TV = {'true' if is_tv else 'false'};
+
                 // ── Orientação e grade adaptativa ──────────────────────────────
                 var orientacao = 'portrait'; // padrão
 
@@ -877,6 +880,12 @@ if dados:
                 // Inicializa com retrato ao carregar
                 document.addEventListener('DOMContentLoaded', function() {{
                     applyOrientation('portrait');
+                    if (IS_TV) {{
+                        var toolbar = document.querySelector('.print-toolbar');
+                        var badge   = document.getElementById('badge-orientacao');
+                        if (toolbar) toolbar.style.display = 'none';
+                        if (badge)   badge.style.display   = 'none';
+                    }}
                 }});
             </script>
 
