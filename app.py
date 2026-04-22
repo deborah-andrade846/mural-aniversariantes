@@ -262,35 +262,21 @@ if dados:
     if not df_mes.empty:
         df_mes = df_mes.sort_values(by='data_nascimento')
 
-        # ── FUNDO aplicado no .stApp (fora do iframe) ──────────────────────────
-        # O components.html roda dentro de um <iframe>, então position:fixed dentro
-        # dele fica preso às bordas do iframe, não da tela real.
-        # A solução é aplicar o fundo diretamente no .stApp via st.markdown,
-        # deixar o iframe e o body internos com fundo transparente.
+        # ── FUNDO aplicado no .stApp (tela de porteiro e fundo geral) ───────────
+        # Para o mural, o fundo vai DENTRO do iframe com background-size: cover
+        # e background-attachment: scroll (fixed causa cortes no iframe).
+        # Também remove o padding do Streamlit para o iframe ocupar mais tela.
         st.markdown(f"""
         <style>
-            /* Fundo cobre 100% da viewport real, atrás do iframe */
-            .stApp {{
-                min-height: 100vh;
-            }}
-            .stApp::before {{
-                content: '';
-                position: fixed;
-                inset: 0;
-                z-index: -1;
-                {estilo_fundo}
-            }}
-            /* Remove padding lateral do Streamlit para o iframe ocupar tela toda */
             .block-container {{
-                padding-left: 0 !important;
-                padding-right: 0 !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+                padding-top: 1rem !important;
                 max-width: 100% !important;
             }}
-            /* Iframe sem borda e 100% da largura */
             iframe[title="streamlit_components_v1.html"] {{
                 width: 100% !important;
                 border: none !important;
-                background: transparent !important;
             }}
         </style>
         """, unsafe_allow_html=True)
@@ -317,9 +303,18 @@ if dados:
                 *, *::before, *::after {{
                     margin: 0; padding: 0; box-sizing: border-box;
                 }}
-                /* body transparente — o fundo real fica no .stApp fora do iframe */
-                html, body {{
-                    background: transparent !important;
+                /* Fundo dentro do iframe com scroll — evita cortes laterais */
+                html {{
+                    /* background-size: cover + scroll garante cobertura total sem cortar */
+                    {estilo_fundo}
+                    background-attachment: scroll !important;
+                    background-repeat: no-repeat !important;
+                    background-size: cover !important;
+                    background-position: center top !important;
+                    min-height: 100%;
+                }}
+                body {{
+                    background: transparent;
                     font-family: 'Lato', sans-serif;
                     color: #f8fafc;
                     display: flex;
