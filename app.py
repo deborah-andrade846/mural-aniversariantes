@@ -372,13 +372,13 @@ if dados:
                     display: flex;
                     flex-direction: row;
                     gap: clamp(20px, 3vw, 40px);
-                    background: rgba(255, 255, 255, 0.08);
-                    backdrop-filter: blur(16px);
-                    -webkit-backdrop-filter: blur(16px);
-                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    background: rgba(0, 0, 0, 0.45);
+                    backdrop-filter: blur(18px);
+                    -webkit-backdrop-filter: blur(18px);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
                     border-radius: 24px;
                     padding: clamp(20px, 3vw, 40px);
-                    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+                    box-shadow: 0 15px 40px rgba(0,0,0,0.35);
                     animation: fadeInUp 0.8s ease both;
                     align-items: flex-start;
                 }}
@@ -480,8 +480,9 @@ if dados:
                     font-family: 'Playfair Display', serif;
                     font-size: 1.8rem;
                     color: #ffffff;
+                    text-shadow: 0 2px 6px rgba(0,0,0,0.7);
                     margin-bottom: 20px;
-                    border-bottom: 2px solid rgba(255,255,255,0.2);
+                    border-bottom: 2px solid rgba(255,255,255,0.25);
                     padding-bottom: 10px;
                     display: flex;
                     justify-content: space-between;
@@ -535,10 +536,11 @@ if dados:
                     margin-top: 15px;
                 }}
                 .sem-recados {{
-                    color: rgba(255,255,255,0.6);
+                    color: rgba(255,255,255,0.9);
                     font-size: 1.1rem;
                     font-style: italic;
                     padding: 20px 0;
+                    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
                 }}
 
                 /* ── Botão de Impressão ── */
