@@ -2,29 +2,22 @@ import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
 from datetime import datetime
-from supabase import create_client, Client
 import random
 import base64
-import re
+from utils import get_supabase, to_bool, cor_hex_valida, carregar_config
 
-st.set_page_config(page_title="Mural de Aniversáriantes", layout="wide", page_icon="🎉")
+st.set_page_config(page_title="Mural de Aniversariantes", layout="wide", page_icon="🎉")
 
 # --- MODO TV (TELA LIMPA) ---
-# Se a URL terminar com ?tv=true, esconde toda a interface padrão do Streamlit
 is_tv = st.query_params.get("tv") == "true"
 
 if is_tv:
     st.markdown("""
         <style>
-            /* Esconde o cabeçalho (header), menu principal e rodapé */
             header {visibility: hidden;}
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
-            
-            /* Esconde a setinha de abrir a sidebar */
             [data-testid="collapsedControl"] {display: none;}
-            
-            /* Remove as margens e o padding superior padrão do Streamlit */
             .block-container {
                 padding-top: 0rem !important;
                 padding-bottom: 0rem !important;
@@ -34,28 +27,7 @@ if is_tv:
     """, unsafe_allow_html=True)
 
 # --- 1. CONEXÃO ---
-url = st.secrets["SUPABASE_URL"]
-key = st.secrets["SUPABASE_KEY"]
-supabase: Client = create_client(url, key)
-
-# --- 2. UTILITÁRIOS ---
-def to_bool(val, default=False):
-    """Converte valores do Supabase (string/bool) para booleano Python."""
-    if isinstance(val, bool):
-        return val
-    if isinstance(val, str):
-        return val.strip().lower() in ('true', '1', 'yes', 'sim')
-    return default
-
-def carregar_config():
-    try:
-        resp = supabase.table("configuracoes_mural").select("*").execute()
-        return {item['chave']: item['valor'] for item in resp.data}
-    except Exception:
-        return {}
-
-def cor_hex_valida(valor):
-    return isinstance(valor, str) and bool(re.fullmatch(r"#[0-9a-fA-F]{6}", valor.strip()))
+supabase = get_supabase()
 
 config = carregar_config()
 
@@ -249,12 +221,17 @@ meses_ptbr = {
 nome_mes_atual = meses_ptbr[mes_atual]
 
 try:
-    response     = supabase.table("aniversariantes").select("*").execute()
-    dados        = response.data or []
-    resp_recados = supabase.table("recados").select("*").execute()
-    df_recados   = pd.DataFrame(resp_recados.data) if resp_recados.data else pd.DataFrame()
+    with st.spinner("Carregando mural..."):
+        response     = supabase.table("aniversariantes").select("*").execute()
+        dados        = response.data or []
+        resp_recados = supabase.table("recados").select("*").execute()
+        df_recados   = pd.DataFrame(resp_recados.data) if resp_recados.data else pd.DataFrame()
+except ConnectionError:
+    st.error("Sem conexão com o banco de dados. Verifique sua internet e tente novamente.")
+    dados      = []
+    df_recados = pd.DataFrame()
 except Exception as e:
-    st.error(f"Erro no banco: {e}")
+    st.error(f"Erro inesperado ao carregar os dados: {e}")
     dados      = []
     df_recados = pd.DataFrame()
 
