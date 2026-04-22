@@ -235,14 +235,14 @@ except Exception as e:
     dados      = []
     df_recados = pd.DataFrame()
 
-# Paleta de cores para os post-its
+# Paleta de cores para os post-its (vamos usar apenas a cor de fundo e calcular o texto dinamicamente)
 POSTIT_COLORS = [
-    {"bg": "#fef08a", "text": "#3f6212"},  # Amarelo
-    {"bg": "#bbf7d0", "text": "#14532d"},  # Verde
-    {"bg": "#fed7aa", "text": "#7c2d12"},  # Laranja
-    {"bg": "#fecdd3", "text": "#881337"},  # Rosa
-    {"bg": "#bfdbfe", "text": "#1e3a5f"},  # Azul
-    {"bg": "#e9d5ff", "text": "#4c1d95"},  # Roxo
+    {"bg": "#fef08a"},  # Amarelo
+    {"bg": "#bbf7d0"},  # Verde
+    {"bg": "#fed7aa"},  # Laranja
+    {"bg": "#fecdd3"},  # Rosa
+    {"bg": "#bfdbfe"},  # Azul
+    {"bg": "#e9d5ff"},  # Roxo
 ]
 
 # --- 6. MURAL ---
@@ -254,6 +254,13 @@ if dados:
     if not df_mes.empty:
         df_mes = df_mes.sort_values(by='data_nascimento')
         
+        # Puxa a cor de fundo para calcular se os títulos ficam brancos ou pretos
+        cor_base_mural = config.get("cor_fundo", "#334155")
+        if not cor_hex_valida(cor_base_mural):
+            cor_base_mural = "#334155"
+        
+        cor_contraste_geral = cor_texto_contraste(cor_base_mural)
+
         # Prepara a variável de fundo EXCLUSIVA para os cartões na hora da impressão
         img_print = config.get("imagem_fundo", "")
         cor_print = config.get("cor_fundo", "")
@@ -440,9 +447,9 @@ if dados:
                 .recados-titulo {{
                     font-family: 'Playfair Display', serif;
                     font-size: 1.8rem;
-                    color: #ffffff;
+                    color: {cor_contraste_geral}; /* MUDANÇA AQUI: Adapta ao fundo */
                     margin-bottom: 20px;
-                    border-bottom: 2px solid rgba(255,255,255,0.2);
+                    border-bottom: 2px solid {cor_contraste_geral}40;
                     padding-bottom: 10px;
                     display: flex;
                     justify-content: space-between;
@@ -486,18 +493,19 @@ if dados:
                 .post-it-msg {{
                     line-height: 1.3;
                     font-weight: 700;
-                    color: inherit;
+                    color: inherit; /* MUDANÇA AQUI: Puxa dinamicamente a cor injetada no post-it */
                 }}
                 .post-it-autor {{
                     font-size: 0.9rem;
                     font-weight: 700;
-                    color: inherit;
+                    color: inherit; /* MUDANÇA AQUI */
                     opacity: 0.8;
                     text-align: right;
                     margin-top: 15px;
                 }}
                 .sem-recados {{
-                    color: rgba(255,255,255,0.6);
+                    color: {cor_contraste_geral}; /* MUDANÇA AQUI: Adapta ao fundo */
+                    opacity: 0.8;
                     font-size: 1.1rem;
                     font-style: italic;
                     padding: 20px 0;
@@ -665,12 +673,14 @@ if dados:
                         mensagem = str(recado.get("mensagem", "")).strip()
                         autor    = str(recado.get("de_quem", "Anônimo")).strip()
                         rotacao  = random.randint(-4, 4)
-                        cor      = POSTIT_COLORS[i % len(POSTIT_COLORS)]
-                        cor_fundo = cor['bg']
-                        cor_texto = cor_texto_contraste(cor_fundo)
+                        
+                        # Calcula a cor do texto do post-it dinamicamente
+                        cor_fundo_postit = POSTIT_COLORS[i % len(POSTIT_COLORS)]['bg']
+                        cor_texto_postit = cor_texto_contraste(cor_fundo_postit)
+                        
                         post_its_html += f"""
                         <div class="post-it"
-                             style="background-color:{cor_fundo}; transform: rotate({rotacao}deg); color: {cor_texto};">
+                             style="background-color:{cor_fundo_postit}; color:{cor_texto_postit}; transform: rotate({rotacao}deg);">
                             <div class="post-it-msg">{mensagem}</div>
                             <div class="post-it-autor">~ {autor}</div>
                         </div>
