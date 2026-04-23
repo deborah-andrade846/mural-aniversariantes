@@ -160,16 +160,16 @@ if not exibir_mural:
             background-repeat: no-repeat !important;
         }}
         .porteiro-card {{
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(0, 0, 0, 0.50);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 20px;
             padding: clamp(30px, 5vw, 60px) clamp(20px, 4vw, 50px);
             text-align: center;
             width: min(90vw, 560px);
             margin: clamp(6vh, 10vh, 15vh) auto;
-            box-shadow: 0 8px 40px 0 rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 40px 0 rgba(0, 0, 0, 0.5);
             color: white;
             animation: fadeIn 1s ease-in-out;
         }}
@@ -185,14 +185,14 @@ if not exibir_mural:
             font-size: 2.5rem;
             font-weight: 700;
             margin-bottom: 15px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.7);
         }}
         .porteiro-texto {{
             font-family: 'Lato', sans-serif;
             font-size: 1.1rem;
             line-height: 1.6;
             color: #e2e8f0;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            text-shadow: 0 1px 4px rgba(0,0,0,0.7);
         }}
         @keyframes pulse {{
             0% {{ transform: scale(1); }}
