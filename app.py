@@ -151,16 +151,13 @@ if not exibir_mural:
     st.markdown(f"""
     <style>
         /* Aplica o fundo escolhido no admin também na tela de espera */
-        /* Garante que o fundo cubra 100% da viewport sem cortes */
         .stApp {{
             min-height: 100vh;
-        }}
-        .stApp::before {{
-            content: '';
-            position: fixed;
-            inset: 0;
-            z-index: -1;
             {estilo_fundo}
+            background-attachment: scroll !important;
+            background-size: cover !important;
+            background-position: center top !important;
+            background-repeat: no-repeat !important;
         }}
         .porteiro-card {{
             background: rgba(255, 255, 255, 0.12);
