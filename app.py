@@ -331,9 +331,9 @@ if dados:
                 }}
                 .mural-header-inner {{
                     background: linear-gradient(135deg,
-                        rgba(15,23,42,0.55) 0%,
-                        rgba(30,41,59,0.42) 50%,
-                        rgba(15,23,42,0.55) 100%);
+                        rgba(15,23,42,0.72) 0%,
+                        rgba(30,41,59,0.60) 50%,
+                        rgba(15,23,42,0.72) 100%);
                     backdrop-filter: blur(20px);
                     -webkit-backdrop-filter: blur(20px);
                     border: 1px solid rgba(255,255,255,0.12);
@@ -408,15 +408,15 @@ if dados:
                     display: grid;
                     grid-template-columns: auto 1fr;
                     gap: clamp(24px, 3.5vw, 48px);
-                    background: rgba(255,255,255,0.14);
-                    backdrop-filter: blur(14px);
-                    -webkit-backdrop-filter: blur(14px);
+                    background: rgba(255,255,255,0.13);
+                    backdrop-filter: blur(16px);
+                    -webkit-backdrop-filter: blur(16px);
                     border: 1px solid rgba(255,255,255,0.28);
                     border-radius: 20px;
-                    padding: clamp(28px, 3.5vw, 48px);
+                    padding: clamp(28px, 3.5vw, 50px);
                     box-shadow:
-                        0 8px 32px rgba(0,0,0,0.15),
-                        0 1px 0 rgba(255,255,255,0.20) inset;
+                        0 12px 36px rgba(0,0,0,0.22),
+                        0 1px 0 rgba(255,255,255,0.18) inset;
                     animation: fadeInUp 0.7s ease both;
                     align-items: center;
                     position: relative;
@@ -466,13 +466,13 @@ if dados:
                 }}
                 .polaroid {{
                     background: #ffffff;
-                    padding: 14px 14px 60px;
+                    padding: 14px 14px 56px;
                     border-radius: 4px;
                     box-shadow:
-                        0 16px 40px rgba(0,0,0,0.40),
+                        0 14px 36px rgba(0,0,0,0.40),
                         0 2px 8px rgba(0,0,0,0.18),
                         inset 0 1px 0 rgba(255,255,255,1);
-                    width: clamp(200px, 26vw, 320px);
+                    width: clamp(200px, 24vw, 310px);
                     color: #1e293b;
                     text-align: center;
                     position: relative;
@@ -521,9 +521,9 @@ if dados:
                 }}
                 .nome {{
                     font-family: 'Playfair Display', serif;
-                    font-size: clamp(1.1rem, 1.6vw, 1.5rem);
+                    font-size: clamp(1.15rem, 1.7vw, 1.55rem);
                     font-weight: 900;
-                    margin-top: 12px;
+                    margin-top: 14px;
                     color: #0f172a;
                     line-height: 1.2;
                 }}
@@ -794,13 +794,13 @@ if dados:
                         display: flex !important;
                         flex-direction: column !important;
                         align-items: center !important;
-                        background: rgba(0,0,0,0.50) !important;
+                        background: rgba(255,255,255,0.18) !important;
                         backdrop-filter: none !important;
-                        border: 1.5px solid rgba(255,255,255,0.20) !important;
+                        border: 1.5px solid rgba(255,255,255,0.35) !important;
                         border-top: 4px solid #38bdf8 !important;
                         border-radius: 12px !important;
                         padding: 0 !important;
-                        box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;
+                        box-shadow: 0 4px 16px rgba(0,0,0,0.35) !important;
                         break-inside: avoid !important;
                         page-break-inside: avoid !important;
                         overflow: hidden !important;
@@ -820,9 +820,9 @@ if dados:
                     }}
                     .polaroid-wrapper::before {{ display: none !important; }}
                     .polaroid {{
-                        width: clamp(80px, 32%, 145px) !important;
-                        padding: 7px 7px 30px !important;
-                        box-shadow: 0 6px 18px rgba(0,0,0,0.6) !important;
+                        width: clamp(100px, 42%, 175px) !important;
+                        padding: 8px 8px 36px !important;
+                        box-shadow: 0 6px 18px rgba(0,0,0,0.45) !important;
                         transform: none !important;
                         transition: none !important;
                         background: white !important;
@@ -841,12 +841,12 @@ if dados:
                         font-size: 2.2rem !important;
                     }}
                     .nome {{
-                        font-size: 0.95rem !important;
+                        font-size: 1rem !important;
                         font-weight: 900 !important;
-                        color: white !important;
+                        color: #0f172a !important;
                         margin-top: 10px !important;
                         text-align: center !important;
-                        text-shadow: 0 2px 6px rgba(0,0,0,0.8) !important;
+                        text-shadow: none !important;
                     }}
                     .data-badge {{
                         font-size: 0.65rem !important;
@@ -869,16 +869,17 @@ if dados:
                         display: flex !important;
                         flex-direction: column !important;
                         justify-content: flex-start !important;
-                        padding: 8px 12px 12px !important;
+                        padding: 8px 14px 14px !important;
                         box-sizing: border-box !important;
+                        background: rgba(0,0,0,0.25) !important;
                     }}
                     .recados-titulo {{
-                        color: white !important;
-                        text-shadow: 0 1px 4px rgba(0,0,0,0.7) !important;
+                        color: #ffffff !important;
+                        text-shadow: 0 1px 6px rgba(0,0,0,0.9) !important;
                         font-size: 0.82rem !important;
                         font-weight: 700 !important;
                         font-style: normal !important;
-                        border-bottom: 1px solid rgba(255,255,255,0.25) !important;
+                        border-bottom: 1px solid rgba(255,255,255,0.35) !important;
                         margin-bottom: 8px !important;
                         padding-bottom: 5px !important;
                         width: 100% !important;
