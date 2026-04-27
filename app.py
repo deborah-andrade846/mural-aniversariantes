@@ -330,30 +330,37 @@ if dados:
                     animation: fadeInDown 0.9s ease both;
                 }}
                 .mural-header-inner {{
-                    background: linear-gradient(135deg,
-                        rgba(15,23,42,0.72) 0%,
-                        rgba(30,41,59,0.60) 50%,
-                        rgba(15,23,42,0.72) 100%);
-                    backdrop-filter: blur(20px);
-                    -webkit-backdrop-filter: blur(20px);
-                    border: 1px solid rgba(255,255,255,0.12);
-                    border-top: 3px solid;
-                    border-image: linear-gradient(90deg, #38bdf8, #818cf8, #f472b6) 1;
-                    border-radius: 0 0 24px 24px;
+                    background: rgba(255,255,255,0.18);
+                    backdrop-filter: blur(22px);
+                    -webkit-backdrop-filter: blur(22px);
+                    border: 1px solid rgba(255,255,255,0.35);
+                    border-radius: 20px;
                     padding: 32px 70px 28px;
                     box-shadow:
-                        0 20px 50px rgba(0,0,0,0.4),
-                        inset 0 1px 0 rgba(255,255,255,0.08);
+                        0 16px 48px rgba(0,0,0,0.25),
+                        inset 0 1px 0 rgba(255,255,255,0.4);
                     display: inline-block;
                     min-width: min(600px, 90vw);
+                    position: relative;
+                    overflow: hidden;
+                }}
+                /* Linha colorida no topo via pseudo-elemento (border-image não funciona com border-radius) */
+                .mural-header-inner::before {{
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 0; right: 0;
+                    height: 4px;
+                    background: linear-gradient(90deg, #38bdf8, #818cf8, #f472b6);
+                    border-radius: 20px 20px 0 0;
                 }}
                 .mural-header .subtitulo {{
                     font-family: 'Inter', sans-serif;
-                    font-weight: 500;
+                    font-weight: 600;
                     font-size: 0.78rem;
                     letter-spacing: 8px;
                     text-transform: uppercase;
-                    color: #94a3b8;
+                    color: #ffffff;
+                    text-shadow: 0 1px 6px rgba(0,0,0,0.5);
                     margin-bottom: 8px;
                 }}
                 .mural-header h1 {{
@@ -406,19 +413,20 @@ if dados:
                 /* ══ CARD PRINCIPAL ══════════════════════════════════════ */
                 .aniversariante-row {{
                     display: grid;
-                    grid-template-columns: auto 1fr;
-                    gap: clamp(24px, 3.5vw, 48px);
-                    background: rgba(255,255,255,0.13);
-                    backdrop-filter: blur(16px);
-                    -webkit-backdrop-filter: blur(16px);
-                    border: 1px solid rgba(255,255,255,0.28);
-                    border-radius: 20px;
-                    padding: clamp(28px, 3.5vw, 50px);
+                    grid-template-columns: clamp(240px, 26vw, 340px) 1fr;
+                    gap: clamp(28px, 4vw, 56px);
+                    background: rgba(255,255,255,0.20);
+                    backdrop-filter: blur(18px);
+                    -webkit-backdrop-filter: blur(18px);
+                    border: 1px solid rgba(255,255,255,0.38);
+                    border-radius: 22px;
+                    padding: clamp(30px, 3.5vw, 52px) clamp(28px, 3.5vw, 50px);
                     box-shadow:
-                        0 12px 36px rgba(0,0,0,0.22),
-                        0 1px 0 rgba(255,255,255,0.18) inset;
+                        0 12px 40px rgba(0,0,0,0.20),
+                        0 1px 0 rgba(255,255,255,0.45) inset;
                     animation: fadeInUp 0.7s ease both;
                     align-items: center;
+                    min-height: 320px;
                     position: relative;
                     overflow: hidden;
                     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -444,11 +452,12 @@ if dados:
 
                 /* ══ POLAROID ════════════════════════════════════════════ */
                 .polaroid-container {{
-                    flex-shrink: 0;
+                    width: 100%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     align-self: center;
+                    padding: 8px 0;
                 }}
                 .polaroid-wrapper {{
                     position: relative;
@@ -466,13 +475,13 @@ if dados:
                 }}
                 .polaroid {{
                     background: #ffffff;
-                    padding: 14px 14px 56px;
+                    padding: 14px 14px 58px;
                     border-radius: 4px;
                     box-shadow:
-                        0 14px 36px rgba(0,0,0,0.40),
-                        0 2px 8px rgba(0,0,0,0.18),
+                        0 16px 40px rgba(0,0,0,0.38),
+                        0 3px 10px rgba(0,0,0,0.16),
                         inset 0 1px 0 rgba(255,255,255,1);
-                    width: clamp(200px, 24vw, 310px);
+                    width: min(100%, 280px);
                     color: #1e293b;
                     text-align: center;
                     position: relative;
@@ -576,10 +585,8 @@ if dados:
                     gap: 12px;
                 }}
                 .recados-titulo-nome {{
-                    background: linear-gradient(100deg, #e2e8f0, #bae6fd);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
+                    color: #bae6fd;
+                    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
                 }}
                 .area-post-it {{
                     display: flex;
@@ -637,15 +644,14 @@ if dados:
                     padding-top: 8px;
                 }}
                 .sem-recados {{
-                    color: rgba(255,255,255,0.65);
-                    font-size: 0.95rem;
+                    color: #ffffff;
+                    font-size: 1rem;
                     font-style: italic;
-                    padding: 22px 0;
-                    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+                    padding: 28px 0;
+                    text-shadow: 0 2px 6px rgba(0,0,0,0.7);
                     display: flex;
                     align-items: center;
                     gap: 8px;
-                    opacity: 0.8;
                 }}
 
                 /* ══ BOTÕES DE IMPRESSÃO ═════════════════════════════════ */
@@ -743,19 +749,21 @@ if dados:
                         flex-shrink: 0 !important;
                     }}
                     .mural-header-inner {{
-                        background: rgba(0,0,0,0.55) !important;
+                        background: rgba(0,0,0,0.40) !important;
                         backdrop-filter: none !important;
                         color: white !important;
                         box-shadow: none !important;
                         border: none !important;
-                        border-bottom: 3px solid #38bdf8 !important;
+                        border-bottom: 4px solid #38bdf8 !important;
                         border-radius: 0 !important;
                         padding: 18px 40px 14px !important;
                         text-align: center !important;
                         width: 100% !important;
                         box-sizing: border-box !important;
                         display: block !important;
+                        overflow: visible !important;
                     }}
+                    .mural-header-inner::before {{ display: none !important; }}
                     .mural-header .subtitulo {{
                         color: #94a3b8 !important;
                         font-size: 0.65rem !important;
@@ -820,9 +828,9 @@ if dados:
                     }}
                     .polaroid-wrapper::before {{ display: none !important; }}
                     .polaroid {{
-                        width: clamp(100px, 42%, 175px) !important;
+                        width: clamp(110px, 55%, 185px) !important;
                         padding: 8px 8px 36px !important;
-                        box-shadow: 0 6px 18px rgba(0,0,0,0.45) !important;
+                        box-shadow: 0 6px 20px rgba(0,0,0,0.40) !important;
                         transform: none !important;
                         transition: none !important;
                         background: white !important;
@@ -869,9 +877,9 @@ if dados:
                         display: flex !important;
                         flex-direction: column !important;
                         justify-content: flex-start !important;
-                        padding: 8px 14px 14px !important;
+                        padding: 10px 14px 14px !important;
                         box-sizing: border-box !important;
-                        background: rgba(0,0,0,0.25) !important;
+                        background: rgba(0,0,0,0.20) !important;
                     }}
                     .recados-titulo {{
                         color: #ffffff !important;
@@ -889,6 +897,7 @@ if dados:
                         justify-content: center !important;
                     }}
                     .recados-titulo-nome {{
+                        color: #bae6fd !important;
                         -webkit-text-fill-color: #bae6fd !important;
                         background: none !important;
                     }}
