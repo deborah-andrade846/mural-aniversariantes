@@ -331,9 +331,9 @@ if dados:
                 }}
                 .mural-header-inner {{
                     background: linear-gradient(135deg,
-                        rgba(15,23,42,0.72) 0%,
-                        rgba(30,41,59,0.60) 50%,
-                        rgba(15,23,42,0.72) 100%);
+                        rgba(15,23,42,0.55) 0%,
+                        rgba(30,41,59,0.42) 50%,
+                        rgba(15,23,42,0.55) 100%);
                     backdrop-filter: blur(20px);
                     -webkit-backdrop-filter: blur(20px);
                     border: 1px solid rgba(255,255,255,0.12);
@@ -408,21 +408,17 @@ if dados:
                     display: grid;
                     grid-template-columns: auto 1fr;
                     gap: clamp(24px, 3.5vw, 48px);
-                    background: linear-gradient(135deg,
-                        rgba(15,23,42,0.70) 0%,
-                        rgba(30,41,59,0.55) 60%,
-                        rgba(15,23,42,0.70) 100%);
-                    backdrop-filter: blur(22px);
-                    -webkit-backdrop-filter: blur(22px);
-                    border: 1px solid rgba(255,255,255,0.10);
-                    border-left: 4px solid transparent;
+                    background: rgba(255,255,255,0.14);
+                    backdrop-filter: blur(14px);
+                    -webkit-backdrop-filter: blur(14px);
+                    border: 1px solid rgba(255,255,255,0.28);
                     border-radius: 20px;
-                    padding: clamp(24px, 3vw, 44px);
+                    padding: clamp(28px, 3.5vw, 48px);
                     box-shadow:
-                        0 20px 50px rgba(0,0,0,0.40),
-                        0 1px 0 rgba(255,255,255,0.06) inset;
+                        0 8px 32px rgba(0,0,0,0.15),
+                        0 1px 0 rgba(255,255,255,0.20) inset;
                     animation: fadeInUp 0.7s ease both;
-                    align-items: stretch;
+                    align-items: center;
                     position: relative;
                     overflow: hidden;
                     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -452,6 +448,7 @@ if dados:
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    align-self: center;
                 }}
                 .polaroid-wrapper {{
                     position: relative;
@@ -469,13 +466,13 @@ if dados:
                 }}
                 .polaroid {{
                     background: #ffffff;
-                    padding: 12px 12px 52px;
+                    padding: 14px 14px 60px;
                     border-radius: 4px;
                     box-shadow:
-                        0 12px 32px rgba(0,0,0,0.45),
-                        0 2px 8px rgba(0,0,0,0.20),
+                        0 16px 40px rgba(0,0,0,0.40),
+                        0 2px 8px rgba(0,0,0,0.18),
                         inset 0 1px 0 rgba(255,255,255,1);
-                    width: clamp(160px, 20vw, 260px);
+                    width: clamp(200px, 26vw, 320px);
                     color: #1e293b;
                     text-align: center;
                     position: relative;
