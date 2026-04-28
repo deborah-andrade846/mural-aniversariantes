@@ -14,11 +14,11 @@ config   = carregar_config()
 
 @st.cache_data(ttl=120)
 def carregar_aniversariantes(_supabase):
-    """Busca todos os registros da tabela aniversariantes (mantido idêntico ao app)."""
+    """Busca todos os registros da tabela aniversariantes."""
     return _supabase.table("aniversariantes").select("*").execute().data or []
 
 # ──────────────────────────────────────────────────────────────────────────────
-# CSS base (consistente com o estilo do mural)
+# CSS (consistente com o estilo do mural)
 # ──────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -115,12 +115,15 @@ if not dados:
 # ──────────────────────────────────────────────────────────────────────────────
 df = pd.DataFrame(dados)
 df["data_nascimento"] = pd.to_datetime(df["data_nascimento"], errors="coerce")
-df = df.dropna(subset=["data_nascimento"])  # remove datas inválidas se houver
 
-# Extrair mês e dia, depois ordenar por mês e dia
-df["mes"] = df["data_nascimento"].dt.month
-df["dia"] = df["data_nascimento"].dt.day
-df = df.sort_values(["mes", "dia"]).reset_index(drop=True)
+# Separar registros com e sem data válida
+df_com_data = df.dropna(subset=["data_nascimento"]).copy()
+df_sem_data = df[df["data_nascimento"].isna()].copy()
+
+# Ordenar os que têm data por mês e dia
+df_com_data["mes"] = df_com_data["data_nascimento"].dt.month
+df_com_data["dia"] = df_com_data["data_nascimento"].dt.day
+df_com_data = df_com_data.sort_values(["mes", "dia"])
 
 # Mapear nomes dos meses
 MESES_PTBR = {
@@ -129,29 +132,33 @@ MESES_PTBR = {
     9: "Setembro", 10: "Outubro", 11: "Novembro", 12: "Dezembro"
 }
 
-# Agrupar por mês
-grupos = df.groupby("mes")
+# Função para decidir se a foto é válida
+def foto_valida(url):
+    if not url:
+        return False
+    url_str = str(url).strip()
+    if url_str.lower() in ("nan", "none", "null", ""):
+        return False
+    return True
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Renderização
+# Renderização dos que têm data (agrupados por mês)
 # ──────────────────────────────────────────────────────────────────────────────
-for mes, grupo in grupos:
+for mes, grupo in df_com_data.groupby("mes"):
     nome_mes = MESES_PTBR.get(int(mes), "Mês desconhecido")
     st.markdown(f'<div class="mes-header">{nome_mes}</div>', unsafe_allow_html=True)
 
-    # Criar os cards do mês
     cards_html = '<div class="colab-grid">'
-
     for _, row in grupo.iterrows():
         nome_raw = str(row.get("nome", "Sem nome")).strip()
         nome = html_lib.escape(nome_raw.title())
         dia = int(row["dia"])
-        img_url = str(row.get("foto_url", "")).strip().replace("'", "%27").replace('"', "%22")
+        img_url = str(row.get("foto_url", "")).strip()
 
-        if img_url:
-            foto = f'<img class="colab-foto" src="{img_url}" alt="Foto de {nome}" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';" />'
-            placeholder = '<div class="foto-placeholder" style="display:none;">👤</div>'
-            foto_bloco = foto + placeholder
+        if foto_valida(img_url):
+            # URL segura, escapar aspas
+            img_url_clean = img_url.replace("'", "%27").replace('"', "%22")
+            foto_bloco = f'<img class="colab-foto" src="{img_url_clean}" alt="Foto de {nome}" />'
         else:
             foto_bloco = '<div class="foto-placeholder">👤</div>'
 
@@ -162,10 +169,35 @@ for mes, grupo in grupos:
             <div class="colab-data">🎂 {dia} de {nome_mes}</div>
         </div>
         """
-
     cards_html += '</div>'
     st.markdown(cards_html, unsafe_allow_html=True)
 
-# Rodapé opcional
+# ──────────────────────────────────────────────────────────────────────────────
+# Renderização dos sem data (se houver)
+# ──────────────────────────────────────────────────────────────────────────────
+if not df_sem_data.empty:
+    st.markdown('<div class="mes-header">Sem data definida</div>', unsafe_allow_html=True)
+    cards_html = '<div class="colab-grid">'
+    for _, row in df_sem_data.iterrows():
+        nome_raw = str(row.get("nome", "Sem nome")).strip()
+        nome = html_lib.escape(nome_raw.title())
+        img_url = str(row.get("foto_url", "")).strip()
+
+        if foto_valida(img_url):
+            img_url_clean = img_url.replace("'", "%27").replace('"', "%22")
+            foto_bloco = f'<img class="colab-foto" src="{img_url_clean}" alt="Foto de {nome}" />'
+        else:
+            foto_bloco = '<div class="foto-placeholder">👤</div>'
+
+        cards_html += f"""
+        <div class="colab-card">
+            {foto_bloco}
+            <div class="colab-nome">{nome}</div>
+            <div class="colab-data">🎂 Data não informada</div>
+        </div>
+        """
+    cards_html += '</div>'
+    st.markdown(cards_html, unsafe_allow_html=True)
+
 st.markdown("---")
 st.caption("Dados atualizados automaticamente a cada 2 minutos.")
