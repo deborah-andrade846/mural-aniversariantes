@@ -384,7 +384,6 @@ if dados:
                     display:flex; justify-content:center; gap:10px; margin-top:14px;
                     opacity:0.6; font-size:1.2rem; letter-spacing:4px;
                 }}
-                /* MELHORIA 8: header count com vidro mais definido */
                 .header-count {{
                     margin-top:12px;
                     font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:600;
@@ -417,7 +416,6 @@ if dados:
                     0%, 100% {{ opacity:0.75; transform:scale(1); }}
                     50%       {{ opacity:1;    transform:scale(1.04); }}
                 }}
-                /* MELHORIA 10: animação do emoji na empty-state */
                 @keyframes boloFlutua {{
                     0%, 100% {{ transform: translateY(0) rotate(-3deg); }}
                     50%       {{ transform: translateY(-10px) rotate(3deg); }}
@@ -443,7 +441,6 @@ if dados:
                     animation: fadeInUp 0.7s ease both;
                     align-items: stretch;
                     min-height: 320px; position: relative; overflow: hidden;
-                    /* MELHORIA 6: transição com cor tintada */
                     transition: transform 0.3s ease, box-shadow 0.3s ease;
                 }}
                 .aniversariante-row::before {{
@@ -451,13 +448,12 @@ if dados:
                     background: linear-gradient(90deg,#38bdf8,#818cf8,#f472b6);
                     border-radius: 20px 20px 0 0;
                 }}
-                /* MELHORIA 6: sombra com leve tint azul no hover */
                 .aniversariante-row:hover {{
                     transform: translateY(-3px);
                     box-shadow: 0 20px 50px rgba(14,105,200,0.18), 0 6px 18px rgba(0,0,0,0.12);
                 }}
 
-                /* ══ CARD "HOJE" ─ destaque dourado ══════════════════════════ */
+                /* ══ CARD "HOJE" ═════════════════════════════════════════════ */
                 .aniversariante-row.hoje {{
                     border: 2px solid rgba(251,191,36,0.8);
                     background: rgba(255,251,235,0.78);
@@ -466,7 +462,6 @@ if dados:
                 .aniversariante-row.hoje::before {{
                     background: linear-gradient(90deg,#f59e0b,#fbbf24,#f472b6);
                 }}
-                /* MELHORIA 5: badge "hoje" com micro-escala e sombra dourada mais rica */
                 .badge-hoje {{
                     display: inline-flex; align-items: center; gap: 5px;
                     background: linear-gradient(135deg,#f59e0b,#fbbf24);
@@ -511,7 +506,6 @@ if dados:
                     width:100%; color:#1e293b; text-align:center;
                     position:relative; z-index:1; transition:transform 0.45s ease;
                 }}
-                /* MELHORIA 3: fita adesiva com gradiente realista amarelado */
                 .polaroid::after {{
                     content:''; position:absolute; top:-14px; left:50%;
                     transform:translateX(-50%) rotate(-2deg); width:90px; height:28px;
@@ -600,7 +594,6 @@ if dados:
                     display:flex; flex-wrap:wrap; gap:18px; align-content:flex-start;
                 }}
 
-                /* MELHORIA 1: pin movido para canto superior direito com rotação */
                 .post-it {{
                     padding:18px 15px 14px;
                     width:clamp(140px,18vw,175px); min-height:130px;
@@ -608,9 +601,9 @@ if dados:
                     border-radius:3px 16px 3px 3px;
                     display:flex; flex-direction:column;
                     justify-content:flex-start; gap:10px; position:relative;
-                    /* MELHORIA 4: transição com spring */
                     transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1),
                                 box-shadow 0.28s ease;
+                    cursor: pointer;
                 }}
                 .post-it::before {{
                     content:'📌';
@@ -640,7 +633,6 @@ if dados:
                     overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
                 }}
 
-                /* MELHORIA 2: estado vazio como post-it fantasma tracejado */
                 .sem-recados {{
                     color:#475569; text-shadow:0 1px 3px rgba(255,255,255,0.6);
                     font-size:1.05rem; font-style:italic; padding:28px 0;
@@ -676,7 +668,6 @@ if dados:
                     opacity:0.55;
                 }}
 
-                /* MELHORIA 9: estado bloqueado com arredondamento diagonal e fundo suave */
                 .sem-recados-bloqueado {{
                     background:rgba(248,250,252,0.7);
                     border:1.5px dashed rgba(100,116,139,0.35);
@@ -730,12 +721,76 @@ if dados:
                 }}
                 .btn-paisagem {{ background:linear-gradient(135deg,#6366f1,#818cf8); }}
 
+                /* ══ MODAL (NOVO) ═════════════════════════════════════════════ */
+                .modal-overlay {{
+                    display: none;
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.5);
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    z-index: 9999;
+                    justify-content: center;
+                    align-items: center;
+                }}
+                .modal-overlay.active {{
+                    display: flex;
+                }}
+                .modal-content {{
+                    background: #fffef2;
+                    border-radius: 24px;
+                    padding: 32px 40px;
+                    max-width: 90vw;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                    font-family: 'Caveat', cursive;
+                    color: #1e293b;
+                    position: relative;
+                    border: 1px solid rgba(0,0,0,0.05);
+                    animation: modalIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+                }}
+                @keyframes modalIn {{
+                    from {{ opacity:0; transform: scale(0.9) translateY(20px); }}
+                    to   {{ opacity:1; transform: scale(1) translateY(0); }}
+                }}
+                .modal-autor {{
+                    text-align: right;
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    color: #475569;
+                    margin-top: 16px;
+                    border-top: 1px dashed rgba(0,0,0,0.15);
+                    padding-top: 12px;
+                }}
+                .modal-mensagem {{
+                    font-size: 1.5rem;
+                    line-height: 1.6;
+                    color: #0f172a;
+                }}
+                .modal-close-btn {{
+                    position: absolute;
+                    top: 10px;
+                    right: 16px;
+                    font-size: 1.5rem;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    color: #64748b;
+                    transition: color 0.2s;
+                }}
+                .modal-close-btn:hover {{ color: #0f172a; }}
+
                 /* ══ IMPRESSÃO ═══════════════════════════════════════════════ */
                 @media print {{
                     * {{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }}
                     @page {{ size:A3 portrait; margin:0; }}
                     .btn-imprimir, .print-toolbar, .orientacao-badge,
                     .btn-topo {{ display:none !important; }}
+                    .modal-overlay {{ display: none !important; }}
                     html, body {{
                         {estilo_fundo}
                         background-size:cover !important;
@@ -754,7 +809,6 @@ if dados:
                     .confete-wrapper {{ display:none !important; }}
                 }}
 
-                /* ══ IMPRESSÃO – DATA DO EVENTO NO CABEÇALHO ═════════════════ */
                 .print-data-evento-header {{
                     display: none;
                 }}
@@ -904,7 +958,6 @@ if dados:
             post_its_html    = ""
 
             if not liberar_recados:
-                # MELHORIA 9: bloqueado com estilo de post-it
                 post_its_html = """
                 <p class="sem-recados sem-recados-bloqueado">
                     🔒 Os recados serão revelados em breve!
@@ -915,7 +968,6 @@ if dados:
                 n_recados_pessoa = len(recados_pessoa)
 
                 if recados_pessoa.empty:
-                    # MELHORIA 2: ghost post-it tracejado
                     post_its_html = """
                     <div class="sem-recados-vazio">
                         <span class="sem-recados-vazio-emoji">📌</span>
@@ -923,7 +975,8 @@ if dados:
                     </div>"""
                 else:
                     for i, (_, recado) in enumerate(recados_pessoa.iterrows()):
-                        mensagem = html_lib.escape(str(recado.get("mensagem", "")).strip())
+                        mensagem_raw = str(recado.get("mensagem", "")).strip()
+                        mensagem = html_lib.escape(mensagem_raw)
                         autor_raw = str(recado.get("de_quem", "Anônimo")).strip()
                         autor = html_lib.escape(autor_raw.title()) if autor_raw else "Anônimo"
 
@@ -936,13 +989,14 @@ if dados:
                         <div class="post-it"
                              style="background-color:{cor['bg']};
                                     transform:rotate({rotacao}deg);
-                                    box-shadow:4px 6px 15px {cor['shadow']},0 1px 3px rgba(0,0,0,0.06);">
+                                    box-shadow:4px 6px 15px {cor['shadow']},0 1px 3px rgba(0,0,0,0.06);"
+                             data-mensagem="{html_lib.escape(mensagem_raw)}"
+                             data-autor="{html_lib.escape(autor_raw)}">
                             <div class="post-it-msg">{mensagem}</div>
                             <div class="post-it-autor">~ {autor}</div>
                         </div>
                         """
             else:
-                # MELHORIA 2: ghost post-it tracejado
                 post_its_html = """
                 <div class="sem-recados-vazio">
                     <span class="sem-recados-vazio-emoji">📌</span>
@@ -988,11 +1042,60 @@ if dados:
             </div>
             """
 
-        full_html = html_base + cartoes_html + "</div></body></html>"
+        # Modal HTML + JS
+        modal_html = """
+            </div>
+
+            <div id="modal-overlay" class="modal-overlay">
+                <div class="modal-content">
+                    <button id="modal-close-btn" class="modal-close-btn">&times;</button>
+                    <div id="modal-mensagem" class="modal-mensagem"></div>
+                    <div id="modal-autor" class="modal-autor"></div>
+                </div>
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    var overlay = document.getElementById('modal-overlay');
+                    var modalMensagem = document.getElementById('modal-mensagem');
+                    var modalAutor = document.getElementById('modal-autor');
+
+                    function abrirModal(texto, autor) {
+                        modalMensagem.textContent = texto;
+                        modalAutor.textContent = '~ ' + (autor || 'Anônimo');
+                        overlay.classList.add('active');
+                    }
+
+                    function fecharModal() {
+                        overlay.classList.remove('active');
+                    }
+
+                    overlay.addEventListener('click', function(e) {
+                        if (e.target === overlay) {
+                            fecharModal();
+                        }
+                    });
+
+                    document.getElementById('modal-close-btn').addEventListener('click', fecharModal);
+
+                    document.addEventListener('click', function(e) {
+                        var postit = e.target.closest('.post-it');
+                        if (postit) {
+                            var msg = postit.dataset.mensagem;
+                            var autor = postit.dataset.autor;
+                            if (msg !== undefined) {
+                                abrirModal(msg, autor || 'Anônimo');
+                            }
+                        }
+                    });
+                });
+            </script>
+        """
+
+        full_html = html_base + cartoes_html + modal_html + "</body></html>"
         components.html(full_html, height=altura_iframe, scrolling=True)
 
     else:
-        # MELHORIA 10: emoji de bolo com animação de flutuação
         empty_html = f"""
         <!DOCTYPE html>
         <html>
@@ -1082,7 +1185,6 @@ if dados:
                 </div>
                 """
 
-            # MELHORIA 7: título com gradiente e linha decorativa
             sub_mural_html = f"""
             <!DOCTYPE html>
             <html>
@@ -1120,7 +1222,6 @@ if dados:
                     position: relative;
                     overflow: hidden;
                 }}
-                /* linha decorativa no topo (consistente com cards principais) */
                 .sub-mural-container::before {{
                     content: '';
                     position: absolute;
@@ -1129,13 +1230,11 @@ if dados:
                     background: linear-gradient(90deg, #38bdf8, #818cf8, #f472b6);
                     border-radius: 18px 18px 0 0;
                 }}
-                /* MELHORIA 7: título com gradiente de texto */
                 .sub-mural-titulo {{
                     font-family: 'Playfair Display', serif;
                     font-size: 1.35rem;
                     font-weight: 700;
                     margin-bottom: 20px;
-                    /* gradiente de texto */
                     background: linear-gradient(100deg, #0284c7 0%, #818cf8 60%, #f472b6 100%);
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
