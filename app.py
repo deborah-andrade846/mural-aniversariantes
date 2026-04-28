@@ -305,7 +305,7 @@ if dados:
         </style>
         """, unsafe_allow_html=True)
 
-        # ── Altura do iframe adaptativa (CORRIGIDA COM FOLGA GIGANTE) ─────────
+        # ── Altura do iframe adaptativa ───────────────────────────────────────
         recados_por_pessoa = {}
         if not df_recados.empty and "para_quem" in df_recados.columns:
             recados_por_pessoa = df_recados["para_quem"].value_counts().to_dict()
@@ -316,13 +316,14 @@ if dados:
             nome_r        = str(row.get("nome", ""))
             n_recados     = recados_por_pessoa.get(nome_r, 0)
             linhas_postit = max(1, (n_recados // 4) + 1)
-            altura_iframe += 500 + (linhas_postit * 180)
+            altura_iframe += 450 + (linhas_postit * 180)
 
+        # Margem gigante para comportar os cards retroativos originais
         if not df_retroativos.empty:
-            linhas_mini = max(1, (len(df_retroativos) // 4) + 1)
-            altura_iframe += 400 + (linhas_mini * 250)
+            linhas_mini = max(1, (len(df_retroativos) // 3) + 1)
+            altura_iframe += 300 + (linhas_mini * 400)
 
-        # ── LAÇO ORIGINAL (MÊS ATUAL) - SEM REORDENAÇÃO ───────────────────────
+        # ── LAÇO ORIGINAL (MÊS ATUAL) ─────────────────────────────────────────
         cards_html = ""
         for i, row in df_mes.iterrows():
             nome = html_lib.escape(str(row.get("nome", "Sem Nome")))
@@ -420,7 +421,7 @@ if dados:
             </div>
             """
 
-        # ── LAÇO NOVO PARA RETROATIVOS (MINI POLAROIDS) ───────────────────────
+        # ── LAÇO PARA RETROATIVOS (ESTRUTURA ORIGINAL "MINI COMPILADO") ───────
         cards_retro_html = ""
         if not df_retroativos.empty:
             for i, row in df_retroativos.iterrows():
@@ -434,11 +435,22 @@ if dados:
                 if not foto_url:
                     foto_url = f"https://api.dicebear.com/7.x/initials/svg?seed={nome}&backgroundColor=38bdf8,818cf8&textColor=ffffff"
 
+                # Usando o SEU HTML ORIGINAL (polaroid-caption e .nome em formato duplo) 
+                # encapsulado dentro de um card enxuto (.retro-card) sem recados.
                 cards_retro_html += f"""
-                <div class="mini-polaroid">
-                    <div class="mini-foto" style="background-image: url('{foto_url}');"></div>
-                    <div class="mini-nome" title="{nome}">{nome}</div>
-                    <div class="mini-data">🎂 {str_dia}</div>
+                <div class="retro-card">
+                    <div class="polaroid-container">
+                        <div class="polaroid-wrapper">
+                            <div class="polaroid">
+                                <div class="foto-img" style="background-image: url('{foto_url}');"></div>
+                                <div class="polaroid-caption">{nome}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-perfil">
+                        <div class="nome">{nome}</div>
+                        <div class="data-nasc">🎂 {str_dia}</div>
+                    </div>
                 </div>
                 """
 
@@ -580,7 +592,7 @@ if dados:
                     animation: confete 3s ease-in infinite;
                 }}
 
-                /* ══ POLAROID ORIGINAL (MURAL MÊS) ═══════════════════════════ */
+                /* ══ POLAROID ORIGINAL ═══════════════════════════════════════ */
                 .polaroid-container {{
                     width:100%; display:flex; align-items:center; justify-content:center;
                     padding:10px; position:relative; z-index:1;
@@ -615,55 +627,37 @@ if dados:
                     color:#1e293b; letter-spacing:1px; line-height:1;
                 }}
 
-                /* ══ MINI POLAROID (SUB MURAL RETROATIVO) ════════════════════ */
-                .mini-cards-container {{
+                /* ══ MINI CARD RETROATIVO (Usa a mesma estrutura acima) ══════ */
+                .retro-cards-container {{
                     display: flex;
                     flex-wrap: wrap;
-                    gap: 20px;
+                    gap: 30px;
                     justify-content: center;
                     width: 100%;
-                    max-width: min(1000px, 90vw);
+                    max-width: min(1200px, 94vw);
                     margin: 0 auto;
                 }}
-                .mini-polaroid {{
-                    background: #ffffff;
-                    padding: 8px 8px 16px;
-                    border-radius: 4px;
-                    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-                    width: 140px;
-                    text-align: center;
-                    transition: transform 0.3s ease;
+                .retro-card {{
+                    background: rgba(255,255,255,0.08);
+                    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+                    border: 1px solid rgba(255,255,255,0.2);
+                    border-radius: 24px; 
+                    padding: 20px;
+                    width: 280px; 
+                    display: flex; 
+                    flex-direction: column; 
+                    align-items: center;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
                 }}
-                .mini-polaroid:hover {{
-                    transform: translateY(-5px) scale(1.05);
+                .retro-card:hover {{
+                    transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.25);
                 }}
-                .mini-foto {{
-                    width: 100%;
-                    aspect-ratio: 1/1;
-                    background-color: #e2e8f0;
-                    background-size: cover;
-                    background-position: center;
-                    border-radius: 2px;
-                    margin-bottom: 10px;
-                    border: 1px solid rgba(0,0,0,0.05);
-                }}
-                .mini-nome {{
-                    font-family: 'Caveat', cursive;
-                    font-size: 1.3rem;
-                    font-weight: 700;
-                    color: #1e293b;
-                    line-height: 1.1;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }}
-                .mini-data {{
-                    font-family: 'Inter', sans-serif;
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                    color: #64748b;
-                    margin-top: 4px;
-                }}
+                /* Ajustes delicados para a polaroid original caber no mini card */
+                .retro-card .polaroid-wrapper {{ max-width: 200px; }}
+                .retro-card .info-perfil {{ margin-top: 15px; }}
+                .retro-card .info-perfil .nome {{ font-size: 1.6rem; margin-bottom: 4px; }}
+                .retro-card .info-perfil .data-nasc {{ margin-bottom: 0; }}
 
                 /* ══ INFORMAÇÕES DE PERFIL ═══════════════════════════════════ */
                 .info-perfil {{ position:relative; z-index:1; margin-top:24px; text-align:center; }}
@@ -790,7 +784,6 @@ if dados:
                     .subtitulo, .header-count {{ color:#475569 !important; text-shadow:none !important; background:none !important; border:none !important; }}
                     .mes-destaque {{ background:none; -webkit-text-fill-color:#0f172a; color:#0f172a; }}
                     
-                    /* Trazendo a data do evento apenas para impressão */
                     .data-evento-print {{
                         display: block !important;
                         font-family: 'Playfair Display', serif;
@@ -817,10 +810,8 @@ if dados:
                     .post-it {{ break-inside: avoid; transform:none !important; box-shadow:none !important; border:1px solid #cbd5e1 !important; background:#fff !important; }}
                     .confete-wrapper {{ display:none !important; }}
 
-                    /* Estilo de impressão para as mini polaroids */
-                    .mini-polaroid {{ border: 1px solid #cbd5e1 !important; break-inside: avoid; box-shadow: none !important; }}
-                    .mini-nome {{ color: #000 !important; }}
-                    .mini-data {{ color: #333 !important; }}
+                    /* Estilo de impressão garantido para os retroativos originais */
+                    .retro-card {{ border: 1px solid #cbd5e1 !important; break-inside: avoid; box-shadow: none !important; background: white !important; }}
                 }}
 
                 /* ── Responsividade ── */
@@ -919,7 +910,7 @@ if dados:
                     </h2>
                 </div>
             </div>
-            <div class="mini-cards-container">
+            <div class="retro-cards-container">
                 {cards_retro_html}
             </div>
             ''' if cards_retro_html else ''}
