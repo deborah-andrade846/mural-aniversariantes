@@ -525,8 +525,10 @@ if dados:
                     font-family:'Playfair Display',serif;
                     font-size:clamp(1.1rem,1.8vw,1.6rem);
                     font-weight:900; margin-top:16px; color:#0f172a; line-height:1.2;
-                    overflow:hidden; display:-webkit-box;
-                    -webkit-line-clamp:2; -webkit-box-orient:vertical; word-break:break-word;
+                    word-break:break-word;
+                    display:-webkit-box;
+                    -webkit-line-clamp:3; -webkit-box-orient:vertical;
+                    overflow:hidden;
                 }}
                 .data-badge {{
                     display:inline-flex; align-items:center; gap:4px;
@@ -578,7 +580,7 @@ if dados:
                 .post-it {{
                     padding:18px 15px 14px;
                     width:clamp(140px,18vw,175px); min-height:130px;
-                    font-family:'Caveat',cursive; font-size:1.05rem;
+                    font-family:'Caveat',cursive;
                     border-radius:3px 16px 3px 3px;
                     display:flex; flex-direction:column;
                     justify-content:flex-start; gap:10px; position:relative;
@@ -594,13 +596,14 @@ if dados:
                     z-index:10;
                 }}
                 .post-it-msg {{
-                    line-height:1.35; font-weight:700;
+                    font-size:1.2rem;  /* Aumentado para melhor legibilidade */
+                    line-height:1.4; font-weight:700;
                     color:rgba(0,0,0,0.85); padding-top:4px; flex:1;
                     overflow:hidden; display:-webkit-box;
                     -webkit-line-clamp:5; -webkit-box-orient:vertical; word-break:break-word;
                 }}
                 .post-it-autor {{
-                    font-size:0.88rem; font-weight:700; color:rgba(0,0,0,0.6);
+                    font-size:0.95rem; font-weight:700; color:rgba(0,0,0,0.6);
                     text-align:right; margin-top:auto;
                     border-top:1px dashed rgba(0,0,0,0.15); padding-top:8px;
                     overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
@@ -774,7 +777,6 @@ if dados:
                         {'🎂 1 aniversariante' if total_mes == 1 else f'🎂 {total_mes} aniversariantes'}
                         {' — incluindo hoje! 🥳' if any(df_mes["data_nascimento"].dt.day == dia_atual) else ''}
                     </div>
-                    <!-- NOVA LINHA: data do evento aparece SOMENTE na impressão, integrada ao cabeçalho -->
                     <div class="print-data-evento-header">Data do Evento: 30/04/2026</div>
                 </div>
             </div>
@@ -785,12 +787,18 @@ if dados:
         cartoes_html = ""
 
         for idx, (_, row) in enumerate(df_mes.iterrows()):
-            nome              = html_lib.escape(str(row.get("nome", "Sem nome")).strip())
+            # ── Padronização de nome: primeira letra maiúscula, restante minúscula ──
+            nome_raw = str(row.get("nome", "Sem nome")).strip()
+            # Aplica .title() antes de escapar para HTML
+            nome_formatado = nome_raw.title()
+            nome           = html_lib.escape(nome_formatado)
+
             texto_curiosidade = html_lib.escape(str(row.get("curiosidade", "")).strip())
             dia = row["data_nascimento"].day if pd.notna(row["data_nascimento"]) else "?"
 
-            partes        = nome.split()
-            primeiro_nome = partes[0] if partes else nome
+            # Primeiro nome seguro – também formatado
+            partes        = nome_formatado.split()
+            primeiro_nome = partes[0] if partes else nome_formatado
 
             img_url = str(row.get("foto_url", "")).strip().replace("'", "%27").replace('"', "%22")
             if img_url:
@@ -836,7 +844,8 @@ if dados:
                     🔒 Os recados serão revelados em breve!
                 </p>"""
             elif not df_recados.empty and "para_quem" in df_recados.columns:
-                nome_original    = str(row.get("nome", "")).strip()
+                # Comparação com o nome original (antes da formatação), pois no banco pode estar em maiúsculas
+                nome_original    = nome_raw
                 recados_pessoa   = df_recados[df_recados["para_quem"] == nome_original]
                 n_recados_pessoa = len(recados_pessoa)
 
@@ -845,7 +854,9 @@ if dados:
                 else:
                     for i, (_, recado) in enumerate(recados_pessoa.iterrows()):
                         mensagem = html_lib.escape(str(recado.get("mensagem", "")).strip())
-                        autor    = html_lib.escape(str(recado.get("de_quem", "Anônimo")).strip())
+                        autor_raw = str(recado.get("de_quem", "Anônimo")).strip()
+                        # Padronizar também o autor do recado
+                        autor = html_lib.escape(autor_raw.title()) if autor_raw else "Anônimo"
 
                         seed_val = hash(mensagem + autor + nome) & 0xFFFFFF
                         rotacao  = (seed_val % 9) - 4
@@ -971,7 +982,8 @@ if dados:
 
             mini_cards = ""
             for _, row in df_retro.iterrows():
-                nome_r = html_lib.escape(str(row.get("nome", "Sem nome")).strip())
+                nome_retro_raw = str(row.get("nome", "Sem nome")).strip()
+                nome_retro = html_lib.escape(nome_retro_raw.title())  # Formatação aplicada
                 dia_r = row["data_nascimento"].day if pd.notna(row["data_nascimento"]) else "?"
                 mes_r = MESES_PTBR.get(row["data_nascimento"].month, "")
                 img_url_r = str(row.get("foto_url", "")).strip().replace("'", "%27").replace('"', "%22")
@@ -983,7 +995,7 @@ if dados:
                 mini_cards += f"""
                 <div class="mini-polaroid">
                     <div class="mini-foto">{foto_r}</div>
-                    <div class="mini-nome">{nome_r}</div>
+                    <div class="mini-nome">{nome_retro}</div>
                     <div class="mini-data">{dia_r} {mes_r}</div>
                 </div>
                 """
@@ -1068,9 +1080,14 @@ if dados:
                     font-weight: 600;
                     color: #1e293b;
                     line-height: 1.2;
+                    word-break: break-word;
+                    overflow-wrap: break-word;
+                    /* Permite múltiplas linhas, sem corte com reticências */
+                    white-space: normal;
                     overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
                 }}
                 .mini-data {{
                     font-family: 'Inter', sans-serif;
