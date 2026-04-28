@@ -328,7 +328,7 @@ if dados:
         if not df_retroativos.empty:
             altura_iframe += 200
 
-        # ── O SEU LAÇO ORIGINAL INTACTO (MÊS ATUAL) ───────────────────────────
+        # ── LAÇO ORIGINAL INTACTO (MÊS ATUAL) ─────────────────────────────────
         cards_html = ""
         for i, row in df_mes.iterrows():
             nome = html_lib.escape(str(row.get("nome", "Sem Nome")))
@@ -426,7 +426,7 @@ if dados:
             </div>
             """
 
-        # ── O SEU LAÇO DUPLICADO PARA RETROATIVOS (IDÊNTICO, MAS SEM PISCAR O "HOJE") ─
+        # ── LAÇO DUPLICADO PARA RETROATIVOS (SEM PISCAR O "HOJE") ─────────────
         cards_retro_html = ""
         if not df_retroativos.empty:
             for i, row in df_retroativos.iterrows():
@@ -883,7 +883,7 @@ if dados:
                     if (oldStyle) oldStyle.remove();
                     var style = document.createElement('style');
                     style.id = 'print-orientation-style';
-                    style.innerHTML = '@media print { @page { size: A3 ' + ori + '; } }';
+                    style.innerHTML = '@media print {{ @page {{ size: A3 ' + ori + '; }} }}';
                     document.head.appendChild(style);
                     var badge = document.getElementById('badge-orientacao');
                     badge.innerText = ori === 'landscape' ? '↔ PAISAGEM A3' : '↕ RETRATO A3';
