@@ -327,7 +327,7 @@ if dados:
                     display: grid;
                     grid-template-columns: minmax(320px, 1.2fr) 2fr; 
                     gap: clamp(28px, 4vw, 56px);
-                    background: rgba(255, 255, 255, 0.65); /* Opacidade reduzida para ficar mais transparente */
+                    background: rgba(255, 255, 255, 0.65); /* Fundo claro 65% transparente */
                     backdrop-filter: blur(18px);
                     -webkit-backdrop-filter: blur(18px);
                     border: 1px solid rgba(255,255,255,0.6);
@@ -335,7 +335,7 @@ if dados:
                     padding: clamp(30px, 3.5vw, 52px) clamp(28px, 3.5vw, 50px);
                     box-shadow: 0 12px 40px rgba(0,0,0,0.15);
                     animation: fadeInUp 0.7s ease both;
-                    align-items: center;
+                    align-items: stretch; /* Alinha altura dos elementos internos */
                     min-height: 320px;
                     position: relative;
                     overflow: hidden;
@@ -471,90 +471,38 @@ if dados:
                 .btn-imprimir:hover {{ transform: translateY(-3px) scale(1.03); box-shadow: 0 14px 28px rgba(14,165,233,0.5); }}
                 .btn-paisagem {{ background: linear-gradient(135deg, #6366f1, #818cf8); }}
 
-                /* ══ POSTER A3 PARA IMPRESSÃO (COM FUNDO RESTAURADO) ════ */
-                @media print {{
-                    * {{ -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }}
-                    @page {{ size: A3 portrait; margin: 0; }}
+                /* ══ IMPRESSÃO (COPIA EXATA DO ECRÃ) ═════════════════════ */
+                @media print {
+                    * { 
+                        -webkit-print-color-adjust: exact !important; 
+                        print-color-adjust: exact !important; 
+                    }
+                    
+                    @page { size: A3 portrait; margin: 0; }
 
-                    .btn-imprimir, .print-toolbar, .orientacao-badge {{ display: none !important; }}
+                    /* Esconde apenas os elementos que não devem ir para o papel */
+                    .btn-imprimir, .print-toolbar, .orientacao-badge { display: none !important; }
 
-                    html, body {{
-                        {estilo_fundo} /* <--- DEVOLVE A IMAGEM DE FUNDO/COR AQUI */
+                    html, body {
+                        /* Garante que o fundo seja o mesmo da tela */
+                        {estilo_fundo}
                         background-size: cover !important;
                         background-position: center top !important;
                         background-repeat: no-repeat !important;
                         background-attachment: scroll !important;
-                        margin: 0 !important; padding: 0 !important;
-                        width: 100vw !important; min-height: 100vh !important;
-                        font-family: 'Inter', sans-serif !important;
-                    }}
+                        margin: 0 !important; 
+                        padding: 0 !important;
+                    }
 
-                    .mural-header {{ margin-bottom: 0 !important; width: 100% !important; }}
-                    
-                    /* Cabeçalho agora fica levemente translúcido (quase branco) para se destacar do fundo da imagem */
-                    .mural-header-inner {{
-                        background: rgba(255,255,255,0.92) !important; color: #0f172a !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
-                        border: 1px solid rgba(255,255,255,0.8) !important; border-bottom: 4px solid #38bdf8 !important; border-radius: 20px !important;
-                        padding: 20px 40px !important; text-align: center !important; width: 100% !important;
-                        display: block !important;
-                    }}
-                    .mural-header-inner::before {{ display: none !important; }}
-                    .mural-header .subtitulo {{ color: #64748b !important; font-size: 0.7rem !important; letter-spacing: 6px !important; text-shadow: none !important; }}
-                    .mural-header h1 {{ color: #0f172a !important; font-size: 2.2rem !important; text-shadow: none !important; margin: 0 !important; }}
-                    .mural-header .mes-destaque {{ -webkit-text-fill-color: #0284c7 !important; background: none !important; }}
-                    .header-deco {{ display: none !important; }}
-
-                    .mural-grid {{
-                        display: grid !important; grid-template-columns: repeat(var(--cols, 2), 1fr) !important;
-                        grid-template-rows: repeat(var(--rows, 3), 1fr) !important; gap: 20px !important;
-                        padding: 20px !important; width: 100% !important; 
-                        background: transparent !important; /* <--- PERMITE VER A IMAGEM DE FUNDO NA GRELHA */
-                    }}
-
-                    /* O cartão individual fica quase branco sólido para garantir total legibilidade do texto por cima da imagem */
-                    .aniversariante-row {{
-                        display: flex !important; flex-direction: column !important; align-items: center !important;
-                        background: rgba(255,255,255,0.92) !important; border: 1px solid rgba(255,255,255,0.9) !important;
-                        border-top: 5px solid #38bdf8 !important; border-radius: 16px !important;
-                        padding: 0 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important; break-inside: avoid !important;
-                        page-break-inside: avoid !important; overflow: hidden !important; height: 100% !important;
-                    }}
-                    .aniversariante-row::before {{ display: none !important; }}
-
-                    .polaroid-container {{
-                        width: 100% !important; display: flex !important; flex-direction: column !important;
-                        align-items: center !important; padding: 25px 20px 10px !important;
-                    }}
-                    .polaroid-wrapper {{ width: 100% !important; display: flex !important; justify-content: center !important; }}
-                    .polaroid-wrapper::before {{ display: none !important; }}
-                    .polaroid {{
-                        width: 100% !important; max-width: 240px !important; 
-                        padding: 12px 12px 40px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-                        background: white !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important;
-                    }}
-                    .polaroid::after {{ display: none !important; }}
-
-                    .foto {{ aspect-ratio: 3 / 4 !important; width: 100% !important; }}
-                    .nome {{ font-size: 1.2rem !important; font-weight: 900 !important; color: #0f172a !important; margin-top: 12px !important; text-shadow: none !important; }}
-                    .data-badge {{ font-size: 0.75rem !important; background: transparent !important; color: #0284c7 !important; border: 1px solid #0284c7 !important; font-weight: 800 !important; padding: 4px 12px !important; }}
-                    .curiosidade-txt {{ font-size: 0.7rem !important; color: #475569 !important; }}
-
-                    .recados-section {{
-                        width: 100% !important; display: flex !important; flex-direction: column !important;
-                        padding: 15px !important; background: transparent !important; border-top: 1px solid #e2e8f0 !important;
-                    }}
-                    .recados-titulo {{
-                        color: #0f172a !important; text-shadow: none !important; font-size: 0.95rem !important;
-                        border-bottom: 1px solid #cbd5e1 !important; margin-bottom: 12px !important;
-                    }}
-                    .recados-titulo-nome {{ color: #0284c7 !important; -webkit-text-fill-color: #0284c7 !important; }}
-                    .area-post-it {{ display: flex !important; flex-wrap: wrap !important; justify-content: center !important; gap: 8px !important; }}
-                    .post-it {{ width: clamp(80px, 30%, 120px) !important; min-height: 85px !important; padding: 12px 8px 8px !important; box-shadow: 2px 3px 6px rgba(0,0,0,0.1) !important; border: 1px solid rgba(0,0,0,0.05) !important; }}
-                    .post-it::before, .post-it::after {{ display: none !important; }}
-                    .post-it-msg {{ font-size: 0.75rem !important; color: rgba(0,0,0,0.9) !important; }}
-                    .post-it-autor {{ font-size: 0.7rem !important; color: rgba(0,0,0,0.7) !important; }}
-                    .sem-recados {{ color: #64748b !important; text-shadow: none !important; font-size: 0.85rem !important; }}
-                }}
+                    /* Evita que um cartão seja cortado ao meio na quebra de página */
+                    .aniversariante-row {
+                        break-inside: avoid !important;
+                        page-break-inside: avoid !important;
+                        /* Garante que o grid lado a lado (Foto à esquerda, recados à direita) se mantenha */
+                        display: grid !important;
+                        grid-template-columns: minmax(320px, 1.2fr) 2fr !important;
+                    }
+                }
         </style>
         <style id="orientacao-style">
             @media print {{ @page {{ size: A3 portrait; margin: 0; }} }}
@@ -563,41 +511,11 @@ if dados:
         <body>
             <script>
                 var IS_TV = {'true' if is_tv else 'false'};
-                var orientacao = 'portrait';
-
-                function calcGridVars(isLandscape) {{
-                    var cards = document.querySelectorAll('.aniversariante-row').length;
-                    var cols, rows;
-                    if (isLandscape) {{
-                        if      (cards <= 1) {{ cols = 1; rows = 1; }}
-                        else if (cards == 2) {{ cols = 2; rows = 1; }}
-                        else if (cards == 3) {{ cols = 3; rows = 1; }}
-                        else if (cards == 4) {{ cols = 4; rows = 1; }}
-                        else if (cards == 5) {{ cols = 3; rows = 2; }}
-                        else                {{ cols = 3; rows = 2; }}
-                    }} else {{
-                        if      (cards <= 1) {{ cols = 1; rows = 1; }}
-                        else if (cards == 2) {{ cols = 2; rows = 1; }}
-                        else if (cards == 3) {{ cols = 3; rows = 1; }}
-                        else if (cards == 4) {{ cols = 2; rows = 2; }}
-                        else if (cards == 5) {{ cols = 3; rows = 2; }}
-                        else                {{ cols = 2; rows = 3; }}
-                    }}
-                    return {{ cols: cols, rows: rows }};
-                }}
 
                 function applyOrientation(ori) {{
-                    orientacao = ori;
                     var isLandscape = (ori === 'landscape');
                     var styleEl = document.getElementById('orientacao-style');
                     styleEl.textContent = '@media print {{ @page {{ size: A3 ' + ori + '; margin: 0; }} }}';
-
-                    var v = calcGridVars(isLandscape);
-                    var grid = document.querySelector('.mural-grid');
-                    if (grid) {{
-                        grid.style.setProperty('--cols', v.cols);
-                        grid.style.setProperty('--rows', v.rows);
-                    }}
 
                     var badge = document.getElementById('badge-orientacao');
                     badge.textContent = isLandscape ? '↔ PAISAGEM A3' : '↕ RETRATO A3';
@@ -606,7 +524,7 @@ if dados:
 
                 function imprimirCom(ori) {{
                     applyOrientation(ori);
-                    setTimeout(function() {{ window.print(); }}, 80);
+                    setTimeout(function() {{ window.print(); }}, 100);
                 }}
 
                 document.addEventListener('DOMContentLoaded', function() {{
