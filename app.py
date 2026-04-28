@@ -328,7 +328,7 @@ if dados:
         if not df_retroativos.empty:
             altura_iframe += 200
 
-        # ── LAÇO ORIGINAL INTACTO (MÊS ATUAL) ─────────────────────────────────
+        # ── O SEU LAÇO ORIGINAL INTACTO (MÊS ATUAL) ───────────────────────────
         cards_html = ""
         for i, row in df_mes.iterrows():
             nome = html_lib.escape(str(row.get("nome", "Sem Nome")))
@@ -426,7 +426,7 @@ if dados:
             </div>
             """
 
-        # ── LAÇO DUPLICADO PARA RETROATIVOS (SEM PISCAR O "HOJE") ─────────────
+        # ── O SEU LAÇO DUPLICADO PARA RETROATIVOS ─────────────────────────────
         cards_retro_html = ""
         if not df_retroativos.empty:
             for i, row in df_retroativos.iterrows():
@@ -434,7 +434,7 @@ if dados:
                 curiosidade = html_lib.escape(str(row.get("curiosidade", "Gosta de surpresas!")))
                 foto_url = str(row.get("foto_url", ""))
                 
-                eh_hoje = False # Forçado falso para passados
+                eh_hoje = False
                 str_dia = ""
                 if pd.notnull(row.get("data_nascimento")):
                     str_dia = f"{row['data_nascimento'].day:02d}/{row['data_nascimento'].month:02d}"
@@ -590,33 +590,8 @@ if dados:
                     border:1px solid rgba(255,255,255,0.1); text-transform:uppercase;
                 }}
 
-                /* --- NOVO CSS PARA O SUB MURAL E IMPRESSÃO --- */
+                /* --- DATA DE IMPRESSÃO --- */
                 .data-evento-print {{ display: none; }}
-                @media print {{
-                    .data-evento-print {{
-                        display: block !important;
-                        font-family: 'Playfair Display', serif;
-                        font-size: 1.5rem;
-                        font-weight: 700;
-                        color: #ffffff;
-                        margin-top: 10px;
-                        text-shadow: 0 2px 5px rgba(0,0,0,0.8);
-                    }}
-                }}
-                .sub-mural-header {{
-                    text-align: center; 
-                    margin: 80px 0 40px;
-                    width: 100%; 
-                }}
-                .sub-mural-header h2 {{
-                    font-family: 'Playfair Display', serif;
-                    font-size: clamp(1.8rem, 3vw, 2.8rem);
-                    color: #ffffff;
-                    text-shadow: 0 4px 15px rgba(0,0,0,0.6);
-                    padding-bottom: 15px;
-                    border-bottom: 2px dashed rgba(255,255,255,0.5);
-                    display: inline-block;
-                }}
 
                 /* ══ CONTAINER DOS CARDS ═════════════════════════════════════ */
                 .cards-container {{
@@ -834,10 +809,14 @@ if dados:
                     .subtitulo, .header-count {{ color:#475569 !important; text-shadow:none !important; background:none !important; border:none !important; }}
                     .mes-destaque {{ background:none; -webkit-text-fill-color:#0f172a; color:#0f172a; }}
                     
-                    /* Título Sub Mural Impressão */
-                    .sub-mural-header h2 {{
-                        color: #0f172a !important; text-shadow: none !important;
-                        border-bottom: 2px dashed #0f172a !important;
+                    /* Trazendo a data do evento apenas para impressão */
+                    .data-evento-print {{
+                        display: block !important;
+                        font-family: 'Playfair Display', serif;
+                        font-size: 1.3rem;
+                        font-weight: 700;
+                        color: #0f172a;
+                        margin-top: 10px;
                     }}
 
                     .cards-container {{ gap:20px; }}
@@ -946,8 +925,11 @@ if dados:
             </div>
             
             {f'''
-            <div class="sub-mural-header">
-                <h2>✦ Aniversariantes de Meses Anteriores ✦</h2>
+            <div class="mural-header" style="margin-top: 80px; margin-bottom: 40px;">
+                <div class="mural-header-inner" style="padding: 15px 30px;">
+                    <p class="subtitulo">✦ Retroativos ✦</p>
+                    <h1 style="font-size: clamp(1.6rem, 3vw, 2.5rem);">Meses Anteriores</h1>
+                </div>
             </div>
             <div class="cards-container">
                 {cards_retro_html}
