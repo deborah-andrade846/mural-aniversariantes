@@ -608,7 +608,6 @@ if dados:
                     border-radius:3px 16px 3px 3px;
                     display:flex; flex-direction:column;
                     justify-content:flex-start; gap:10px; position:relative;
-                    cursor: pointer;
                     /* MELHORIA 4: transição com spring */
                     transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1),
                                 box-shadow 0.28s ease;
@@ -783,87 +782,6 @@ if dados:
             <style id="orientacao-style">
                 @media print {{ @page {{ size:A3 portrait; margin:0; }} }}
             </style>
-            <style>
-                /* ══ MODAL RECADO COMPLETO ═══════════════════════════════════ */
-                #modal-overlay {{
-                    display: none;
-                    position: fixed;
-                    inset: 0;
-                    background: rgba(15, 23, 42, 0.65);
-                    backdrop-filter: blur(6px);
-                    -webkit-backdrop-filter: blur(6px);
-                    z-index: 9999;
-                    align-items: center;
-                    justify-content: center;
-                }}
-                #modal-overlay.ativo {{
-                    display: flex;
-                }}
-                #modal-box {{
-                    background: #fffef0;
-                    border-radius: 6px 20px 6px 6px;
-                    padding: 40px 32px 28px;
-                    max-width: min(540px, 90vw);
-                    width: 100%;
-                    position: relative;
-                    box-shadow: 0 20px 60px rgba(0,0,0,0.32), 0 4px 14px rgba(0,0,0,0.16);
-                    font-family: 'Caveat', cursive;
-                    animation: modalEntrar 0.28s cubic-bezier(0.34,1.56,0.64,1) both;
-                }}
-                #modal-box::before {{
-                    content: '📌';
-                    position: absolute;
-                    top: -13px;
-                    right: 13px;
-                    font-size: 1.35rem;
-                    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.22));
-                    transform: rotate(15deg);
-                }}
-                #modal-mensagem {{
-                    font-size: 1.55rem;
-                    line-height: 1.5;
-                    font-weight: 700;
-                    color: rgba(0,0,0,0.85);
-                    margin-bottom: 20px;
-                    word-break: break-word;
-                    white-space: pre-wrap;
-                }}
-                #modal-autor {{
-                    font-size: 1.1rem;
-                    font-weight: 700;
-                    color: rgba(0,0,0,0.6);
-                    text-align: right;
-                    border-top: 1px dashed rgba(0,0,0,0.15);
-                    padding-top: 12px;
-                }}
-                #modal-fechar {{
-                    position: absolute;
-                    top: 10px;
-                    left: 12px;
-                    background: none;
-                    border: none;
-                    font-size: 1.25rem;
-                    cursor: pointer;
-                    color: rgba(0,0,0,0.38);
-                    line-height: 1;
-                    padding: 4px 6px;
-                    border-radius: 50%;
-                    transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
-                    font-family: 'Inter', sans-serif;
-                }}
-                #modal-fechar:hover {{
-                    color: rgba(0,0,0,0.78);
-                    background: rgba(0,0,0,0.06);
-                    transform: scale(1.15);
-                }}
-                @keyframes modalEntrar {{
-                    from {{ opacity: 0; transform: scale(0.88) translateY(18px); }}
-                    to   {{ opacity: 1; transform: scale(1)    translateY(0); }}
-                }}
-                @media print {{
-                    #modal-overlay {{ display: none !important; }}
-                }}
-            </style>
         </head>
         <body>
             <script>
@@ -890,23 +808,6 @@ if dados:
                 function voltarTopo() {{
                     window.scrollTo({{ top: 0, behavior: 'smooth' }});
                 }}
-
-                function abrirModal(texto, autor) {{
-                    document.getElementById('modal-mensagem').textContent = texto;
-                    document.getElementById('modal-autor').textContent = '~ ' + autor;
-                    document.getElementById('modal-overlay').classList.add('ativo');
-                }}
-
-                function fecharModal(event) {{
-                    if (event && event.target !== document.getElementById('modal-overlay')) return;
-                    document.getElementById('modal-overlay').classList.remove('ativo');
-                }}
-
-                document.addEventListener('keydown', function(e) {{
-                    if (e.key === 'Escape') {{
-                        document.getElementById('modal-overlay').classList.remove('ativo');
-                    }}
-                }});
 
                 document.addEventListener('DOMContentLoaded', function() {{
                     applyOrientation('portrait');
@@ -1035,10 +936,7 @@ if dados:
                         <div class="post-it"
                              style="background-color:{cor['bg']};
                                     transform:rotate({rotacao}deg);
-                                    box-shadow:4px 6px 15px {cor['shadow']},0 1px 3px rgba(0,0,0,0.06);"
-                             data-msg="{mensagem}"
-                             data-autor="{autor}"
-                             onclick="abrirModal(this.dataset.msg, this.dataset.autor)">
+                                    box-shadow:4px 6px 15px {cor['shadow']},0 1px 3px rgba(0,0,0,0.06);">
                             <div class="post-it-msg">{mensagem}</div>
                             <div class="post-it-autor">~ {autor}</div>
                         </div>
@@ -1090,16 +988,7 @@ if dados:
             </div>
             """
 
-        modal_html = """
-        <div id="modal-overlay" onclick="fecharModal(event)">
-            <div id="modal-box">
-                <button id="modal-fechar" onclick="fecharModal()" title="Fechar">✕</button>
-                <div id="modal-mensagem"></div>
-                <div id="modal-autor"></div>
-            </div>
-        </div>
-        """
-        full_html = html_base + cartoes_html + "</div>" + modal_html + "</body></html>"
+        full_html = html_base + cartoes_html + "</div></body></html>"
         components.html(full_html, height=altura_iframe, scrolling=True)
 
     else:
