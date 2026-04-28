@@ -56,8 +56,6 @@ liberar_recados  = to_bool(config.get("liberar_recados", False))
 liberar_cadastro = to_bool(config.get("liberar_cadastro", True))
 
 # ── FUNÇÕES COM CACHE ─────────────────────────────────────────────────────────
-# O prefixo _ nos parâmetros indica ao Streamlit que não deve tentar
-# serializar/comparar esses argumentos para fins de cache (ex.: cliente Supabase).
 @st.cache_data(ttl=120)
 def carregar_aniversariantes(_supabase):
     return _supabase.table("aniversariantes").select("*").execute().data or []
@@ -70,7 +68,6 @@ def carregar_recados(_supabase):
 st.sidebar.title("⚙️ Administração")
 senha_digitada = st.sidebar.text_input("Acesso restrito", type="password")
 
-# Senha lida do st.secrets — nunca hardcoded no código
 SENHA_CORRETA = st.secrets.get("ADMIN_PASSWORD", "")
 modo_admin    = bool(SENHA_CORRETA) and (senha_digitada == SENHA_CORRETA)
 
@@ -114,7 +111,6 @@ if modo_admin:
     img_tipo_admin = None
     if imagem_fundo is not None:
         img_bytes_admin = imagem_fundo.read()
-        # Melhoria #7 — validar tamanho antes de converter em data URL
         if len(img_bytes_admin) > MAX_IMG_BYTES:
             st.sidebar.error(
                 f"⚠️ Imagem demasiado grande "
@@ -132,7 +128,6 @@ if modo_admin:
     if img_b64_admin is None:
         estilo_fundo = f"background-color: {cor_fundo};"
 
-    # Melhoria #6 — preview do estado actual do mural na sidebar
     st.sidebar.divider()
     with st.sidebar.expander("📊 Estado actual do Mural", expanded=False):
         try:
@@ -162,7 +157,6 @@ if modo_admin:
         if img_b64_admin is not None:
             fundo_data_url = f"data:{img_tipo_admin};base64,{img_b64_admin}"
             atualizar_config("imagem_fundo", fundo_data_url)
-        # Limpar cache para que os dados reflitam imediatamente após salvar
         carregar_aniversariantes.clear()
         carregar_recados.clear()
         config = carregar_config()
@@ -283,13 +277,12 @@ if dados:
     df_mes = df[df["data_nascimento"].dt.month == mes_atual].copy()
 
     if not df_mes.empty:
-        # Melhoria #5 — aniversariante do dia aparece sempre primeiro
         df_mes = df_mes.sort_values(
             by="data_nascimento",
             key=lambda s: s.dt.day.apply(lambda d: (0 if d == dia_atual else 1, d))
         )
 
-        total_mes = len(df_mes)  # para o badge do header
+        total_mes = len(df_mes)
 
         st.markdown("""
         <style>
@@ -306,19 +299,17 @@ if dados:
         </style>
         """, unsafe_allow_html=True)
 
-        # ── Altura do iframe adaptativa ───────────────────────────────────────
         recados_por_pessoa = {}
         if not df_recados.empty and "para_quem" in df_recados.columns:
             recados_por_pessoa = df_recados["para_quem"].value_counts().to_dict()
 
-        altura_iframe = 300  # reserva para o header
+        altura_iframe = 300
         for _, row in df_mes.iterrows():
             nome_r        = str(row.get("nome", ""))
             n_recados     = recados_por_pessoa.get(nome_r, 0)
             linhas_postit = max(1, (n_recados // 4) + 1)
             altura_iframe += 420 + linhas_postit * 170
 
-        # ── HTML do mural ─────────────────────────────────────────────────────
         html_base = f"""
         <!DOCTYPE html>
         <html>
@@ -390,7 +381,6 @@ if dados:
                     display:flex; justify-content:center; gap:10px; margin-top:14px;
                     opacity:0.6; font-size:1.2rem; letter-spacing:4px;
                 }}
-                /* Melhoria #4 — badge de contagem no header */
                 .header-count {{
                     margin-top:12px;
                     font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:600;
@@ -455,7 +445,7 @@ if dados:
                     box-shadow: 0 20px 50px rgba(0,0,0,0.25);
                 }}
 
-                /* ══ CARD "HOJE" — destaque dourado ══════════════════════════ */
+                /* ══ CARD "HOJE" ─ destaque dourado ══════════════════════════ */
                 .aniversariante-row.hoje {{
                     border: 2px solid rgba(251,191,36,0.8);
                     background: rgba(255,251,235,0.78);
@@ -514,7 +504,6 @@ if dados:
                     border-radius:3px; z-index:5; border:1px solid rgba(0,0,0,0.05);
                 }}
                 .polaroid:hover {{ transform:scale(1.04) rotate(1deg); }}
-                /* Melhoria #3: img com onerror fallback */
                 .foto-wrapper {{
                     width:100%; aspect-ratio:1/1;
                     border-radius:2px; border:1px solid #e2e8f0;
@@ -621,7 +610,6 @@ if dados:
                     font-size:1.05rem; font-style:italic; padding:28px 0;
                     display:flex; align-items:center; gap:8px;
                 }}
-                /* Melhoria #2 — estilo específico para recados bloqueados */
                 .sem-recados-bloqueado {{
                     background:rgba(100,116,139,0.08);
                     border:1px dashed rgba(100,116,139,0.3);
@@ -696,26 +684,20 @@ if dados:
                     .confete-wrapper {{ display:none !important; }}
                 }}
 
-                /* ══ IMPRESSÃO – DATA DO EVENTO ═════════════════════════════ */
+                /* ══ IMPRESSÃO – DATA DO EVENTO (discreto no final da página) ══ */
                 .print-data-evento {{
                     display: none;
                 }}
                 @media print {{
                     .print-data-evento {{
                         display: block;
-                        position: fixed;
-                        bottom: 0;
-                        left: 0;
-                        width: 100%;
-                        background: #ffffff;
-                        text-align: center;
-                        font-family: 'Inter', sans-serif;
-                        font-size: 1.1rem;
-                        font-weight: 700;
-                        color: #0f172a;
-                        padding: 12px;
-                        border-top: 2px solid #cbd5e1;
-                        z-index: 9999;
+                        text-align: right;
+                        font-size: 0.8rem;
+                        color: #475569;
+                        margin-top: 2rem;
+                        padding: 0.5rem 1rem;
+                        border-bottom: 1px solid #e2e8f0;
+                        background: transparent;
                     }}
                 }}
 
@@ -731,7 +713,6 @@ if dados:
             <script>
                 var IS_TV = {'true' if is_tv else 'false'};
 
-                /* ── Orientação de impressão ── */
                 function applyOrientation(ori) {{
                     document.getElementById('orientacao-style').textContent =
                         '@media print {{ @page {{ size:A3 ' + ori + '; margin:0; }} }}';
@@ -744,7 +725,6 @@ if dados:
                     setTimeout(function(){{ window.print(); }}, 100);
                 }}
 
-                /* ── Botão Voltar ao Topo ── */
                 window.addEventListener('scroll', function() {{
                     var btn = document.getElementById('btn-topo');
                     if (!btn) return;
@@ -765,7 +745,6 @@ if dados:
                         if (badge)   badge.style.display   = 'none';
                         if (topo)    topo.style.display     = 'none';
 
-                        // Melhoria #1 — recarrega o app Streamlit inteiro a cada 5 min
                         setTimeout(function() {{
                             try {{ window.parent.location.reload(); }}
                             catch(e) {{ window.location.reload(); }}
@@ -801,16 +780,13 @@ if dados:
         cartoes_html = ""
 
         for idx, (_, row) in enumerate(df_mes.iterrows()):
-            # Escapar dados do utilizador (XSS)
             nome              = html_lib.escape(str(row.get("nome", "Sem nome")).strip())
             texto_curiosidade = html_lib.escape(str(row.get("curiosidade", "")).strip())
             dia = row["data_nascimento"].day if pd.notna(row["data_nascimento"]) else "?"
 
-            # Primeiro nome seguro
             partes        = nome.split()
             primeiro_nome = partes[0] if partes else nome
 
-            # Foto — melhoria #3: usar <img> com onerror fallback
             img_url = str(row.get("foto_url", "")).strip().replace("'", "%27").replace('"', "%22")
             if img_url:
                 foto_html = f'''
@@ -827,12 +803,10 @@ if dados:
             if texto_curiosidade:
                 curiosidade_html = f'<div class="curiosidade-txt">"{texto_curiosidade}"</div>'
 
-            # Verificar se é aniversário hoje
             e_hoje     = (dia == dia_atual)
             classe_row = "aniversariante-row hoje" if e_hoje else "aniversariante-row"
             badge_hoje = '<div class="badge-hoje">🎂 Hoje é o grande dia!</div>' if e_hoje else ""
 
-            # Confete animado apenas para aniversariante do dia
             confete_html = ""
             if e_hoje:
                 pecas = ""
@@ -848,18 +822,15 @@ if dados:
                     )
                 confete_html = f'<div class="confete-wrapper">{pecas}</div>'
 
-            # Melhoria #2 — respeitar flag liberar_recados
             n_recados_pessoa = 0
             post_its_html    = ""
 
             if not liberar_recados:
-                # Recados ainda não liberados pelo admin
                 post_its_html = """
                 <p class="sem-recados sem-recados-bloqueado">
                     🔒 Os recados serão revelados em breve!
                 </p>"""
             elif not df_recados.empty and "para_quem" in df_recados.columns:
-                # Comparar com o nome original (não escapado) para bater com o banco
                 nome_original    = str(row.get("nome", "")).strip()
                 recados_pessoa   = df_recados[df_recados["para_quem"] == nome_original]
                 n_recados_pessoa = len(recados_pessoa)
@@ -871,7 +842,6 @@ if dados:
                         mensagem = html_lib.escape(str(recado.get("mensagem", "")).strip())
                         autor    = html_lib.escape(str(recado.get("de_quem", "Anônimo")).strip())
 
-                        # Rotação determinista — nunca muda entre reruns
                         seed_val = hash(mensagem + autor + nome) & 0xFFFFFF
                         rotacao  = (seed_val % 9) - 4
 
@@ -889,7 +859,6 @@ if dados:
             else:
                 post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
 
-            # Badge de contagem de recados
             badge_contagem = ""
             if n_recados_pessoa > 0:
                 label = "recado" if n_recados_pessoa == 1 else "recados"
@@ -897,7 +866,6 @@ if dados:
                     f'<span class="badge-contagem">💬 {n_recados_pessoa} {label}</span>'
                 )
 
-            # Delay máximo 0.6s para não atrasar murais com muitos cards
             delay = min(idx * 0.15, 0.6)
 
             cartoes_html += f"""
@@ -930,12 +898,10 @@ if dados:
             </div>
             """
 
-        # ── NOVO: DIV COM DATA DO EVENTO (aparece apenas na impressão) ──────
-        full_html = html_base + cartoes_html + "</div><div class='print-data-evento'>Data do Evento: 30/04/2026</div></body></html>"
+        full_html = html_base + cartoes_html + ("</div><div class='print-data-evento'>Data do Evento: 30/04/2026</div></body></html>")
         components.html(full_html, height=altura_iframe, scrolling=True)
 
     else:
-        # ── Estado vazio estilizado dentro do iframe ──────────────────────────
         empty_html = f"""
         <!DOCTYPE html>
         <html>
@@ -992,7 +958,7 @@ if dados:
         """
         components.html(empty_html, height=420, scrolling=False)
 
-    # ── NOVO: SUB-MURAL RETROATIVO (meses 1,2,3 apenas em Abril/2026) ─────
+    # ── SUB-MURAL RETROATIVO (meses 1,2,3) – Abril/2026 ────────────────────
     if mes_atual == 4 and hoje.year == 2026:
         df_retro = df[df["data_nascimento"].dt.month.isin([1, 2, 3])].copy()
         if not df_retro.empty:
@@ -1023,6 +989,24 @@ if dados:
             <head><meta charset="UTF-8">
             <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
             <style>
+                *, *::before, *::after {{ margin:0; padding:0; box-sizing:border-box; }}
+                html {{
+                    {estilo_fundo}
+                    background-attachment: scroll !important;
+                    background-size: cover !important;
+                    background-position: center top !important;
+                    background-repeat: no-repeat !important;
+                    min-height: 100%;
+                }}
+                body {{
+                    background: transparent !important;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 100vh;
+                    padding: 20px;
+                }}
+
                 .sub-mural-container {{
                     background: rgba(255,255,255,0.5);
                     backdrop-filter: blur(8px);
@@ -1030,7 +1014,7 @@ if dados:
                     border: 1px solid rgba(255,255,255,0.5);
                     border-radius: 18px;
                     padding: 24px 20px;
-                    margin: 40px auto 0;
+                    margin: 0 auto;
                     max-width: min(1200px, 96vw);
                     text-align: center;
                     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
@@ -1090,14 +1074,13 @@ if dados:
                     margin-top: 3px;
                 }}
             </style></head>
-            <body style="background:transparent;margin:0;">
+            <body>
             <div class="sub-mural-container">
                 <div class="sub-mural-titulo">📅 Aniversariantes dos meses anteriores</div>
                 <div class="sub-mural-grid">{mini_cards}</div>
             </div>
             </body></html>
             """
-            # altura aproximada: ~180px por linha (6 colunas considerando a largura)
             linhas = (len(df_retro) + 5) // 6
             altura_sub = linhas * 180 + 120
             components.html(sub_mural_html, height=altura_sub, scrolling=False)
