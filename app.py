@@ -372,10 +372,12 @@ if dados:
                     font-weight:900; color:#ffffff;
                     text-shadow:0 4px 20px rgba(0,0,0,0.6);
                     line-height:1.15; letter-spacing:-0.5px;
+                    white-space: nowrap; /* 🔧 Garante que o título fique em uma só linha */
                 }}
                 .mural-header .mes-destaque {{
                     background:linear-gradient(100deg,#38bdf8 0%,#818cf8 50%,#f472b6 100%);
                     -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+                    white-space: nowrap;
                 }}
                 .header-deco {{
                     display:flex; justify-content:center; gap:10px; margin-top:14px;
@@ -1044,7 +1046,6 @@ if dados:
                     gap: 20px;
                     justify-content: center;
                 }}
-                /* ── Aumento de 25% na largura (110px → 138px) ── */
                 .mini-polaroid {{
                     background: #fff;
                     padding: 10px 10px 14px;
@@ -1098,7 +1099,6 @@ if dados:
             </div>
             </body></html>
             """
-            # A altura por linha também aumentou proporcionalmente (180 * 1,25 = 225)
             linhas = (len(df_retro) + 5) // 6
             altura_sub = linhas * 225 + 140
             components.html(sub_mural_html, height=altura_sub, scrolling=False)
