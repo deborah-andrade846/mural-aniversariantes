@@ -596,7 +596,7 @@ if dados:
                     z-index:10;
                 }}
                 .post-it-msg {{
-                    font-size:1.2rem;  /* Aumentado para melhor legibilidade */
+                    font-size:1.2rem;
                     line-height:1.4; font-weight:700;
                     color:rgba(0,0,0,0.85); padding-top:4px; flex:1;
                     overflow:hidden; display:-webkit-box;
@@ -787,16 +787,13 @@ if dados:
         cartoes_html = ""
 
         for idx, (_, row) in enumerate(df_mes.iterrows()):
-            # ── Padronização de nome: primeira letra maiúscula, restante minúscula ──
             nome_raw = str(row.get("nome", "Sem nome")).strip()
-            # Aplica .title() antes de escapar para HTML
             nome_formatado = nome_raw.title()
             nome           = html_lib.escape(nome_formatado)
 
             texto_curiosidade = html_lib.escape(str(row.get("curiosidade", "")).strip())
             dia = row["data_nascimento"].day if pd.notna(row["data_nascimento"]) else "?"
 
-            # Primeiro nome seguro – também formatado
             partes        = nome_formatado.split()
             primeiro_nome = partes[0] if partes else nome_formatado
 
@@ -844,7 +841,6 @@ if dados:
                     🔒 Os recados serão revelados em breve!
                 </p>"""
             elif not df_recados.empty and "para_quem" in df_recados.columns:
-                # Comparação com o nome original (antes da formatação), pois no banco pode estar em maiúsculas
                 nome_original    = nome_raw
                 recados_pessoa   = df_recados[df_recados["para_quem"] == nome_original]
                 n_recados_pessoa = len(recados_pessoa)
@@ -855,7 +851,6 @@ if dados:
                     for i, (_, recado) in enumerate(recados_pessoa.iterrows()):
                         mensagem = html_lib.escape(str(recado.get("mensagem", "")).strip())
                         autor_raw = str(recado.get("de_quem", "Anônimo")).strip()
-                        # Padronizar também o autor do recado
                         autor = html_lib.escape(autor_raw.title()) if autor_raw else "Anônimo"
 
                         seed_val = hash(mensagem + autor + nome) & 0xFFFFFF
@@ -983,7 +978,7 @@ if dados:
             mini_cards = ""
             for _, row in df_retro.iterrows():
                 nome_retro_raw = str(row.get("nome", "Sem nome")).strip()
-                nome_retro = html_lib.escape(nome_retro_raw.title())  # Formatação aplicada
+                nome_retro = html_lib.escape(nome_retro_raw.title())
                 dia_r = row["data_nascimento"].day if pd.notna(row["data_nascimento"]) else "?"
                 mes_r = MESES_PTBR.get(row["data_nascimento"].month, "")
                 img_url_r = str(row.get("foto_url", "")).strip().replace("'", "%27").replace('"', "%22")
@@ -1032,7 +1027,7 @@ if dados:
                     border-radius: 18px;
                     padding: 24px 20px;
                     margin: 0 auto;
-                    max-width: min(1200px, 96vw);
+                    max-width: min(1400px, 96vw);
                     text-align: center;
                     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
                 }}
@@ -1046,15 +1041,16 @@ if dados:
                 .sub-mural-grid {{
                     display: flex;
                     flex-wrap: wrap;
-                    gap: 16px;
+                    gap: 20px;
                     justify-content: center;
                 }}
+                /* ── Aumento de 25% na largura (110px → 138px) ── */
                 .mini-polaroid {{
                     background: #fff;
-                    padding: 8px 8px 12px;
+                    padding: 10px 10px 14px;
                     border-radius: 4px;
                     box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-                    width: 110px;
+                    width: 138px;
                     text-align: center;
                     transition: transform 0.25s ease;
                 }}
@@ -1082,7 +1078,6 @@ if dados:
                     line-height: 1.2;
                     word-break: break-word;
                     overflow-wrap: break-word;
-                    /* Permite múltiplas linhas, sem corte com reticências */
                     white-space: normal;
                     overflow: hidden;
                     display: -webkit-box;
@@ -1103,8 +1098,9 @@ if dados:
             </div>
             </body></html>
             """
+            # A altura por linha também aumentou proporcionalmente (180 * 1,25 = 225)
             linhas = (len(df_retro) + 5) // 6
-            altura_sub = linhas * 180 + 120
+            altura_sub = linhas * 225 + 140
             components.html(sub_mural_html, height=altura_sub, scrolling=False)
 
 else:
