@@ -472,18 +472,18 @@ if dados:
                 .btn-paisagem {{ background: linear-gradient(135deg, #6366f1, #818cf8); }}
 
                 /* ══ IMPRESSÃO (COPIA EXATA DO ECRÃ) ═════════════════════ */
-                @media print {
-                    * { 
+                @media print {{
+                    * {{ 
                         -webkit-print-color-adjust: exact !important; 
                         print-color-adjust: exact !important; 
-                    }
+                    }}
                     
-                    @page { size: A3 portrait; margin: 0; }
+                    @page {{ size: A3 portrait; margin: 0; }}
 
                     /* Esconde apenas os elementos que não devem ir para o papel */
-                    .btn-imprimir, .print-toolbar, .orientacao-badge { display: none !important; }
+                    .btn-imprimir, .print-toolbar, .orientacao-badge {{ display: none !important; }}
 
-                    html, body {
+                    html, body {{
                         /* Garante que o fundo seja o mesmo da tela */
                         {estilo_fundo}
                         background-size: cover !important;
@@ -492,17 +492,17 @@ if dados:
                         background-attachment: scroll !important;
                         margin: 0 !important; 
                         padding: 0 !important;
-                    }
+                    }}
 
                     /* Evita que um cartão seja cortado ao meio na quebra de página */
-                    .aniversariante-row {
+                    .aniversariante-row {{
                         break-inside: avoid !important;
                         page-break-inside: avoid !important;
                         /* Garante que o grid lado a lado (Foto à esquerda, recados à direita) se mantenha */
                         display: grid !important;
                         grid-template-columns: minmax(320px, 1.2fr) 2fr !important;
-                    }
-                }
+                    }}
+                }}
         </style>
         <style id="orientacao-style">
             @media print {{ @page {{ size: A3 portrait; margin: 0; }} }}
