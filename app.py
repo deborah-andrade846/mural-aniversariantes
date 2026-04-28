@@ -684,20 +684,23 @@ if dados:
                     .confete-wrapper {{ display:none !important; }}
                 }}
 
-                /* ══ IMPRESSÃO – DATA DO EVENTO (discreto no final da página) ══ */
-                .print-data-evento {{
+                /* ══ IMPRESSÃO – DATA DO EVENTO NO CABEÇALHO ═════════════════ */
+                .print-data-evento-header {{
                     display: none;
                 }}
                 @media print {{
-                    .print-data-evento {{
+                    .print-data-evento-header {{
                         display: block;
-                        text-align: right;
-                        font-size: 0.8rem;
-                        color: #475569;
-                        margin-top: 2rem;
+                        font-family: 'Playfair Display', serif;
+                        font-size: 1.4rem;
+                        font-weight: 700;
+                        color: #0f172a;
+                        text-align: center;
+                        margin-top: 0.8rem;
                         padding: 0.5rem 1rem;
-                        border-bottom: 1px solid #e2e8f0;
-                        background: transparent;
+                        border-top: 1px solid rgba(0,0,0,0.15);
+                        border-bottom: 1px solid rgba(0,0,0,0.15);
+                        background: rgba(255,255,255,0.3);
                     }}
                 }}
 
@@ -771,6 +774,8 @@ if dados:
                         {'🎂 1 aniversariante' if total_mes == 1 else f'🎂 {total_mes} aniversariantes'}
                         {' — incluindo hoje! 🥳' if any(df_mes["data_nascimento"].dt.day == dia_atual) else ''}
                     </div>
+                    <!-- NOVA LINHA: data do evento aparece SOMENTE na impressão, integrada ao cabeçalho -->
+                    <div class="print-data-evento-header">Data do Evento: 30/04/2026</div>
                 </div>
             </div>
 
@@ -898,7 +903,7 @@ if dados:
             </div>
             """
 
-        full_html = html_base + cartoes_html + ("</div><div class='print-data-evento'>Data do Evento: 30/04/2026</div></body></html>")
+        full_html = html_base + cartoes_html + "</div></body></html>"
         components.html(full_html, height=altura_iframe, scrolling=True)
 
     else:
