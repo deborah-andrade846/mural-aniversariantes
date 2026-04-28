@@ -55,7 +55,7 @@ if modo_admin:
                 supabase.table("configuracoes_mural").insert({"chave": chave, "valor": valor_str}).execute()
                     
         except Exception as e:
-            st.error(f"Erro ao salvar configuração: {e}")
+            st.error(f"Erro ao guardar configuração: {e}")
             raise e
 
     config = carregar_config()
@@ -65,9 +65,9 @@ if modo_admin:
 
     st.sidebar.divider()
     
-    with st.sidebar.expander("🔐 Controles de Acesso", expanded=True):
-        novo_cadastro = st.checkbox("Liberar Aba de Cadastro", value=liberar_cadastro)
-        novo_recados = st.checkbox("Liberar Aba de Recados", value=liberar_recados)
+    with st.sidebar.expander("🔐 Controlos de Acesso", expanded=True):
+        novo_cadastro = st.checkbox("Libertar Aba de Cadastro", value=liberar_cadastro)
+        novo_recados = st.checkbox("Libertar Aba de Recados", value=liberar_recados)
         novo_exibir = st.checkbox("🎉 REVELAR MURAL FINAL", value=exibir_mural)
 
     with st.sidebar.expander("🎨 Personalização Visual", expanded=False):
@@ -88,7 +88,7 @@ if modo_admin:
         img_tipo_admin  = imagem_fundo.type
 
     st.sidebar.write("") 
-    if st.sidebar.button("💾 Salvar alterações", type="primary", use_container_width=True):
+    if st.sidebar.button("💾 Guardar alterações", type="primary", use_container_width=True):
         atualizar_config("liberar_cadastro", novo_cadastro)
         atualizar_config("liberar_recados",  novo_recados)
         atualizar_config("exibir_mural",     novo_exibir)
@@ -322,12 +322,12 @@ if dados:
                     max-width: min(1400px, 96vw); width: 100%;
                 }}
 
-                /* ══ CARD PRINCIPAL (MELHORADO: Fundo Claro) ══════════════ */
+                /* ══ CARD PRINCIPAL (Fundo Claro) ══════════════ */
                 .aniversariante-row {{
                     display: grid;
-                    grid-template-columns: minmax(320px, 1.2fr) 2fr; /* Mais espaço para o Polaroid */
+                    grid-template-columns: minmax(320px, 1.2fr) 2fr; 
                     gap: clamp(28px, 4vw, 56px);
-                    background: rgba(255, 255, 255, 0.85); /* FUNDO CLARO E LEGÍVEL */
+                    background: rgba(255, 255, 255, 0.85); 
                     backdrop-filter: blur(18px);
                     -webkit-backdrop-filter: blur(18px);
                     border: 1px solid rgba(255,255,255,0.6);
@@ -353,18 +353,18 @@ if dados:
                     .aniversariante-row {{ grid-template-columns: 1fr; padding: 24px; }}
                 }}
 
-                /* ══ POLAROID (MELHORADO: Maior e Centrado) ═══════════════ */
+                /* ══ POLAROID ═══════════════ */
                 .polaroid-container {{
                     width: 100%;
                     display: flex;
                     align-items: center;
-                    justify-content: center; /* Centralização garantida */
+                    justify-content: center; 
                     padding: 10px;
                 }}
                 .polaroid-wrapper {{
                     position: relative;
                     width: 100%;
-                    max-width: 320px; /* Polaroid Bem Maior */
+                    max-width: 320px; 
                     display: flex;
                     justify-content: center;
                 }}
@@ -377,7 +377,7 @@ if dados:
                     padding: 16px 16px 58px;
                     border-radius: 4px;
                     box-shadow: 0 16px 40px rgba(0,0,0,0.15), 0 3px 10px rgba(0,0,0,0.1);
-                    width: 100%; /* Preenche o wrapper */
+                    width: 100%; 
                     color: #1e293b;
                     text-align: center;
                     position: relative;
@@ -417,14 +417,14 @@ if dados:
                     line-height: 1.4; border-top: 1px dashed #cbd5e1; padding-top: 10px;
                 }}
 
-                /* ══ RECADOS (MELHORADO: Textos Escuros) ═════════════════ */
+                /* ══ RECADOS ═════════════════ */
                 .recados-section {{
                     display: flex; flex-direction: column; justify-content: flex-start; min-width: 0;
                 }}
                 .recados-titulo {{
                     font-family: 'Playfair Display', serif; font-size: clamp(1.3rem, 2vw, 1.9rem);
                     font-weight: 700; font-style: italic;
-                    color: #1e293b; /* TEXTO ESCURO PARA FUNDO CLARO */
+                    color: #1e293b; 
                     text-shadow: none;
                     margin-bottom: 18px; padding-bottom: 12px;
                     border-bottom: 1px solid rgba(0,0,0,0.1);
@@ -453,7 +453,7 @@ if dados:
                     text-align: right; margin-top: 12px; border-top: 1px dashed rgba(0,0,0,0.15); padding-top: 8px;
                 }}
                 .sem-recados {{
-                    color: #475569; /* TEXTO ESCURO */
+                    color: #475569; 
                     font-size: 1.05rem; font-style: italic; padding: 28px 0; text-shadow: none;
                     display: flex; align-items: center; gap: 8px;
                 }}
@@ -471,7 +471,7 @@ if dados:
                 .btn-imprimir:hover {{ transform: translateY(-3px) scale(1.03); box-shadow: 0 14px 28px rgba(14,165,233,0.5); }}
                 .btn-paisagem {{ background: linear-gradient(135deg, #6366f1, #818cf8); }}
 
-                /* ══ POSTER A3 PARA IMPRESSÃO (MELHORADO: Fundo Branco e Polaroids Maiores) ════ */
+                /* ══ POSTER A3 PARA IMPRESSÃO (COM FUNDO RESTAURADO) ════ */
                 @media print {{
                     * {{ -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }}
                     @page {{ size: A3 portrait; margin: 0; }}
@@ -479,17 +479,22 @@ if dados:
                     .btn-imprimir, .print-toolbar, .orientacao-badge {{ display: none !important; }}
 
                     html, body {{
-                        background: #ffffff !important; /* FORÇA FUNDO TOTALMENTE BRANCO */
+                        {estilo_fundo} /* <--- DEVOLVE A IMAGEM DE FUNDO/COR AQUI */
+                        background-size: cover !important;
+                        background-position: center top !important;
+                        background-repeat: no-repeat !important;
+                        background-attachment: scroll !important;
                         margin: 0 !important; padding: 0 !important;
                         width: 100vw !important; min-height: 100vh !important;
                         font-family: 'Inter', sans-serif !important;
-                        color: #0f172a !important; /* FORÇA TEXTO ESCURO */
                     }}
 
                     .mural-header {{ margin-bottom: 0 !important; width: 100% !important; }}
+                    
+                    /* Cabeçalho agora fica levemente translúcido (quase branco) para se destacar do fundo da imagem */
                     .mural-header-inner {{
-                        background: #f8fafc !important; color: #0f172a !important; box-shadow: none !important;
-                        border: none !important; border-bottom: 4px solid #38bdf8 !important; border-radius: 0 !important;
+                        background: rgba(255,255,255,0.92) !important; color: #0f172a !important; box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+                        border: 1px solid rgba(255,255,255,0.8) !important; border-bottom: 4px solid #38bdf8 !important; border-radius: 20px !important;
                         padding: 20px 40px !important; text-align: center !important; width: 100% !important;
                         display: block !important;
                     }}
@@ -502,14 +507,16 @@ if dados:
                     .mural-grid {{
                         display: grid !important; grid-template-columns: repeat(var(--cols, 2), 1fr) !important;
                         grid-template-rows: repeat(var(--rows, 3), 1fr) !important; gap: 20px !important;
-                        padding: 20px !important; width: 100% !important; background: #ffffff !important;
+                        padding: 20px !important; width: 100% !important; 
+                        background: transparent !important; /* <--- PERMITE VER A IMAGEM DE FUNDO NA GRELHA */
                     }}
 
+                    /* O cartão individual fica quase branco sólido para garantir total legibilidade do texto por cima da imagem */
                     .aniversariante-row {{
                         display: flex !important; flex-direction: column !important; align-items: center !important;
-                        background: #f8fafc !important; border: 2px solid #e2e8f0 !important;
+                        background: rgba(255,255,255,0.92) !important; border: 1px solid rgba(255,255,255,0.9) !important;
                         border-top: 5px solid #38bdf8 !important; border-radius: 16px !important;
-                        padding: 0 !important; box-shadow: none !important; break-inside: avoid !important;
+                        padding: 0 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important; break-inside: avoid !important;
                         page-break-inside: avoid !important; overflow: hidden !important; height: 100% !important;
                     }}
                     .aniversariante-row::before {{ display: none !important; }}
@@ -521,7 +528,7 @@ if dados:
                     .polaroid-wrapper {{ width: 100% !important; display: flex !important; justify-content: center !important; }}
                     .polaroid-wrapper::before {{ display: none !important; }}
                     .polaroid {{
-                        width: 100% !important; max-width: 240px !important; /* POLAROID MAIOR NA IMPRESSÃO */
+                        width: 100% !important; max-width: 240px !important; 
                         padding: 12px 12px 40px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
                         background: white !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important;
                     }}
@@ -534,7 +541,7 @@ if dados:
 
                     .recados-section {{
                         width: 100% !important; display: flex !important; flex-direction: column !important;
-                        padding: 15px !important; background: #ffffff !important; border-top: 1px solid #e2e8f0 !important;
+                        padding: 15px !important; background: transparent !important; border-top: 1px solid #e2e8f0 !important;
                     }}
                     .recados-titulo {{
                         color: #0f172a !important; text-shadow: none !important; font-size: 0.95rem !important;
