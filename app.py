@@ -56,8 +56,6 @@ liberar_recados  = to_bool(config.get("liberar_recados", False))
 liberar_cadastro = to_bool(config.get("liberar_cadastro", True))
 
 # ── FUNÇÕES COM CACHE ─────────────────────────────────────────────────────────
-# O prefixo _ nos parâmetros indica ao Streamlit que não deve tentar
-# serializar/comparar esses argumentos para fins de cache (ex.: cliente Supabase).
 @st.cache_data(ttl=120)
 def carregar_aniversariantes(_supabase):
     return _supabase.table("aniversariantes").select("*").execute().data or []
@@ -70,7 +68,6 @@ def carregar_recados(_supabase):
 st.sidebar.title("⚙️ Administração")
 senha_digitada = st.sidebar.text_input("Acesso restrito", type="password")
 
-# Senha lida do st.secrets — nunca hardcoded no código
 SENHA_CORRETA = st.secrets.get("ADMIN_PASSWORD", "")
 modo_admin    = bool(SENHA_CORRETA) and (senha_digitada == SENHA_CORRETA)
 
@@ -114,7 +111,6 @@ if modo_admin:
     img_tipo_admin = None
     if imagem_fundo is not None:
         img_bytes_admin = imagem_fundo.read()
-        # Melhoria #7 — validar tamanho antes de converter em data URL
         if len(img_bytes_admin) > MAX_IMG_BYTES:
             st.sidebar.error(
                 f"⚠️ Imagem demasiado grande "
@@ -132,7 +128,6 @@ if modo_admin:
     if img_b64_admin is None:
         estilo_fundo = f"background-color: {cor_fundo};"
 
-    # Melhoria #6 — preview do estado actual do mural na sidebar
     st.sidebar.divider()
     with st.sidebar.expander("📊 Estado actual do Mural", expanded=False):
         try:
@@ -162,7 +157,6 @@ if modo_admin:
         if img_b64_admin is not None:
             fundo_data_url = f"data:{img_tipo_admin};base64,{img_b64_admin}"
             atualizar_config("imagem_fundo", fundo_data_url)
-        # Limpar cache para que os dados reflitam imediatamente após salvar
         carregar_aniversariantes.clear()
         carregar_recados.clear()
         config = carregar_config()
@@ -280,13 +274,13 @@ nome_mes_atual = MESES_PTBR[mes_atual]
 if dados:
     df = pd.DataFrame(dados)
     df["data_nascimento"] = pd.to_datetime(df["data_nascimento"], errors="coerce")
+    
+    # SEPARAÇÃO: Mês Atual vs Retroativos
     df_mes = df[df["data_nascimento"].dt.month == mes_atual].copy()
 
-    # --- NOVO: Capturar retroativos (apenas se for mês 4) ---
     df_retroativos = pd.DataFrame()
     if mes_atual == 4:
         df_retroativos = df[df["data_nascimento"].dt.month.isin([1, 2, 3])].copy()
-        # Ordena por mês e depois por dia para ficar cronológico
         df_retroativos = df_retroativos.sort_values(
             by="data_nascimento",
             key=lambda s: s.dt.month * 100 + s.dt.day
@@ -294,13 +288,12 @@ if dados:
 
     if not df_mes.empty or not df_retroativos.empty:
         if not df_mes.empty:
-            # Melhoria #5 — aniversariante do dia aparece sempre primeiro
             df_mes = df_mes.sort_values(
                 by="data_nascimento",
                 key=lambda s: s.dt.day.apply(lambda d: (0 if d == dia_atual else 1, d))
             )
 
-        total_mes = len(df_mes)  # para o badge do header
+        total_mes = len(df_mes)
 
         st.markdown("""
         <style>
@@ -322,9 +315,8 @@ if dados:
         if not df_recados.empty and "para_quem" in df_recados.columns:
             recados_por_pessoa = df_recados["para_quem"].value_counts().to_dict()
 
-        altura_iframe = 300  # reserva para o header
+        altura_iframe = 300
         
-        # Junta os dois DFs para calcular a altura total do iframe
         df_todos_renderizados = pd.concat([df_mes, df_retroativos]) if not df_retroativos.empty else df_mes
         
         for _, row in df_todos_renderizados.iterrows():
@@ -334,9 +326,192 @@ if dados:
             altura_iframe += 420 + linhas_postit * 170
 
         if not df_retroativos.empty:
-            altura_iframe += 200  # Espaço extra para o título do sub mural
+            altura_iframe += 200
 
-        # ── HTML do mural ─────────────────────────────────────────────────────
+        # ── O SEU LAÇO ORIGINAL INTACTO (MÊS ATUAL) ───────────────────────────
+        cards_html = ""
+        for i, row in df_mes.iterrows():
+            nome = html_lib.escape(str(row.get("nome", "Sem Nome")))
+            curiosidade = html_lib.escape(str(row.get("curiosidade", "Gosta de surpresas!")))
+            foto_url = str(row.get("foto_url", ""))
+            
+            eh_hoje = False
+            str_dia = ""
+            if pd.notnull(row.get("data_nascimento")):
+                str_dia = f"{row['data_nascimento'].day:02d}/{row['data_nascimento'].month:02d}"
+                eh_hoje = (row["data_nascimento"].day == dia_atual)
+
+            classe_hoje = " hoje" if eh_hoje else ""
+            badge_hoje  = '<div class="badge-hoje">✨ É HOJE! ✨</div>' if eh_hoje else ""
+
+            if not foto_url:
+                foto_url = f"https://api.dicebear.com/7.x/initials/svg?seed={nome}&backgroundColor=38bdf8,818cf8&textColor=ffffff"
+
+            confete_html = ""
+            if eh_hoje:
+                pecas = ""
+                for ci in range(12):
+                    cor = CONFETE_CORES[ci % len(CONFETE_CORES)]
+                    left = (ci * 7) % 100
+                    delay = round((ci * 0.22) % 3, 2)
+                    dur = round(2.5 + (ci % 3) * 0.5, 1)
+                    pecas += (
+                        f'<div class="confete-piece" '
+                        f'style="left:{left}%;background:{cor};'
+                        f'animation-duration:{dur}s;animation-delay:{delay}s;"></div>'
+                    )
+                confete_html = f'<div class="confete-wrapper">{pecas}</div>'
+
+            n_recados_pessoa = 0
+            post_its_html = ""
+
+            if not liberar_recados:
+                post_its_html = """
+                <p class="sem-recados sem-recados-bloqueado">
+                    🔒 Os recados serão revelados em breve!
+                </p>"""
+            elif not df_recados.empty and "para_quem" in df_recados.columns:
+                nome_original = str(row.get("nome", "")).strip()
+                recados_pessoa = df_recados[df_recados["para_quem"] == nome_original]
+                n_recados_pessoa = len(recados_pessoa)
+                
+                if recados_pessoa.empty:
+                    post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
+                else:
+                    for _, r_row in recados_pessoa.iterrows():
+                        cor_idx = abs(hash(str(r_row.get("de_quem")) + str(r_row.get("mensagem")))) % len(POSTIT_COLORS)
+                        cor_tema = POSTIT_COLORS[cor_idx]
+                        
+                        remetente = html_lib.escape(str(r_row.get("de_quem", "Anônimo")))
+                        mensagem  = html_lib.escape(str(r_row.get("mensagem", "")))
+                        
+                        angulo = (hash(mensagem) % 6) - 3
+                        
+                        post_its_html += f"""
+                        <div class="post-it" style="background:{cor_tema['bg']}; color:{cor_tema['text']}; box-shadow: 2px 4px 10px {cor_tema['shadow']}; transform: rotate({angulo}deg);">
+                            <div class="post-it-msg">{mensagem}</div>
+                            <div class="post-it-autor">- {remetente}</div>
+                        </div>
+                        """
+            else:
+                post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
+
+            cards_html += f"""
+            <div class="aniversariante-row{classe_hoje}">
+                {confete_html}
+                <div class="col-esquerda">
+                    <div class="polaroid-container">
+                        <div class="polaroid-wrapper">
+                            <div class="polaroid">
+                                <div class="foto-img" style="background-image: url('{foto_url}');"></div>
+                                <div class="polaroid-caption">{nome}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-perfil">
+                        <div class="nome">{nome}</div>
+                        <div class="data-nasc">🎂 {str_dia} {badge_hoje}</div>
+                        <div class="curiosidade">
+                            <span class="curiosidade-label">Curiosidade:</span>
+                            {curiosidade}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-direita">
+                    <div class="recados-titulo">💌 Recados ({n_recados_pessoa})</div>
+                    <div class="recados-grid">
+                        {post_its_html}
+                    </div>
+                </div>
+            </div>
+            """
+
+        # ── O SEU LAÇO DUPLICADO PARA RETROATIVOS (IDÊNTICO, MAS SEM PISCAR O "HOJE") ─
+        cards_retro_html = ""
+        if not df_retroativos.empty:
+            for i, row in df_retroativos.iterrows():
+                nome = html_lib.escape(str(row.get("nome", "Sem Nome")))
+                curiosidade = html_lib.escape(str(row.get("curiosidade", "Gosta de surpresas!")))
+                foto_url = str(row.get("foto_url", ""))
+                
+                eh_hoje = False # Forçado falso para passados
+                str_dia = ""
+                if pd.notnull(row.get("data_nascimento")):
+                    str_dia = f"{row['data_nascimento'].day:02d}/{row['data_nascimento'].month:02d}"
+
+                classe_hoje = ""
+                badge_hoje  = ""
+
+                if not foto_url:
+                    foto_url = f"https://api.dicebear.com/7.x/initials/svg?seed={nome}&backgroundColor=38bdf8,818cf8&textColor=ffffff"
+
+                confete_html = ""
+
+                n_recados_pessoa = 0
+                post_its_html = ""
+
+                if not liberar_recados:
+                    post_its_html = """
+                    <p class="sem-recados sem-recados-bloqueado">
+                        🔒 Os recados serão revelados em breve!
+                    </p>"""
+                elif not df_recados.empty and "para_quem" in df_recados.columns:
+                    nome_original = str(row.get("nome", "")).strip()
+                    recados_pessoa = df_recados[df_recados["para_quem"] == nome_original]
+                    n_recados_pessoa = len(recados_pessoa)
+                    
+                    if recados_pessoa.empty:
+                        post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
+                    else:
+                        for _, r_row in recados_pessoa.iterrows():
+                            cor_idx = abs(hash(str(r_row.get("de_quem")) + str(r_row.get("mensagem")))) % len(POSTIT_COLORS)
+                            cor_tema = POSTIT_COLORS[cor_idx]
+                            
+                            remetente = html_lib.escape(str(r_row.get("de_quem", "Anônimo")))
+                            mensagem  = html_lib.escape(str(r_row.get("mensagem", "")))
+                            
+                            angulo = (hash(mensagem) % 6) - 3
+                            
+                            post_its_html += f"""
+                            <div class="post-it" style="background:{cor_tema['bg']}; color:{cor_tema['text']}; box-shadow: 2px 4px 10px {cor_tema['shadow']}; transform: rotate({angulo}deg);">
+                                <div class="post-it-msg">{mensagem}</div>
+                                <div class="post-it-autor">- {remetente}</div>
+                            </div>
+                            """
+                else:
+                    post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
+
+                cards_retro_html += f"""
+                <div class="aniversariante-row{classe_hoje}">
+                    {confete_html}
+                    <div class="col-esquerda">
+                        <div class="polaroid-container">
+                            <div class="polaroid-wrapper">
+                                <div class="polaroid">
+                                    <div class="foto-img" style="background-image: url('{foto_url}');"></div>
+                                    <div class="polaroid-caption">{nome}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-perfil">
+                            <div class="nome">{nome}</div>
+                            <div class="data-nasc">🎂 {str_dia} {badge_hoje}</div>
+                            <div class="curiosidade">
+                                <span class="curiosidade-label">Curiosidade:</span>
+                                {curiosidade}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-direita">
+                        <div class="recados-titulo">💌 Recados ({n_recados_pessoa})</div>
+                        <div class="recados-grid">
+                            {post_its_html}
+                        </div>
+                    </div>
+                </div>
+                """
+
+        # ── HTML BASE E MONTAGEM FINAL DA TELA ────────────────────────────────
         html_base = f"""
         <!DOCTYPE html>
         <html>
@@ -408,7 +583,6 @@ if dados:
                     display:flex; justify-content:center; gap:10px; margin-top:14px;
                     opacity:0.6; font-size:1.2rem; letter-spacing:4px;
                 }}
-                /* Melhoria #4 — badge de contagem */
                 .header-count {{
                     display:inline-block; margin-top:15px; padding:6px 18px;
                     background:rgba(0,0,0,0.25); border-radius:20px;
@@ -606,7 +780,6 @@ if dados:
                     font-size:1.05rem; font-style:italic; padding:28px 0;
                     display:flex; align-items:center; gap:8px;
                 }}
-                /* Melhoria #2 — estilo específico para recados bloqueados */
                 .sem-recados-bloqueado {{
                     background:rgba(100,116,139,0.08); border:1px dashed rgba(100,116,139,0.3);
                     border-radius:10px; padding:18px 22px; color:#64748b; font-style:normal;
@@ -722,7 +895,6 @@ if dados:
                     setTimeout(function(){{ window.print(); }}, 100);
                 }}
 
-                /* ── Botão Voltar ao Topo ── */
                 window.addEventListener('scroll', function() {{
                     var btn = document.getElementById('btn-topo');
                     if (!btn) return;
@@ -740,7 +912,6 @@ if dados:
                         if (badge) badge.style.display = 'none';
                         if (topo) topo.style.display = 'none';
 
-                        // Melhoria #1 — recarrega o app Streamlit inteiro a cada 5 min
                         setTimeout(function() {{
                             try {{ window.parent.location.reload(); }}
                             catch(e) {{ window.location.reload(); }}
@@ -769,134 +940,25 @@ if dados:
                     </div>
                 </div>
             </div>
-        """
-
-        # ── Função Helper para Gerar Cards ────────────────────────────────────
-        def gerar_html_cards(df_alvo, retroativo=False):
-            html_out = ""
-            for i, row in df_alvo.iterrows():
-                nome = html_lib.escape(str(row.get("nome", "Sem Nome")))
-                curiosidade = html_lib.escape(str(row.get("curiosidade", "Gosta de surpresas!")))
-                foto_url = str(row.get("foto_url", ""))
-                
-                eh_hoje = False
-                str_dia = ""
-                if pd.notnull(row.get("data_nascimento")):
-                    str_dia = f"{row['data_nascimento'].day:02d}/{row['data_nascimento'].month:02d}"
-                    if not retroativo:
-                        eh_hoje = (row["data_nascimento"].day == dia_atual)
-
-                classe_hoje = " hoje" if eh_hoje else ""
-                badge_hoje  = '<div class="badge-hoje">✨ É HOJE! ✨</div>' if eh_hoje else ""
-
-                if not foto_url:
-                    foto_url = f"https://api.dicebear.com/7.x/initials/svg?seed={nome}&backgroundColor=38bdf8,818cf8&textColor=ffffff"
-
-                confete_html = ""
-                if eh_hoje:
-                    pecas = ""
-                    for ci in range(12):
-                        cor = CONFETE_CORES[ci % len(CONFETE_CORES)]
-                        left = (ci * 7) % 100
-                        delay = round((ci * 0.22) % 3, 2)
-                        dur = round(2.5 + (ci % 3) * 0.5, 1)
-                        pecas += (
-                            f'<div class="confete-piece" '
-                            f'style="left:{left}%;background:{cor};'
-                            f'animation-duration:{dur}s;animation-delay:{delay}s;"></div>'
-                        )
-                    confete_html = f'<div class="confete-wrapper">{pecas}</div>'
-
-                n_recados_pessoa = 0
-                post_its_html = ""
-
-                if not liberar_recados:
-                    post_its_html = """
-                    <p class="sem-recados sem-recados-bloqueado">
-                        🔒 Os recados serão revelados em breve!
-                    </p>"""
-                elif not df_recados.empty and "para_quem" in df_recados.columns:
-                    nome_original = str(row.get("nome", "")).strip()
-                    recados_pessoa = df_recados[df_recados["para_quem"] == nome_original]
-                    n_recados_pessoa = len(recados_pessoa)
-                    
-                    if recados_pessoa.empty:
-                        post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
-                    else:
-                        for _, r_row in recados_pessoa.iterrows():
-                            cor_idx = abs(hash(str(r_row.get("de_quem")) + str(r_row.get("mensagem")))) % len(POSTIT_COLORS)
-                            cor_tema = POSTIT_COLORS[cor_idx]
-                            
-                            remetente = html_lib.escape(str(r_row.get("de_quem", "Anônimo")))
-                            mensagem  = html_lib.escape(str(r_row.get("mensagem", "")))
-                            
-                            angulo = (hash(mensagem) % 6) - 3
-                            
-                            post_its_html += f"""
-                            <div class="post-it" style="background:{cor_tema['bg']}; color:{cor_tema['text']}; box-shadow: 2px 4px 10px {cor_tema['shadow']}; transform: rotate({angulo}deg);">
-                                <div class="post-it-msg">{mensagem}</div>
-                                <div class="post-it-autor">- {remetente}</div>
-                            </div>
-                            """
-                else:
-                    post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
-
-                html_out += f"""
-                <div class="aniversariante-row{classe_hoje}">
-                    {confete_html}
-                    <div class="col-esquerda">
-                        <div class="polaroid-container">
-                            <div class="polaroid-wrapper">
-                                <div class="polaroid">
-                                    <div class="foto-img" style="background-image: url('{foto_url}');"></div>
-                                    <div class="polaroid-caption">{nome}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="info-perfil">
-                            <div class="nome">{nome}</div>
-                            <div class="data-nasc">🎂 {str_dia} {badge_hoje}</div>
-                            <div class="curiosidade">
-                                <span class="curiosidade-label">Curiosidade:</span>
-                                {curiosidade}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-direita">
-                        <div class="recados-titulo">💌 Recados ({n_recados_pessoa})</div>
-                        <div class="recados-grid">
-                            {post_its_html}
-                        </div>
-                    </div>
-                </div>
-                """
-            return html_out
-
-        # Gerar os blocos HTML usando a função auxiliar
-        cards_html = gerar_html_cards(df_mes, retroativo=False)
-        cards_retro_html = gerar_html_cards(df_retroativos, retroativo=True) if not df_retroativos.empty else ""
-
-        # --- MONTAR HTML FINAL ---
-        bloco_retroativo = f"""
-        <div class="sub-mural-header">
-            <h2>✦ Aniversariantes de Meses Anteriores ✦</h2>
-        </div>
-        <div class="cards-container">
-            {cards_retro_html}
-        </div>
-        """ if cards_retro_html else ""
-
-        html_final = f"""
-        {html_base}
+            
             <div class="cards-container">
                 {cards_html}
             </div>
-            {bloco_retroativo}
+            
+            {f'''
+            <div class="sub-mural-header">
+                <h2>✦ Aniversariantes de Meses Anteriores ✦</h2>
+            </div>
+            <div class="cards-container">
+                {cards_retro_html}
+            </div>
+            ''' if cards_retro_html else ''}
+            
         </body>
         </html>
         """
 
-        components.html(html_final, height=altura_iframe, scrolling=False)
+        components.html(html_base, height=altura_iframe, scrolling=False)
 
     else:
         # ── ESTADO VAZIO (Nenhum aniversariante no mês ou retroativo) ─────────
