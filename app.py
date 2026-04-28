@@ -6,6 +6,9 @@ import pandas as pd
 from datetime import datetime
 from utils import get_supabase, to_bool, cor_hex_valida, carregar_config
 
+# ── CONSTANTE: tamanho máximo de imagem de fundo (2 MB) ──────────────────────
+MAX_IMG_BYTES = 2 * 1024 * 1024
+
 st.set_page_config(page_title="Mural de Aniversariantes", layout="wide", page_icon="🎉")
 
 # ── CONSTANTES ───────────────────────────────────────────────────────────────
@@ -111,14 +114,42 @@ if modo_admin:
     img_tipo_admin = None
     if imagem_fundo is not None:
         img_bytes_admin = imagem_fundo.read()
-        img_b64_admin   = base64.b64encode(img_bytes_admin).decode()
-        img_tipo_admin  = imagem_fundo.type
-        estilo_fundo = (
-            f"background-image: url('data:{img_tipo_admin};base64,{img_b64_admin}'); "
-            "background-size: cover; background-position: center top; background-repeat: no-repeat;"
-        )
-    else:
+        # Melhoria #7 — validar tamanho antes de converter em data URL
+        if len(img_bytes_admin) > MAX_IMG_BYTES:
+            st.sidebar.error(
+                f"⚠️ Imagem demasiado grande "
+                f"({len(img_bytes_admin)/1024/1024:.1f} MB). "
+                f"Máximo permitido: 2 MB."
+            )
+        else:
+            img_b64_admin  = base64.b64encode(img_bytes_admin).decode()
+            img_tipo_admin = imagem_fundo.type
+            estilo_fundo   = (
+                f"background-image: url('data:{img_tipo_admin};base64,{img_b64_admin}'); "
+                "background-size: cover; background-position: center top; background-repeat: no-repeat;"
+            )
+
+    if img_b64_admin is None:
         estilo_fundo = f"background-color: {cor_fundo};"
+
+    # Melhoria #6 — preview do estado actual do mural na sidebar
+    st.sidebar.divider()
+    with st.sidebar.expander("📊 Estado actual do Mural", expanded=False):
+        try:
+            todos   = carregar_aniversariantes(supabase)
+            df_prev = pd.DataFrame(todos) if todos else pd.DataFrame()
+            if not df_prev.empty and "data_nascimento" in df_prev.columns:
+                df_prev["data_nascimento"] = pd.to_datetime(df_prev["data_nascimento"], errors="coerce")
+                n_mes = int((df_prev["data_nascimento"].dt.month == datetime.now().month).sum())
+                n_total = len(df_prev)
+                st.metric("Aniversariantes este mês", n_mes)
+                st.metric("Total cadastrados", n_total)
+                todos_recados = carregar_recados(supabase)
+                st.metric("Total de recados", len(todos_recados) if todos_recados else 0)
+            else:
+                st.info("Sem dados disponíveis.")
+        except Exception:
+            st.warning("Não foi possível carregar estatísticas.")
 
     st.sidebar.write("")
     col_save, col_cache = st.sidebar.columns(2)
@@ -252,7 +283,13 @@ if dados:
     df_mes = df[df["data_nascimento"].dt.month == mes_atual].copy()
 
     if not df_mes.empty:
-        df_mes = df_mes.sort_values(by="data_nascimento")
+        # Melhoria #5 — aniversariante do dia aparece sempre primeiro
+        df_mes = df_mes.sort_values(
+            by="data_nascimento",
+            key=lambda s: s.dt.day.apply(lambda d: (0 if d == dia_atual else 1, d))
+        )
+
+        total_mes = len(df_mes)  # para o badge do header
 
         st.markdown("""
         <style>
@@ -352,6 +389,16 @@ if dados:
                 .header-deco {{
                     display:flex; justify-content:center; gap:10px; margin-top:14px;
                     opacity:0.6; font-size:1.2rem; letter-spacing:4px;
+                }}
+                /* Melhoria #4 — badge de contagem no header */
+                .header-count {{
+                    margin-top:12px;
+                    font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:600;
+                    color:rgba(255,255,255,0.85);
+                    background:rgba(255,255,255,0.15);
+                    border:1px solid rgba(255,255,255,0.25);
+                    border-radius:20px; display:inline-block;
+                    padding:5px 18px; letter-spacing:0.5px;
                 }}
 
                 /* ══ ANIMAÇÕES ═══════════════════════════════════════════════ */
@@ -467,17 +514,23 @@ if dados:
                     border-radius:3px; z-index:5; border:1px solid rgba(0,0,0,0.05);
                 }}
                 .polaroid:hover {{ transform:scale(1.04) rotate(1deg); }}
-                .foto {{
-                    width:100%; aspect-ratio:1/1; background-size:cover;
-                    background-position:center 20%;
+                /* Melhoria #3: img com onerror fallback */
+                .foto-wrapper {{
+                    width:100%; aspect-ratio:1/1;
                     border-radius:2px; border:1px solid #e2e8f0;
+                    overflow:hidden;
+                }}
+                .foto-img {{
+                    width:100%; height:100%;
+                    object-fit:cover; object-position:center 20%;
+                    display:block;
                     filter:contrast(1.02) brightness(1.02);
                 }}
                 .foto-placeholder {{
-                    width:100%; aspect-ratio:1/1;
+                    width:100%; height:100%; min-height:120px;
                     background:linear-gradient(135deg,#f1f5f9,#cbd5e1);
                     display:flex; align-items:center; justify-content:center;
-                    font-size:4.5rem; border-radius:2px;
+                    font-size:4.5rem;
                 }}
                 .nome {{
                     font-family:'Playfair Display',serif;
@@ -567,6 +620,14 @@ if dados:
                     color:#475569; text-shadow:0 1px 3px rgba(255,255,255,0.6);
                     font-size:1.05rem; font-style:italic; padding:28px 0;
                     display:flex; align-items:center; gap:8px;
+                }}
+                /* Melhoria #2 — estilo específico para recados bloqueados */
+                .sem-recados-bloqueado {{
+                    background:rgba(100,116,139,0.08);
+                    border:1px dashed rgba(100,116,139,0.3);
+                    border-radius:10px; padding:18px 22px;
+                    color:#64748b; font-style:normal; font-weight:600;
+                    letter-spacing:0.3px;
                 }}
 
                 /* ══ BOTÃO VOLTAR AO TOPO ════════════════════════════════════ */
@@ -680,6 +741,13 @@ if dados:
                         if (toolbar) toolbar.style.display = 'none';
                         if (badge)   badge.style.display   = 'none';
                         if (topo)    topo.style.display     = 'none';
+
+                        // Melhoria #1 — recarrega o app Streamlit inteiro a cada 5 min
+                        // (meta refresh só recarregaria o iframe; window.parent recarrega tudo)
+                        setTimeout(function() {{
+                            try {{ window.parent.location.reload(); }}
+                            catch(e) {{ window.location.reload(); }}
+                        }}, 300000);
                     }}
                 }});
             </script>
@@ -698,6 +766,10 @@ if dados:
                     <p class="subtitulo">✦ Celebrações GAFI ✦</p>
                     <h1>Aniversariantes de <span class="mes-destaque">{nome_mes_atual}</span></h1>
                     <div class="header-deco">🎉 🎂 🎈 🎊 🎁</div>
+                    <div class="header-count">
+                        {'🎂 1 aniversariante' if total_mes == 1 else f'🎂 {total_mes} aniversariantes'}
+                        {' — incluindo hoje! 🥳' if any(df_mes["data_nascimento"].dt.day == dia_atual) else ''}
+                    </div>
                 </div>
             </div>
 
@@ -716,12 +788,18 @@ if dados:
             partes        = nome.split()
             primeiro_nome = partes[0] if partes else nome
 
-            # URL da foto — escapar aspas simples
-            img_url = str(row.get("foto_url", "")).strip().replace("'", "%27")
+            # Foto — melhoria #3: usar <img> com onerror fallback
+            img_url = str(row.get("foto_url", "")).strip().replace("'", "%27").replace('"', "%22")
             if img_url:
-                foto_html = f'<div class="foto" style="background-image:url(\'{img_url}\');"></div>'
+                foto_html = f'''
+                <div class="foto-wrapper">
+                    <img class="foto-img" src="{img_url}"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+                         alt="Foto de {nome}" />
+                    <div class="foto-placeholder" style="display:none;">👤</div>
+                </div>'''
             else:
-                foto_html = '<div class="foto-placeholder">👤</div>'
+                foto_html = '<div class="foto-wrapper"><div class="foto-placeholder">👤</div></div>'
 
             curiosidade_html = ""
             if texto_curiosidade:
@@ -748,10 +826,17 @@ if dados:
                     )
                 confete_html = f'<div class="confete-wrapper">{pecas}</div>'
 
-            # Recados
+            # Melhoria #2 — respeitar flag liberar_recados
             n_recados_pessoa = 0
             post_its_html    = ""
-            if not df_recados.empty and "para_quem" in df_recados.columns:
+
+            if not liberar_recados:
+                # Recados ainda não liberados pelo admin
+                post_its_html = """
+                <p class="sem-recados sem-recados-bloqueado">
+                    🔒 Os recados serão revelados em breve!
+                </p>"""
+            elif not df_recados.empty and "para_quem" in df_recados.columns:
                 # Comparar com o nome original (não escapado) para bater com o banco
                 nome_original    = str(row.get("nome", "")).strip()
                 recados_pessoa   = df_recados[df_recados["para_quem"] == nome_original]
