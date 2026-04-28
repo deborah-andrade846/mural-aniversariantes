@@ -56,6 +56,8 @@ liberar_recados  = to_bool(config.get("liberar_recados", False))
 liberar_cadastro = to_bool(config.get("liberar_cadastro", True))
 
 # ── FUNÇÕES COM CACHE ─────────────────────────────────────────────────────────
+# O prefixo _ nos parâmetros indica ao Streamlit que não deve tentar
+# serializar/comparar esses argumentos para fins de cache (ex.: cliente Supabase).
 @st.cache_data(ttl=120)
 def carregar_aniversariantes(_supabase):
     return _supabase.table("aniversariantes").select("*").execute().data or []
@@ -68,6 +70,7 @@ def carregar_recados(_supabase):
 st.sidebar.title("⚙️ Administração")
 senha_digitada = st.sidebar.text_input("Acesso restrito", type="password")
 
+# Senha lida do st.secrets — nunca hardcoded no código
 SENHA_CORRETA = st.secrets.get("ADMIN_PASSWORD", "")
 modo_admin    = bool(SENHA_CORRETA) and (senha_digitada == SENHA_CORRETA)
 
@@ -111,6 +114,7 @@ if modo_admin:
     img_tipo_admin = None
     if imagem_fundo is not None:
         img_bytes_admin = imagem_fundo.read()
+        # Melhoria #7 — validar tamanho antes de converter em data URL
         if len(img_bytes_admin) > MAX_IMG_BYTES:
             st.sidebar.error(
                 f"⚠️ Imagem demasiado grande "
@@ -128,6 +132,7 @@ if modo_admin:
     if img_b64_admin is None:
         estilo_fundo = f"background-color: {cor_fundo};"
 
+    # Melhoria #6 — preview do estado actual do mural na sidebar
     st.sidebar.divider()
     with st.sidebar.expander("📊 Estado actual do Mural", expanded=False):
         try:
@@ -157,6 +162,7 @@ if modo_admin:
         if img_b64_admin is not None:
             fundo_data_url = f"data:{img_tipo_admin};base64,{img_b64_admin}"
             atualizar_config("imagem_fundo", fundo_data_url)
+        # Limpar cache para que os dados reflitam imediatamente após salvar
         carregar_aniversariantes.clear()
         carregar_recados.clear()
         config = carregar_config()
@@ -274,21 +280,16 @@ nome_mes_atual = MESES_PTBR[mes_atual]
 if dados:
     df = pd.DataFrame(dados)
     df["data_nascimento"] = pd.to_datetime(df["data_nascimento"], errors="coerce")
-    
-    # SEPARAÇÃO: Mês Atual vs Retroativos
     df_mes = df[df["data_nascimento"].dt.month == mes_atual].copy()
 
-    df_retroativos = pd.DataFrame()
-    if mes_atual == 4:
-        df_retroativos = df[df["data_nascimento"].dt.month.isin([1, 2, 3])].copy()
-        df_retroativos = df_retroativos.sort_values(
+    if not df_mes.empty:
+        # Melhoria #5 — aniversariante do dia aparece sempre primeiro
+        df_mes = df_mes.sort_values(
             by="data_nascimento",
-            key=lambda s: s.dt.month * 100 + s.dt.day
+            key=lambda s: s.dt.day.apply(lambda d: (0 if d == dia_atual else 1, d))
         )
 
-    if not df_mes.empty or not df_retroativos.empty:
-
-        total_mes = len(df_mes)
+        total_mes = len(df_mes)  # para o badge do header
 
         st.markdown("""
         <style>
@@ -310,151 +311,14 @@ if dados:
         if not df_recados.empty and "para_quem" in df_recados.columns:
             recados_por_pessoa = df_recados["para_quem"].value_counts().to_dict()
 
-        altura_iframe = 400
-        
+        altura_iframe = 300  # reserva para o header
         for _, row in df_mes.iterrows():
             nome_r        = str(row.get("nome", ""))
             n_recados     = recados_por_pessoa.get(nome_r, 0)
             linhas_postit = max(1, (n_recados // 4) + 1)
-            altura_iframe += 450 + (linhas_postit * 180)
+            altura_iframe += 420 + linhas_postit * 170
 
-        # Margem gigante para comportar os cards retroativos originais
-        if not df_retroativos.empty:
-            linhas_mini = max(1, (len(df_retroativos) // 3) + 1)
-            altura_iframe += 300 + (linhas_mini * 400)
-
-        # ── LAÇO ORIGINAL (MÊS ATUAL) ─────────────────────────────────────────
-        cards_html = ""
-        for i, row in df_mes.iterrows():
-            nome = html_lib.escape(str(row.get("nome", "Sem Nome")))
-            curiosidade = html_lib.escape(str(row.get("curiosidade", "Gosta de surpresas!")))
-            foto_url = str(row.get("foto_url", ""))
-            
-            eh_hoje = False
-            str_dia = ""
-            if pd.notnull(row.get("data_nascimento")):
-                str_dia = f"{row['data_nascimento'].day:02d}/{row['data_nascimento'].month:02d}"
-                eh_hoje = (row["data_nascimento"].day == dia_atual)
-
-            classe_hoje = " hoje" if eh_hoje else ""
-            badge_hoje  = '<div class="badge-hoje">✨ É HOJE! ✨</div>' if eh_hoje else ""
-
-            if not foto_url:
-                foto_url = f"https://api.dicebear.com/7.x/initials/svg?seed={nome}&backgroundColor=38bdf8,818cf8&textColor=ffffff"
-
-            confete_html = ""
-            if eh_hoje:
-                pecas = ""
-                for ci in range(12):
-                    cor = CONFETE_CORES[ci % len(CONFETE_CORES)]
-                    left = (ci * 7) % 100
-                    delay = round((ci * 0.22) % 3, 2)
-                    dur = round(2.5 + (ci % 3) * 0.5, 1)
-                    pecas += (
-                        f'<div class="confete-piece" '
-                        f'style="left:{left}%;background:{cor};'
-                        f'animation-duration:{dur}s;animation-delay:{delay}s;"></div>'
-                    )
-                confete_html = f'<div class="confete-wrapper">{pecas}</div>'
-
-            n_recados_pessoa = 0
-            post_its_html = ""
-
-            if not liberar_recados:
-                post_its_html = """
-                <p class="sem-recados sem-recados-bloqueado">
-                    🔒 Os recados serão revelados em breve!
-                </p>"""
-            elif not df_recados.empty and "para_quem" in df_recados.columns:
-                nome_original = str(row.get("nome", "")).strip()
-                recados_pessoa = df_recados[df_recados["para_quem"] == nome_original]
-                n_recados_pessoa = len(recados_pessoa)
-                
-                if recados_pessoa.empty:
-                    post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
-                else:
-                    for _, r_row in recados_pessoa.iterrows():
-                        cor_idx = abs(hash(str(r_row.get("de_quem")) + str(r_row.get("mensagem")))) % len(POSTIT_COLORS)
-                        cor_tema = POSTIT_COLORS[cor_idx]
-                        
-                        remetente = html_lib.escape(str(r_row.get("de_quem", "Anônimo")))
-                        mensagem  = html_lib.escape(str(r_row.get("mensagem", "")))
-                        
-                        angulo = (hash(mensagem) % 6) - 3
-                        
-                        post_its_html += f"""
-                        <div class="post-it" style="background:{cor_tema['bg']}; color:{cor_tema['text']}; box-shadow: 2px 4px 10px {cor_tema['shadow']}; transform: rotate({angulo}deg);">
-                            <div class="post-it-msg">{mensagem}</div>
-                            <div class="post-it-autor">- {remetente}</div>
-                        </div>
-                        """
-            else:
-                post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
-
-            cards_html += f"""
-            <div class="aniversariante-row{classe_hoje}">
-                {confete_html}
-                <div class="col-esquerda">
-                    <div class="polaroid-container">
-                        <div class="polaroid-wrapper">
-                            <div class="polaroid">
-                                <div class="foto-img" style="background-image: url('{foto_url}');"></div>
-                                <div class="polaroid-caption">{nome}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="info-perfil">
-                        <div class="nome">{nome}</div>
-                        <div class="data-nasc">🎂 {str_dia} {badge_hoje}</div>
-                        <div class="curiosidade">
-                            <span class="curiosidade-label">Curiosidade:</span>
-                            {curiosidade}
-                        </div>
-                    </div>
-                </div>
-                <div class="col-direita">
-                    <div class="recados-titulo">💌 Recados ({n_recados_pessoa})</div>
-                    <div class="recados-grid">
-                        {post_its_html}
-                    </div>
-                </div>
-            </div>
-            """
-
-        # ── LAÇO PARA RETROATIVOS (ESTRUTURA ORIGINAL "MINI COMPILADO") ───────
-        cards_retro_html = ""
-        if not df_retroativos.empty:
-            for i, row in df_retroativos.iterrows():
-                nome = html_lib.escape(str(row.get("nome", "Sem Nome")))
-                foto_url = str(row.get("foto_url", ""))
-                
-                str_dia = ""
-                if pd.notnull(row.get("data_nascimento")):
-                    str_dia = f"{row['data_nascimento'].day:02d}/{row['data_nascimento'].month:02d}"
-
-                if not foto_url:
-                    foto_url = f"https://api.dicebear.com/7.x/initials/svg?seed={nome}&backgroundColor=38bdf8,818cf8&textColor=ffffff"
-
-                # Usando o SEU HTML ORIGINAL (polaroid-caption e .nome em formato duplo) 
-                # encapsulado dentro de um card enxuto (.retro-card) sem recados.
-                cards_retro_html += f"""
-                <div class="retro-card">
-                    <div class="polaroid-container">
-                        <div class="polaroid-wrapper">
-                            <div class="polaroid">
-                                <div class="foto-img" style="background-image: url('{foto_url}');"></div>
-                                <div class="polaroid-caption">{nome}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="info-perfil">
-                        <div class="nome">{nome}</div>
-                        <div class="data-nasc">🎂 {str_dia}</div>
-                    </div>
-                </div>
-                """
-
-        # ── HTML BASE E MONTAGEM FINAL DA TELA ────────────────────────────────
+        # ── HTML do mural ─────────────────────────────────────────────────────
         html_base = f"""
         <!DOCTYPE html>
         <html>
@@ -526,33 +390,60 @@ if dados:
                     display:flex; justify-content:center; gap:10px; margin-top:14px;
                     opacity:0.6; font-size:1.2rem; letter-spacing:4px;
                 }}
+                /* Melhoria #4 — badge de contagem no header */
                 .header-count {{
-                    display:inline-block; margin-top:15px; padding:6px 18px;
-                    background:rgba(0,0,0,0.25); border-radius:20px;
-                    font-size:0.85rem; font-weight:600; letter-spacing:0.5px;
-                    border:1px solid rgba(255,255,255,0.1); text-transform:uppercase;
+                    margin-top:12px;
+                    font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:600;
+                    color:rgba(255,255,255,0.85);
+                    background:rgba(255,255,255,0.15);
+                    border:1px solid rgba(255,255,255,0.25);
+                    border-radius:20px; display:inline-block;
+                    padding:5px 18px; letter-spacing:0.5px;
                 }}
 
-                /* --- DATA DE IMPRESSÃO --- */
-                .data-evento-print {{ display: none; }}
-
-                /* ══ CONTAINER DOS CARDS ═════════════════════════════════════ */
-                .cards-container {{
-                    display:flex; flex-direction:column; gap:48px;
-                    width:100%; max-width:min(1200px, 94vw);
+                /* ══ ANIMAÇÕES ═══════════════════════════════════════════════ */
+                @keyframes fadeInDown {{
+                    from{{ opacity:0; transform:translateY(-20px); }}
+                    to  {{ opacity:1; transform:translateY(0); }}
+                }}
+                @keyframes fadeInUp {{
+                    from{{ opacity:0; transform:translateY(40px); }}
+                    to  {{ opacity:1; transform:translateY(0); }}
+                }}
+                @keyframes pulsoHoje {{
+                    0%, 100% {{ box-shadow: 0 0 0 0 rgba(251,191,36,0.5), 0 12px 40px rgba(0,0,0,0.15); }}
+                    50%       {{ box-shadow: 0 0 0 10px rgba(251,191,36,0), 0 20px 50px rgba(251,191,36,0.25); }}
+                }}
+                @keyframes confete {{
+                    0%   {{ transform:translateY(-10px) rotate(0deg);   opacity:1; }}
+                    100% {{ transform:translateY(80px)  rotate(720deg); opacity:0; }}
+                }}
+                @keyframes brilho {{
+                    0%, 100% {{ opacity:0.65; }}
+                    50%       {{ opacity:1; }}
                 }}
 
-                /* ══ CARD ANIVERSARIANTE ═════════════════════════════════════ */
+                /* ══ GRID ════════════════════════════════════════════════════ */
+                .mural-grid {{
+                    display:flex; flex-direction:column; gap:28px;
+                    max-width:min(1400px,96vw); width:100%;
+                }}
+
+                /* ══ CARD BASE ═══════════════════════════════════════════════ */
                 .aniversariante-row {{
-                    background: rgba(255,255,255,0.08);
-                    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-                    border: 1px solid rgba(255,255,255,0.2);
-                    border-radius: 24px; padding: clamp(24px, 4vw, 40px);
-                    display: grid; grid-template-columns: minmax(300px, 1fr) 2fr; gap: clamp(24px, 4vw, 40px);
-                    position: relative; overflow: hidden;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-                    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+                    display: grid;
+                    grid-template-columns: minmax(300px,1.2fr) 2fr;
+                    gap: clamp(28px,4vw,56px);
+                    background: rgba(255,255,255,0.65);
+                    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+                    border: 1px solid rgba(255,255,255,0.6);
+                    border-radius: 22px;
+                    padding: clamp(30px,3.5vw,52px) clamp(28px,3.5vw,50px);
+                    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
                     animation: fadeInUp 0.7s ease both;
+                    align-items: stretch;
+                    min-height: 320px; position: relative; overflow: hidden;
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
                 }}
                 .aniversariante-row::before {{
                     content:''; position:absolute; top:0; left:0; right:0; height:4px;
@@ -560,7 +451,8 @@ if dados:
                     border-radius: 20px 20px 0 0;
                 }}
                 .aniversariante-row:hover {{
-                    transform: translateY(-3px); box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+                    transform: translateY(-3px);
+                    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
                 }}
 
                 /* ══ CARD "HOJE" — destaque dourado ══════════════════════════ */
@@ -574,11 +466,11 @@ if dados:
                 }}
                 .badge-hoje {{
                     display: inline-flex; align-items: center; gap: 5px;
-                    background: linear-gradient(135deg,#f59e0b,#fbbf24); color: #78350f;
-                    font-family:'Inter',sans-serif; font-size:0.72rem; font-weight:800;
-                    letter-spacing:1.5px; text-transform:uppercase; padding:5px 14px;
-                    border-radius:20px; margin-top:8px;
-                    box-shadow:0 3px 10px rgba(245,158,11,0.4);
+                    background: linear-gradient(135deg,#f59e0b,#fbbf24);
+                    color: #78350f; font-family:'Inter',sans-serif;
+                    font-size:0.72rem; font-weight:800; letter-spacing:1.5px;
+                    text-transform:uppercase; padding:5px 14px; border-radius:20px;
+                    margin-top:8px; box-shadow:0 3px 10px rgba(245,158,11,0.4);
                     animation: brilho 1.8s ease-in-out infinite;
                 }}
 
@@ -588,14 +480,16 @@ if dados:
                     pointer-events:none; overflow:hidden; border-radius:22px; z-index:0;
                 }}
                 .confete-piece {{
-                    position:absolute; top:-20px; width:8px; height:8px; border-radius:2px;
+                    position:absolute; top:-20px; width:8px; height:8px;
+                    border-radius:2px;
                     animation: confete 3s ease-in infinite;
                 }}
 
-                /* ══ POLAROID ORIGINAL ═══════════════════════════════════════ */
+                /* ══ POLAROID ════════════════════════════════════════════════ */
                 .polaroid-container {{
-                    width:100%; display:flex; align-items:center; justify-content:center;
-                    padding:10px; position:relative; z-index:1;
+                    width:100%; display:flex;
+                    align-items:center; justify-content:center; padding:10px;
+                    position:relative; z-index:1;
                 }}
                 .polaroid-wrapper {{
                     position:relative; width:100%; max-width:320px;
@@ -609,120 +503,117 @@ if dados:
                 .polaroid {{
                     background:#ffffff; padding:16px 16px 58px; border-radius:4px;
                     box-shadow:0 16px 40px rgba(0,0,0,0.15),0 3px 10px rgba(0,0,0,0.1);
-                    position:relative; transform:rotate(-2deg);
-                    transition:transform 0.4s ease, box-shadow 0.4s ease; width:100%;
+                    width:100%; color:#1e293b; text-align:center;
+                    position:relative; z-index:1; transition:transform 0.45s ease;
                 }}
-                .polaroid:hover {{
-                    transform:rotate(0deg) scale(1.02); z-index:2;
-                    box-shadow:0 24px 50px rgba(0,0,0,0.25);
+                .polaroid::after {{
+                    content:''; position:absolute; top:-14px; left:50%;
+                    transform:translateX(-50%) rotate(-2deg); width:90px; height:28px;
+                    background:linear-gradient(135deg,rgba(255,255,255,0.9),rgba(255,255,255,0.5));
+                    backdrop-filter:blur(4px); box-shadow:0 2px 6px rgba(0,0,0,0.1);
+                    border-radius:3px; z-index:5; border:1px solid rgba(0,0,0,0.05);
+                }}
+                .polaroid:hover {{ transform:scale(1.04) rotate(1deg); }}
+                /* Melhoria #3: img com onerror fallback */
+                .foto-wrapper {{
+                    width:100%; aspect-ratio:1/1;
+                    border-radius:2px; border:1px solid #e2e8f0;
+                    overflow:hidden;
                 }}
                 .foto-img {{
-                    width:100%; aspect-ratio:1/1; background-color:#e2e8f0;
-                    background-size:cover; background-position:center;
-                    border:1px solid rgba(0,0,0,0.05); border-radius:2px;
+                    width:100%; height:100%;
+                    object-fit:cover; object-position:center 20%;
+                    display:block;
+                    filter:contrast(1.02) brightness(1.02);
                 }}
-                .polaroid-caption {{
-                    position:absolute; bottom:18px; left:0; right:0; text-align:center;
-                    font-family:'Caveat',cursive; font-size:1.8rem; font-weight:700;
-                    color:#1e293b; letter-spacing:1px; line-height:1;
+                .foto-placeholder {{
+                    width:100%; height:100%; min-height:120px;
+                    background:linear-gradient(135deg,#f1f5f9,#cbd5e1);
+                    display:flex; align-items:center; justify-content:center;
+                    font-size:4.5rem;
+                }}
+                .nome {{
+                    font-family:'Playfair Display',serif;
+                    font-size:clamp(1.1rem,1.8vw,1.6rem);
+                    font-weight:900; margin-top:16px; color:#0f172a; line-height:1.2;
+                    overflow:hidden; display:-webkit-box;
+                    -webkit-line-clamp:2; -webkit-box-orient:vertical; word-break:break-word;
+                }}
+                .data-badge {{
+                    display:inline-flex; align-items:center; gap:4px;
+                    background:#f1f5f9; color:#0284c7;
+                    font-family:'Inter',sans-serif; font-size:0.75rem; font-weight:700;
+                    letter-spacing:1.2px; text-transform:uppercase;
+                    padding:5px 14px; border-radius:20px;
+                    margin-top:10px; border:1px solid #e2e8f0;
+                }}
+                .curiosidade-txt {{
+                    font-size:0.8rem; color:#64748b; margin-top:12px;
+                    font-style:italic; line-height:1.4;
+                    border-top:1px dashed #cbd5e1; padding-top:10px;
                 }}
 
-                /* ══ MINI CARD RETROATIVO (Usa a mesma estrutura acima) ══════ */
-                .retro-cards-container {{
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 30px;
-                    justify-content: center;
-                    width: 100%;
-                    max-width: min(1200px, 94vw);
-                    margin: 0 auto;
+                /* ══ RECADOS ═════════════════════════════════════════════════ */
+                .recados-section {{
+                    display:flex; flex-direction:column;
+                    justify-content:flex-start; min-width:0;
+                    position:relative; z-index:1;
                 }}
-                .retro-card {{
-                    background: rgba(255,255,255,0.08);
-                    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-                    border: 1px solid rgba(255,255,255,0.2);
-                    border-radius: 24px; 
-                    padding: 20px;
-                    width: 280px; 
-                    display: flex; 
-                    flex-direction: column; 
-                    align-items: center;
-                    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-                    transition: transform 0.3s ease, box-shadow 0.3s ease;
-                }}
-                .retro-card:hover {{
-                    transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.25);
-                }}
-                /* Ajustes delicados para a polaroid original caber no mini card */
-                .retro-card .polaroid-wrapper {{ max-width: 200px; }}
-                .retro-card .info-perfil {{ margin-top: 15px; }}
-                .retro-card .info-perfil .nome {{ font-size: 1.6rem; margin-bottom: 4px; }}
-                .retro-card .info-perfil .data-nasc {{ margin-bottom: 0; }}
-
-                /* ══ INFORMAÇÕES DE PERFIL ═══════════════════════════════════ */
-                .info-perfil {{ position:relative; z-index:1; margin-top:24px; text-align:center; }}
-                .info-perfil .nome {{
-                    font-family:'Playfair Display',serif; font-size:2.2rem;
-                    font-weight:900; margin-bottom:8px; line-height:1.2;
-                    text-shadow:0 2px 10px rgba(0,0,0,0.4);
-                }}
-                .info-perfil .data-nasc {{
-                    font-size:1.15rem; font-weight:600; color:#cbd5e1;
-                    margin-bottom:20px; display:flex; flex-direction:column;
-                    align-items:center; text-shadow:0 1px 3px rgba(0,0,0,0.6);
-                }}
-                .aniversariante-row.hoje .info-perfil .nome,
-                .aniversariante-row.hoje .info-perfil .data-nasc {{ color:#451a03; text-shadow:none; }}
-
-                .curiosidade {{
-                    background:rgba(0,0,0,0.25); border-radius:12px;
-                    padding:16px; font-size:0.95rem; line-height:1.5; color:#f1f5f9;
-                    border-left:4px solid #38bdf8; text-align:left; box-shadow:inset 0 2px 4px rgba(0,0,0,0.1);
-                }}
-                .aniversariante-row.hoje .curiosidade {{
-                    background:rgba(255,255,255,0.5); color:#78350f; border-left-color:#f59e0b;
-                }}
-                .curiosidade-label {{
-                    display:block; font-weight:700; font-size:0.8rem;
-                    text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;
-                    color:#94a3b8;
-                }}
-                .aniversariante-row.hoje .curiosidade-label {{ color:#92400e; }}
-
-                /* ══ RECADOS (POST-ITS) ══════════════════════════════════════ */
-                .col-direita {{ position:relative; z-index:1; display:flex; flex-direction:column; }}
                 .recados-titulo {{
-                    font-family:'Playfair Display',serif; font-size:1.6rem;
-                    font-weight:700; margin-bottom:24px; border-bottom:2px solid rgba(255,255,255,0.2);
-                    padding-bottom:10px; color:#ffffff; text-shadow:0 2px 8px rgba(0,0,0,0.5);
+                    font-family:'Playfair Display',serif;
+                    font-size:clamp(1.2rem,2vw,1.9rem);
+                    font-weight:700; font-style:italic; color:#1e293b;
+                    text-shadow:0 1px 3px rgba(255,255,255,0.6);
+                    margin-bottom:18px; padding-bottom:12px;
+                    border-bottom:1px solid rgba(0,0,0,0.1);
+                    display:flex; justify-content:space-between;
+                    align-items:center; gap:12px; flex-wrap:wrap;
                 }}
-                .aniversariante-row.hoje .recados-titulo {{
-                    color:#451a03; border-bottom-color:rgba(120,53,15,0.2); text-shadow:none;
+                .recados-titulo-nome {{ color:#0284c7; }}
+                .recados-titulo-emoji {{
+                    font-size:1.7rem; font-style:normal;
+                    flex-shrink:0; line-height:1; align-self:center;
                 }}
-                .recados-grid {{
-                    display:grid; grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));
-                    gap:18px; align-content:flex-start;
+                .badge-contagem {{
+                    display:inline-flex; align-items:center; gap:4px;
+                    background:linear-gradient(135deg,#0ea5e9,#38bdf8);
+                    color:#fff; font-family:'Inter',sans-serif;
+                    font-size:0.7rem; font-weight:700; letter-spacing:0.5px;
+                    padding:3px 10px; border-radius:20px;
+                    box-shadow:0 2px 8px rgba(14,165,233,0.35);
+                    font-style:normal; flex-shrink:0;
+                }}
+                .area-post-it {{
+                    display:flex; flex-wrap:wrap; gap:18px; align-content:flex-start;
                 }}
                 .post-it {{
-                    padding:18px 15px 14px; width:clamp(140px,18vw,175px); min-height:130px;
+                    padding:18px 15px 14px;
+                    width:clamp(140px,18vw,175px); min-height:130px;
                     font-family:'Caveat',cursive; font-size:1.05rem;
-                    border-radius:3px 16px 3px 3px; display:flex; flex-direction:column;
+                    border-radius:3px 16px 3px 3px;
+                    display:flex; flex-direction:column;
                     justify-content:flex-start; gap:10px; position:relative;
                     transition:transform 0.28s ease, box-shadow 0.28s ease;
                 }}
                 .post-it::before {{
                     content:'📌'; position:absolute; top:-12px; left:50%;
-                    transform:translateX(-50%); font-size:1.2rem; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+                    transform:translateX(-50%); font-size:1.2rem;
+                    filter:drop-shadow(0 2px 3px rgba(0,0,0,0.2));
                 }}
-                .post-it:hover {{ transform:scale(1.08) translateY(-4px) rotate(1deg) !important; z-index:10; }}
+                .post-it:hover {{
+                    transform:scale(1.08) translateY(-4px) rotate(1deg) !important;
+                    z-index:10;
+                }}
                 .post-it-msg {{
-                    line-height:1.35; font-weight:700; color:rgba(0,0,0,0.85); padding-top:4px;
-                    flex:1; overflow:hidden; display:-webkit-box; -webkit-line-clamp:5;
-                    -webkit-box-orient:vertical; word-break:break-word;
+                    line-height:1.35; font-weight:700;
+                    color:rgba(0,0,0,0.85); padding-top:4px; flex:1;
+                    overflow:hidden; display:-webkit-box;
+                    -webkit-line-clamp:5; -webkit-box-orient:vertical; word-break:break-word;
                 }}
                 .post-it-autor {{
-                    font-size:0.88rem; font-weight:700; color:rgba(0,0,0,0.6); text-align:right;
-                    margin-top:auto; border-top:1px dashed rgba(0,0,0,0.15); padding-top:8px;
+                    font-size:0.88rem; font-weight:700; color:rgba(0,0,0,0.6);
+                    text-align:right; margin-top:auto;
+                    border-top:1px dashed rgba(0,0,0,0.15); padding-top:8px;
                     overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
                 }}
                 .sem-recados {{
@@ -730,144 +621,129 @@ if dados:
                     font-size:1.05rem; font-style:italic; padding:28px 0;
                     display:flex; align-items:center; gap:8px;
                 }}
+                /* Melhoria #2 — estilo específico para recados bloqueados */
                 .sem-recados-bloqueado {{
-                    background:rgba(100,116,139,0.08); border:1px dashed rgba(100,116,139,0.3);
-                    border-radius:10px; padding:18px 22px; color:#64748b; font-style:normal;
-                    font-weight:600; letter-spacing:0.3px;
+                    background:rgba(100,116,139,0.08);
+                    border:1px dashed rgba(100,116,139,0.3);
+                    border-radius:10px; padding:18px 22px;
+                    color:#64748b; font-style:normal; font-weight:600;
+                    letter-spacing:0.3px;
                 }}
 
                 /* ══ BOTÃO VOLTAR AO TOPO ════════════════════════════════════ */
                 .btn-topo {{
-                    position:fixed; bottom:30px; right:30px; background:rgba(15,23,42,0.8);
-                    color:white; border:none; border-radius:50%; width:50px; height:50px;
-                    font-size:1.5rem; cursor:pointer; z-index:999;
-                    box-shadow:0 4px 12px rgba(0,0,0,0.3); transition:all 0.3s ease;
-                    opacity:0; visibility:hidden; transform:translateY(20px);
+                    position:fixed; bottom:30px; left:30px;
+                    background:rgba(15,23,42,0.65);
+                    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+                    border:1px solid rgba(255,255,255,0.2);
+                    color:#fff; padding:10px 18px; border-radius:50px;
+                    cursor:pointer; font-family:'Inter',sans-serif;
+                    font-size:0.85rem; font-weight:600;
+                    box-shadow:0 4px 14px rgba(0,0,0,0.3);
+                    transition:all 0.25s ease;
+                    display:none; align-items:center; gap:6px; z-index:1000;
                 }}
-                .btn-topo.visivel {{ opacity:1; visibility:visible; transform:translateY(0); }}
-                .btn-topo:hover {{ background:#0f172a; transform:translateY(-5px) scale(1.1); }}
+                .btn-topo:hover {{
+                    background:rgba(15,23,42,0.88); transform:translateY(-2px);
+                }}
+                .btn-topo.visivel {{ display:flex; }}
 
-                /* ══ IMPRESSÃO & TOOLBAR ═════════════════════════════════════ */
+                /* ══ BOTÕES DE IMPRESSÃO ════════════════════════════════════ */
                 .print-toolbar {{
-                    position: fixed; bottom: 20px; left: 20px; z-index: 1000;
-                    display: flex; gap: 10px;
-                    background: rgba(0,0,0,0.6); padding: 10px 15px;
-                    border-radius: 12px; backdrop-filter: blur(8px);
+                    position:fixed; bottom:30px; right:30px;
+                    display:flex; flex-direction:column; gap:8px; z-index:1000;
+                    background:rgba(15,23,42,0.55);
+                    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+                    border:1px solid rgba(255,255,255,0.15);
+                    border-radius:16px; padding:12px;
                 }}
                 .btn-imprimir {{
-                    background: #3b82f6; color: white; border: none;
-                    padding: 8px 16px; border-radius: 6px; font-weight: 600;
-                    cursor: pointer; transition: background 0.2s;
+                    background:linear-gradient(135deg,#0ea5e9,#38bdf8);
+                    color:#0f172a; border:none;
+                    padding:13px 22px; border-radius:50px;
+                    font-family:'Inter',sans-serif; font-size:0.9rem; font-weight:700;
+                    box-shadow:0 8px 20px rgba(14,165,233,0.4),0 2px 6px rgba(0,0,0,0.3);
+                    cursor:pointer; transition:all 0.28s ease;
+                    display:flex; align-items:center; gap:8px;
                 }}
-                .btn-imprimir:hover {{ background: #2563eb; }}
-                .btn-paisagem {{ background: #8b5cf6; }}
-                .btn-paisagem:hover {{ background: #7c3aed; }}
-                .orientacao-badge {{
-                    position: fixed; top: 15px; left: 15px; background: rgba(0,0,0,0.7);
-                    color: white; padding: 6px 12px; border-radius: 20px;
-                    font-size: 0.8rem; font-weight: bold; z-index: 1000;
-                    display: none; letter-spacing: 1px;
+                .btn-imprimir:hover {{
+                    transform:translateY(-3px) scale(1.03);
+                    box-shadow:0 14px 28px rgba(14,165,233,0.5);
                 }}
+                .btn-paisagem {{ background:linear-gradient(135deg,#6366f1,#818cf8); }}
 
-                /* ── Media Query Impressão ── */
+                /* ══ IMPRESSÃO ═══════════════════════════════════════════════ */
                 @media print {{
-                    @page {{ margin: 10mm; size: A3; }}
-                    html, body {{ background: none !important; margin:0; padding:0; height:auto; }}
-                    .print-toolbar, .btn-topo, .header-deco {{ display: none !important; }}
-                    .mural-header {{ margin-bottom:20px; animation:none; }}
-                    .mural-header-inner {{
-                        background: none !important; box-shadow: none !important; border: none !important;
-                        -webkit-backdrop-filter: none; padding: 0; width: 100%;
+                    * {{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }}
+                    @page {{ size:A3 portrait; margin:0; }}
+                    .btn-imprimir, .print-toolbar, .orientacao-badge,
+                    .btn-topo {{ display:none !important; }}
+                    html, body {{
+                        {estilo_fundo}
+                        background-size:cover !important;
+                        background-position:center top !important;
+                        background-repeat:no-repeat !important;
+                        background-attachment:scroll !important;
+                        margin:0 !important; padding:0 !important;
                     }}
-                    .mural-header-inner::before {{ display:none; }}
-                    h1 {{ color:#0f172a !important; text-shadow:none !important; }}
-                    .subtitulo, .header-count {{ color:#475569 !important; text-shadow:none !important; background:none !important; border:none !important; }}
-                    .mes-destaque {{ background:none; -webkit-text-fill-color:#0f172a; color:#0f172a; }}
-                    
-                    .data-evento-print {{
-                        display: block !important;
-                        font-family: 'Playfair Display', serif;
-                        font-size: 1.3rem;
-                        font-weight: 700;
-                        color: #0f172a;
-                        margin-top: 10px;
-                    }}
-
-                    .cards-container {{ gap:20px; }}
                     .aniversariante-row {{
-                        background: white !important; border: 1px solid #cbd5e1 !important;
-                        box-shadow: none !important; break-inside: avoid; animation:none; padding: 20px;
+                        break-inside:avoid !important;
+                        page-break-inside:avoid !important;
+                        display:grid !important;
+                        grid-template-columns:minmax(320px,1.2fr) 2fr !important;
+                        animation:none !important;
                     }}
-                    .aniversariante-row::before {{ display:none; }}
-                    .polaroid-wrapper::before {{ display:none; }}
-                    .polaroid {{ transform:none !important; box-shadow:none !important; border:1px solid #e2e8f0; }}
-                    .polaroid-caption {{ color:#000 !important; }}
-                    .info-perfil .nome {{ color:#000 !important; text-shadow:none !important; }}
-                    .info-perfil .data-nasc {{ color:#333 !important; text-shadow:none !important; }}
-                    .curiosidade {{ background:#f8fafc !important; color:#000 !important; box-shadow:none !important; border-left-color:#94a3b8 !important; }}
-                    .curiosidade-label {{ color:#64748b !important; }}
-                    .recados-titulo {{ color:#000 !important; border-bottom-color:#cbd5e1 !important; text-shadow:none !important; }}
-                    .post-it {{ break-inside: avoid; transform:none !important; box-shadow:none !important; border:1px solid #cbd5e1 !important; background:#fff !important; }}
                     .confete-wrapper {{ display:none !important; }}
-
-                    /* Estilo de impressão garantido para os retroativos originais */
-                    .retro-card {{ border: 1px solid #cbd5e1 !important; break-inside: avoid; box-shadow: none !important; background: white !important; }}
                 }}
 
-                /* ── Responsividade ── */
-                @media(max-width:850px) {{
-                    .aniversariante-row {{ grid-template-columns:1fr; gap:30px; }}
-                    .col-esquerda {{ display:flex; flex-direction:column; align-items:center; }}
-                    .info-perfil {{ width:100%; }}
-                    .recados-grid {{ justify-content:center; }}
+                @media (max-width:850px) {{
+                    .aniversariante-row {{ grid-template-columns:1fr; padding:24px; }}
                 }}
-
-                /* ── Animações ── */
-                @keyframes fadeInUp {{ from {{ opacity:0; transform:translateY(40px); }} to {{ opacity:1; transform:translateY(0); }} }}
-                @keyframes fadeInDown {{ from {{ opacity:0; transform:translateY(-30px); }} to {{ opacity:1; transform:translateY(0); }} }}
-                @keyframes brilho {{ 0% {{ box-shadow:0 0 10px rgba(245,158,11,0.4); }} 50% {{ box-shadow:0 0 25px rgba(245,158,11,0.8); }} 100% {{ box-shadow:0 0 10px rgba(245,158,11,0.4); }} }}
-                @keyframes pulsoHoje {{ 0% {{ transform:scale(1); box-shadow:0 8px 32px rgba(0,0,0,0.15); }} 50% {{ transform:scale(1.015); box-shadow:0 15px 45px rgba(245,158,11,0.3); }} 100% {{ transform:scale(1); box-shadow:0 8px 32px rgba(0,0,0,0.15); }} }}
-                @keyframes confete {{ 0% {{ transform:translateY(0) rotate(0deg) scale(1); opacity:1; }} 100% {{ transform:translateY(350px) rotate(720deg) scale(0.5); opacity:0; }} }}
+            </style>
+            <style id="orientacao-style">
+                @media print {{ @page {{ size:A3 portrait; margin:0; }} }}
             </style>
         </head>
         <body>
             <script>
-                var IS_TV = {str(is_tv).lower()};
-                
+                var IS_TV = {'true' if is_tv else 'false'};
+
+                /* ── Orientação de impressão ── */
                 function applyOrientation(ori) {{
-                    var oldStyle = document.getElementById('print-orientation-style');
-                    if (oldStyle) oldStyle.remove();
-                    var style = document.createElement('style');
-                    style.id = 'print-orientation-style';
-                    style.innerHTML = '@media print {{ @page {{ size: A3 ' + ori + '; }} }}';
-                    document.head.appendChild(style);
+                    document.getElementById('orientacao-style').textContent =
+                        '@media print {{ @page {{ size:A3 ' + ori + '; margin:0; }} }}';
                     var badge = document.getElementById('badge-orientacao');
-                    badge.innerText = ori === 'landscape' ? '↔ PAISAGEM A3' : '↕ RETRATO A3';
+                    badge.textContent = ori === 'landscape' ? '↔ PAISAGEM A3' : '↕ RETRATO A3';
                     badge.style.display = 'block';
                 }}
-                
                 function imprimirCom(ori) {{
                     applyOrientation(ori);
                     setTimeout(function(){{ window.print(); }}, 100);
                 }}
 
+                /* ── Botão Voltar ao Topo ── */
                 window.addEventListener('scroll', function() {{
                     var btn = document.getElementById('btn-topo');
                     if (!btn) return;
                     btn.classList.toggle('visivel', window.scrollY > 320);
                 }}, {{ passive: true }});
-                function voltarTopo() {{ window.scrollTo({{ top: 0, behavior: 'smooth' }}); }}
+
+                function voltarTopo() {{
+                    window.scrollTo({{ top: 0, behavior: 'smooth' }});
+                }}
 
                 document.addEventListener('DOMContentLoaded', function() {{
                     applyOrientation('portrait');
                     if (IS_TV) {{
                         var toolbar = document.querySelector('.print-toolbar');
-                        var badge = document.getElementById('badge-orientacao');
-                        var topo = document.getElementById('btn-topo');
+                        var badge   = document.getElementById('badge-orientacao');
+                        var topo    = document.getElementById('btn-topo');
                         if (toolbar) toolbar.style.display = 'none';
-                        if (badge) badge.style.display = 'none';
-                        if (topo) topo.style.display = 'none';
+                        if (badge)   badge.style.display   = 'none';
+                        if (topo)    topo.style.display     = 'none';
 
+                        // Melhoria #1 — recarrega o app Streamlit inteiro a cada 5 min
+                        // (meta refresh só recarregaria o iframe; window.parent recarrega tudo)
                         setTimeout(function() {{
                             try {{ window.parent.location.reload(); }}
                             catch(e) {{ window.location.reload(); }}
@@ -875,20 +751,20 @@ if dados:
                     }}
                 }});
             </script>
+
             <div id="badge-orientacao" class="orientacao-badge"></div>
+
             <button id="btn-topo" class="btn-topo" onclick="voltarTopo()">↑ Topo</button>
+
             <div class="print-toolbar">
                 <button class="btn-imprimir" onclick="imprimirCom('portrait')">🖨️ Imprimir A3 — Retrato</button>
                 <button class="btn-imprimir btn-paisagem" onclick="imprimirCom('landscape')">🖨️ Imprimir A3 — Paisagem</button>
             </div>
-            
+
             <div class="mural-header">
                 <div class="mural-header-inner">
                     <p class="subtitulo">✦ Celebrações GAFI ✦</p>
                     <h1>Aniversariantes de <span class="mes-destaque">{nome_mes_atual}</span></h1>
-                    
-                    <div class="data-evento-print">Data do Evento: 30/04</div>
-                    
                     <div class="header-deco">🎉 🎂 🎈 🎊 🎁</div>
                     <div class="header-count">
                         {'🎂 1 aniversariante' if total_mes == 1 else f'🎂 {total_mes} aniversariantes'}
@@ -896,57 +772,168 @@ if dados:
                     </div>
                 </div>
             </div>
-            
-            <div class="cards-container">
-                {cards_html}
-            </div>
-            
-            {f'''
-            <div class="mural-header" style="margin-top: 100px; margin-bottom: 30px;">
-                <div class="mural-header-inner" style="padding: 15px 30px; width: auto; max-width: 90vw;">
-                    <p class="subtitulo" style="font-size: 0.65rem; margin-bottom: 4px;">✦ Celebrações Retroativas ✦</p>
-                    <h2 style="font-family: 'Playfair Display', serif; font-size: clamp(1.4rem, 2.5vw, 1.8rem); color: #fff; margin:0; text-shadow:0 2px 8px rgba(0,0,0,0.4);">
-                        Janeiro, Fevereiro e Março
-                    </h2>
-                </div>
-            </div>
-            <div class="retro-cards-container">
-                {cards_retro_html}
-            </div>
-            ''' if cards_retro_html else ''}
-            
-        </body>
-        </html>
+
+            <div class="mural-grid">
         """
 
-        components.html(html_base, height=altura_iframe, scrolling=False)
+        cartoes_html = ""
+
+        for idx, (_, row) in enumerate(df_mes.iterrows()):
+            # Escapar dados do utilizador (XSS)
+            nome              = html_lib.escape(str(row.get("nome", "Sem nome")).strip())
+            texto_curiosidade = html_lib.escape(str(row.get("curiosidade", "")).strip())
+            dia = row["data_nascimento"].day if pd.notna(row["data_nascimento"]) else "?"
+
+            # Primeiro nome seguro
+            partes        = nome.split()
+            primeiro_nome = partes[0] if partes else nome
+
+            # Foto — melhoria #3: usar <img> com onerror fallback
+            img_url = str(row.get("foto_url", "")).strip().replace("'", "%27").replace('"', "%22")
+            if img_url:
+                foto_html = f'''
+                <div class="foto-wrapper">
+                    <img class="foto-img" src="{img_url}"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+                         alt="Foto de {nome}" />
+                    <div class="foto-placeholder" style="display:none;">👤</div>
+                </div>'''
+            else:
+                foto_html = '<div class="foto-wrapper"><div class="foto-placeholder">👤</div></div>'
+
+            curiosidade_html = ""
+            if texto_curiosidade:
+                curiosidade_html = f'<div class="curiosidade-txt">"{texto_curiosidade}"</div>'
+
+            # Verificar se é aniversário hoje
+            e_hoje     = (dia == dia_atual)
+            classe_row = "aniversariante-row hoje" if e_hoje else "aniversariante-row"
+            badge_hoje = '<div class="badge-hoje">🎂 Hoje é o grande dia!</div>' if e_hoje else ""
+
+            # Confete animado apenas para aniversariante do dia
+            confete_html = ""
+            if e_hoje:
+                pecas = ""
+                for ci in range(14):
+                    cor   = CONFETE_CORES[ci % len(CONFETE_CORES)]
+                    left  = (ci * 7) % 100
+                    delay = round((ci * 0.22) % 3, 2)
+                    dur   = round(2.5 + (ci % 3) * 0.5, 1)
+                    pecas += (
+                        f'<div class="confete-piece" '
+                        f'style="left:{left}%;background:{cor};'
+                        f'animation-duration:{dur}s;animation-delay:{delay}s;"></div>'
+                    )
+                confete_html = f'<div class="confete-wrapper">{pecas}</div>'
+
+            # Melhoria #2 — respeitar flag liberar_recados
+            n_recados_pessoa = 0
+            post_its_html    = ""
+
+            if not liberar_recados:
+                # Recados ainda não liberados pelo admin
+                post_its_html = """
+                <p class="sem-recados sem-recados-bloqueado">
+                    🔒 Os recados serão revelados em breve!
+                </p>"""
+            elif not df_recados.empty and "para_quem" in df_recados.columns:
+                # Comparar com o nome original (não escapado) para bater com o banco
+                nome_original    = str(row.get("nome", "")).strip()
+                recados_pessoa   = df_recados[df_recados["para_quem"] == nome_original]
+                n_recados_pessoa = len(recados_pessoa)
+
+                if recados_pessoa.empty:
+                    post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
+                else:
+                    for i, (_, recado) in enumerate(recados_pessoa.iterrows()):
+                        mensagem = html_lib.escape(str(recado.get("mensagem", "")).strip())
+                        autor    = html_lib.escape(str(recado.get("de_quem", "Anônimo")).strip())
+
+                        # Rotação determinista — nunca muda entre reruns
+                        seed_val = hash(mensagem + autor + nome) & 0xFFFFFF
+                        rotacao  = (seed_val % 9) - 4
+
+                        cor = POSTIT_COLORS[i % len(POSTIT_COLORS)]
+
+                        post_its_html += f"""
+                        <div class="post-it"
+                             style="background-color:{cor['bg']};
+                                    transform:rotate({rotacao}deg);
+                                    box-shadow:4px 6px 15px {cor['shadow']},0 1px 3px rgba(0,0,0,0.06);">
+                            <div class="post-it-msg">{mensagem}</div>
+                            <div class="post-it-autor">~ {autor}</div>
+                        </div>
+                        """
+            else:
+                post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
+
+            # Badge de contagem de recados
+            badge_contagem = ""
+            if n_recados_pessoa > 0:
+                label = "recado" if n_recados_pessoa == 1 else "recados"
+                badge_contagem = (
+                    f'<span class="badge-contagem">💬 {n_recados_pessoa} {label}</span>'
+                )
+
+            # Delay máximo 0.6s para não atrasar murais com muitos cards
+            delay = min(idx * 0.15, 0.6)
+
+            cartoes_html += f"""
+            <div class="{classe_row}" style="animation-delay:{delay}s;">
+                {confete_html}
+                <div class="polaroid-container">
+                    <div class="polaroid-wrapper">
+                        <div class="polaroid">
+                            {foto_html}
+                            <div class="nome">{nome}</div>
+                            <div class="data-badge">🎉 {dia} de {nome_mes_atual}</div>
+                            {badge_hoje}
+                            {curiosidade_html}
+                        </div>
+                    </div>
+                </div>
+                <div class="recados-section">
+                    <div class="recados-titulo">
+                        <span>
+                            Mensagens para
+                            <span class="recados-titulo-nome">{primeiro_nome}</span>
+                            {badge_contagem}
+                        </span>
+                        <span class="recados-titulo-emoji">🎂</span>
+                    </div>
+                    <div class="area-post-it">
+                        {post_its_html}
+                    </div>
+                </div>
+            </div>
+            """
+
+        full_html = html_base + cartoes_html + "</div></body></html>"
+        components.html(full_html, height=altura_iframe, scrolling=True)
 
     else:
-        # ── ESTADO VAZIO (Nenhum aniversariante no mês ou retroativo) ─────────
-        html_vazio = f"""
+        # ── Estado vazio estilizado dentro do iframe ──────────────────────────
+        empty_html = f"""
         <!DOCTYPE html>
         <html>
         <head>
             <meta charset="UTF-8">
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
             <style>
-                *, *::before, *::after {{ box-sizing: border-box; }}
-                html, body {{ margin:0; padding:0; width:100%; height:100%; }}
+                *, *::before, *::after {{ margin:0; padding:0; box-sizing:border-box; }}
                 html {{
                     {estilo_fundo}
-                    background-attachment: fixed !important;
-                    background-size: cover !important;
-                    background-position: center top !important;
+                    background-size:cover; background-position:center top;
+                    background-repeat:no-repeat; min-height:100%;
                 }}
                 body {{
-                    background: transparent !important;
-                    display: flex; justify-content: center; align-items: center;
-                    font-family: 'Inter', sans-serif;
+                    background:transparent; display:flex;
+                    align-items:center; justify-content:center;
+                    min-height:100vh; font-family:'Inter',sans-serif;
                 }}
                 @keyframes fadeInUp {{
                     from{{ opacity:0; transform:translateY(30px); }}
-                    to{{ opacity:1; transform:translateY(0); }}
+                    to  {{ opacity:1; transform:translateY(0); }}
                 }}
                 .empty-state {{
                     text-align:center;
@@ -974,10 +961,13 @@ if dados:
                 <div class="empty-titulo">Nenhum aniversariante em {nome_mes_atual}</div>
                 <div class="empty-texto">
                     Não há celebrações registadas para este mês.<br>
-                    Vamos esperar as próximas! 🎉
+                    Aproveite para cadastrar novos colaboradores!
                 </div>
             </div>
         </body>
         </html>
         """
-        components.html(html_vazio, height=500, scrolling=False)
+        components.html(empty_html, height=420, scrolling=False)
+
+else:
+    st.warning("⚠️ Nenhum dado encontrado no banco de dados.")
