@@ -352,7 +352,6 @@ if dados:
                     backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
                     border: 1px solid rgba(255,255,255,0.35); border-radius: 20px;
                     padding: clamp(24px,4vw,32px) clamp(20px,5vw,70px) clamp(20px,3vw,28px);
-                    /* Largura automática para abraçar o texto em uma linha */
                     width: fit-content;
                     max-width: min(800px, 90vw);
                     box-shadow: 0 16px 48px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.4);
@@ -375,7 +374,7 @@ if dados:
                     font-weight:900; color:#ffffff;
                     text-shadow:0 4px 20px rgba(0,0,0,0.6);
                     line-height:1.15; letter-spacing:-0.5px;
-                    white-space: nowrap; /* Mantém tudo em uma linha */
+                    white-space: nowrap;
                 }}
                 .mural-header .mes-destaque {{
                     background:linear-gradient(100deg,#38bdf8 0%,#818cf8 50%,#f472b6 100%);
@@ -385,14 +384,16 @@ if dados:
                     display:flex; justify-content:center; gap:10px; margin-top:14px;
                     opacity:0.6; font-size:1.2rem; letter-spacing:4px;
                 }}
+                /* MELHORIA 8: header count com vidro mais definido */
                 .header-count {{
                     margin-top:12px;
                     font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:600;
-                    color:rgba(255,255,255,0.85);
-                    background:rgba(255,255,255,0.15);
-                    border:1px solid rgba(255,255,255,0.25);
+                    color:rgba(255,255,255,0.95);
+                    background:rgba(255,255,255,0.22);
+                    border:1.5px solid rgba(255,255,255,0.45);
                     border-radius:20px; display:inline-block;
-                    padding:5px 18px; letter-spacing:0.5px;
+                    padding:6px 20px; letter-spacing:0.5px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
                 }}
 
                 /* ══ ANIMAÇÕES ═══════════════════════════════════════════════ */
@@ -413,8 +414,13 @@ if dados:
                     100% {{ transform:translateY(80px)  rotate(720deg); opacity:0; }}
                 }}
                 @keyframes brilho {{
-                    0%, 100% {{ opacity:0.65; }}
-                    50%       {{ opacity:1; }}
+                    0%, 100% {{ opacity:0.75; transform:scale(1); }}
+                    50%       {{ opacity:1;    transform:scale(1.04); }}
+                }}
+                /* MELHORIA 10: animação do emoji na empty-state */
+                @keyframes boloFlutua {{
+                    0%, 100% {{ transform: translateY(0) rotate(-3deg); }}
+                    50%       {{ transform: translateY(-10px) rotate(3deg); }}
                 }}
 
                 /* ══ GRID ════════════════════════════════════════════════════ */
@@ -437,6 +443,7 @@ if dados:
                     animation: fadeInUp 0.7s ease both;
                     align-items: stretch;
                     min-height: 320px; position: relative; overflow: hidden;
+                    /* MELHORIA 6: transição com cor tintada */
                     transition: transform 0.3s ease, box-shadow 0.3s ease;
                 }}
                 .aniversariante-row::before {{
@@ -444,9 +451,10 @@ if dados:
                     background: linear-gradient(90deg,#38bdf8,#818cf8,#f472b6);
                     border-radius: 20px 20px 0 0;
                 }}
+                /* MELHORIA 6: sombra com leve tint azul no hover */
                 .aniversariante-row:hover {{
                     transform: translateY(-3px);
-                    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+                    box-shadow: 0 20px 50px rgba(14,105,200,0.18), 0 6px 18px rgba(0,0,0,0.12);
                 }}
 
                 /* ══ CARD "HOJE" ─ destaque dourado ══════════════════════════ */
@@ -458,13 +466,16 @@ if dados:
                 .aniversariante-row.hoje::before {{
                     background: linear-gradient(90deg,#f59e0b,#fbbf24,#f472b6);
                 }}
+                /* MELHORIA 5: badge "hoje" com micro-escala e sombra dourada mais rica */
                 .badge-hoje {{
                     display: inline-flex; align-items: center; gap: 5px;
                     background: linear-gradient(135deg,#f59e0b,#fbbf24);
                     color: #78350f; font-family:'Inter',sans-serif;
                     font-size:0.72rem; font-weight:800; letter-spacing:1.5px;
                     text-transform:uppercase; padding:5px 14px; border-radius:20px;
-                    margin-top:8px; box-shadow:0 3px 10px rgba(245,158,11,0.4);
+                    margin-top:8px;
+                    box-shadow: 0 4px 14px rgba(245,158,11,0.55), 0 1px 3px rgba(0,0,0,0.15);
+                    text-shadow: 0 1px 2px rgba(120,53,15,0.25);
                     animation: brilho 1.8s ease-in-out infinite;
                 }}
 
@@ -500,12 +511,19 @@ if dados:
                     width:100%; color:#1e293b; text-align:center;
                     position:relative; z-index:1; transition:transform 0.45s ease;
                 }}
+                /* MELHORIA 3: fita adesiva com gradiente realista amarelado */
                 .polaroid::after {{
                     content:''; position:absolute; top:-14px; left:50%;
                     transform:translateX(-50%) rotate(-2deg); width:90px; height:28px;
-                    background:linear-gradient(135deg,rgba(255,255,255,0.9),rgba(255,255,255,0.5));
-                    backdrop-filter:blur(4px); box-shadow:0 2px 6px rgba(0,0,0,0.1);
-                    border-radius:3px; z-index:5; border:1px solid rgba(0,0,0,0.05);
+                    background: linear-gradient(
+                        135deg,
+                        rgba(255,255,240,0.92) 0%,
+                        rgba(230,215,180,0.55) 45%,
+                        rgba(255,255,240,0.88) 100%
+                    );
+                    backdrop-filter:blur(4px);
+                    box-shadow:0 2px 6px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+                    border-radius:3px; z-index:5; border:1px solid rgba(200,180,130,0.3);
                 }}
                 .polaroid:hover {{ transform:scale(1.04) rotate(1deg); }}
                 .foto-wrapper {{
@@ -581,6 +599,8 @@ if dados:
                 .area-post-it {{
                     display:flex; flex-wrap:wrap; gap:18px; align-content:flex-start;
                 }}
+
+                /* MELHORIA 1: pin movido para canto superior direito com rotação */
                 .post-it {{
                     padding:18px 15px 14px;
                     width:clamp(140px,18vw,175px); min-height:130px;
@@ -588,15 +608,22 @@ if dados:
                     border-radius:3px 16px 3px 3px;
                     display:flex; flex-direction:column;
                     justify-content:flex-start; gap:10px; position:relative;
-                    transition:transform 0.28s ease, box-shadow 0.28s ease;
+                    /* MELHORIA 4: transição com spring */
+                    transition: transform 0.32s cubic-bezier(0.34,1.56,0.64,1),
+                                box-shadow 0.28s ease;
                 }}
                 .post-it::before {{
-                    content:'📌'; position:absolute; top:-12px; left:50%;
-                    transform:translateX(-50%); font-size:1.2rem;
+                    content:'📌';
+                    position:absolute;
+                    top:-10px;
+                    right:10px;
+                    left:auto;
+                    transform:rotate(15deg);
+                    font-size:1.1rem;
                     filter:drop-shadow(0 2px 3px rgba(0,0,0,0.2));
                 }}
                 .post-it:hover {{
-                    transform:scale(1.08) translateY(-4px) rotate(1deg) !important;
+                    transform:scale(1.09) translateY(-5px) rotate(1.5deg) !important;
                     z-index:10;
                 }}
                 .post-it-msg {{
@@ -612,17 +639,53 @@ if dados:
                     border-top:1px dashed rgba(0,0,0,0.15); padding-top:8px;
                     overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
                 }}
+
+                /* MELHORIA 2: estado vazio como post-it fantasma tracejado */
                 .sem-recados {{
                     color:#475569; text-shadow:0 1px 3px rgba(255,255,255,0.6);
                     font-size:1.05rem; font-style:italic; padding:28px 0;
                     display:flex; align-items:center; gap:8px;
                 }}
+                .sem-recados-vazio {{
+                    width:clamp(140px,18vw,175px);
+                    min-height:130px;
+                    border:2px dashed rgba(100,116,139,0.35);
+                    border-radius:3px 16px 3px 3px;
+                    display:flex;
+                    flex-direction:column;
+                    align-items:center;
+                    justify-content:center;
+                    gap:8px;
+                    padding:16px 12px;
+                    color:#94a3b8;
+                    font-family:'Caveat',cursive;
+                    font-size:1.15rem;
+                    font-weight:700;
+                    text-align:center;
+                    background:rgba(248,250,252,0.5);
+                    position:relative;
+                    transition:border-color 0.25s ease, background 0.25s ease;
+                }}
+                .sem-recados-vazio:hover {{
+                    border-color:rgba(14,165,233,0.45);
+                    background:rgba(224,242,254,0.3);
+                }}
+                .sem-recados-vazio-emoji {{
+                    font-size:1.6rem;
+                    font-style:normal;
+                    opacity:0.55;
+                }}
+
+                /* MELHORIA 9: estado bloqueado com arredondamento diagonal e fundo suave */
                 .sem-recados-bloqueado {{
-                    background:rgba(100,116,139,0.08);
-                    border:1px dashed rgba(100,116,139,0.3);
-                    border-radius:10px; padding:18px 22px;
-                    color:#64748b; font-style:normal; font-weight:600;
+                    background:rgba(248,250,252,0.7);
+                    border:1.5px dashed rgba(100,116,139,0.35);
+                    border-radius:3px 18px 3px 3px;
+                    padding:20px 24px;
+                    color:#475569; font-style:normal; font-weight:600;
                     letter-spacing:0.3px;
+                    font-family:'Caveat',cursive;
+                    font-size:1.2rem;
                 }}
 
                 /* ══ BOTÃO VOLTAR AO TOPO ════════════════════════════════════ */
@@ -713,7 +776,6 @@ if dados:
 
                 @media (max-width:850px) {{
                     .aniversariante-row {{ grid-template-columns:1fr; padding:24px; }}
-                    /* Em telas pequenas, permitir quebra no título */
                     .mural-header h1 {{ white-space: normal; }}
                 }}
             </style>
@@ -821,7 +883,7 @@ if dados:
 
             e_hoje     = (dia == dia_atual)
             classe_row = "aniversariante-row hoje" if e_hoje else "aniversariante-row"
-            badge_hoje = '<div class="badge-hoje">🎂 Hoje é o grande dia!</div>' if e_hoje else ""
+            badge_hoje = '<div class="badge-hoje">🎂 Hoje é o grande dia! 🎉</div>' if e_hoje else ""
 
             confete_html = ""
             if e_hoje:
@@ -842,6 +904,7 @@ if dados:
             post_its_html    = ""
 
             if not liberar_recados:
+                # MELHORIA 9: bloqueado com estilo de post-it
                 post_its_html = """
                 <p class="sem-recados sem-recados-bloqueado">
                     🔒 Os recados serão revelados em breve!
@@ -852,7 +915,12 @@ if dados:
                 n_recados_pessoa = len(recados_pessoa)
 
                 if recados_pessoa.empty:
-                    post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
+                    # MELHORIA 2: ghost post-it tracejado
+                    post_its_html = """
+                    <div class="sem-recados-vazio">
+                        <span class="sem-recados-vazio-emoji">📌</span>
+                        Seja o primeiro a deixar um recado!
+                    </div>"""
                 else:
                     for i, (_, recado) in enumerate(recados_pessoa.iterrows()):
                         mensagem = html_lib.escape(str(recado.get("mensagem", "")).strip())
@@ -874,7 +942,12 @@ if dados:
                         </div>
                         """
             else:
-                post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
+                # MELHORIA 2: ghost post-it tracejado
+                post_its_html = """
+                <div class="sem-recados-vazio">
+                    <span class="sem-recados-vazio-emoji">📌</span>
+                    Seja o primeiro a deixar um recado!
+                </div>"""
 
             badge_contagem = ""
             if n_recados_pessoa > 0:
@@ -919,6 +992,7 @@ if dados:
         components.html(full_html, height=altura_iframe, scrolling=True)
 
     else:
+        # MELHORIA 10: emoji de bolo com animação de flutuação
         empty_html = f"""
         <!DOCTYPE html>
         <html>
@@ -941,6 +1015,10 @@ if dados:
                     from{{ opacity:0; transform:translateY(30px); }}
                     to  {{ opacity:1; transform:translateY(0); }}
                 }}
+                @keyframes boloFlutua {{
+                    0%, 100% {{ transform: translateY(0) rotate(-3deg); }}
+                    50%       {{ transform: translateY(-12px) rotate(3deg); }}
+                }}
                 .empty-state {{
                     text-align:center;
                     background:rgba(255,255,255,0.65);
@@ -951,7 +1029,10 @@ if dados:
                     box-shadow:0 12px 40px rgba(0,0,0,0.12);
                     animation:fadeInUp 0.7s ease both;
                 }}
-                .empty-emoji {{ font-size:4rem; margin-bottom:20px; }}
+                .empty-emoji {{
+                    font-size:4rem; margin-bottom:20px; display:inline-block;
+                    animation: boloFlutua 3s ease-in-out infinite;
+                }}
                 .empty-titulo {{
                     font-family:'Playfair Display',serif; font-size:1.8rem;
                     font-weight:700; color:#1e293b; margin-bottom:12px;
@@ -1001,6 +1082,7 @@ if dados:
                 </div>
                 """
 
+            # MELHORIA 7: título com gradiente e linha decorativa
             sub_mural_html = f"""
             <!DOCTYPE html>
             <html>
@@ -1024,25 +1106,41 @@ if dados:
                     min-height: 100vh;
                     padding: 20px;
                 }}
-
                 .sub-mural-container {{
                     background: rgba(255,255,255,0.5);
                     backdrop-filter: blur(8px);
                     -webkit-backdrop-filter: blur(8px);
                     border: 1px solid rgba(255,255,255,0.5);
                     border-radius: 18px;
-                    padding: 24px 20px;
+                    padding: 28px 24px 24px;
                     margin: 0 auto;
                     max-width: min(1400px, 96vw);
                     text-align: center;
                     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                    position: relative;
+                    overflow: hidden;
                 }}
+                /* linha decorativa no topo (consistente com cards principais) */
+                .sub-mural-container::before {{
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 0; right: 0;
+                    height: 3px;
+                    background: linear-gradient(90deg, #38bdf8, #818cf8, #f472b6);
+                    border-radius: 18px 18px 0 0;
+                }}
+                /* MELHORIA 7: título com gradiente de texto */
                 .sub-mural-titulo {{
                     font-family: 'Playfair Display', serif;
                     font-size: 1.35rem;
-                    color: #334155;
-                    margin-bottom: 18px;
                     font-weight: 700;
+                    margin-bottom: 20px;
+                    /* gradiente de texto */
+                    background: linear-gradient(100deg, #0284c7 0%, #818cf8 60%, #f472b6 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    display: inline-block;
                 }}
                 .sub-mural-grid {{
                     display: flex;
@@ -1050,7 +1148,6 @@ if dados:
                     gap: 20px;
                     justify-content: center;
                 }}
-                /* ── Aumento de 25% na largura (110px → 138px) ── */
                 .mini-polaroid {{
                     background: #fff;
                     padding: 10px 10px 14px;
@@ -1058,10 +1155,12 @@ if dados:
                     box-shadow: 0 6px 16px rgba(0,0,0,0.1);
                     width: 138px;
                     text-align: center;
-                    transition: transform 0.25s ease;
+                    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
+                                box-shadow 0.25s ease;
                 }}
                 .mini-polaroid:hover {{
-                    transform: scale(1.05);
+                    transform: scale(1.07) translateY(-3px);
+                    box-shadow: 0 12px 24px rgba(14,105,200,0.15);
                 }}
                 .mini-foto {{
                     width: 100%;
@@ -1104,7 +1203,6 @@ if dados:
             </div>
             </body></html>
             """
-            # A altura por linha também aumentou proporcionalmente (180 * 1,25 = 225)
             linhas = (len(df_retro) + 5) // 6
             altura_sub = linhas * 225 + 140
             components.html(sub_mural_html, height=altura_sub, scrolling=False)
