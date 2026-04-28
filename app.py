@@ -322,12 +322,12 @@ if dados:
                     max-width: min(1400px, 96vw); width: 100%;
                 }}
 
-                /* ══ CARD PRINCIPAL (Fundo Claro) ══════════════ */
+                /* ══ CARD PRINCIPAL (Fundo Claro Mais Transparente) ══════════════ */
                 .aniversariante-row {{
                     display: grid;
                     grid-template-columns: minmax(320px, 1.2fr) 2fr; 
                     gap: clamp(28px, 4vw, 56px);
-                    background: rgba(255, 255, 255, 0.85); 
+                    background: rgba(255, 255, 255, 0.65); /* Opacidade reduzida para ficar mais transparente */
                     backdrop-filter: blur(18px);
                     -webkit-backdrop-filter: blur(18px);
                     border: 1px solid rgba(255,255,255,0.6);
@@ -692,7 +692,7 @@ if dados:
                 <div class="recados-section">
                     <div class="recados-titulo">
                         <span>Mensagens para <span class="recados-titulo-nome">{nome.split()[0]}</span></span>
-                        <span style="font-size: 1.7rem; opacity:0.9; flex-shrink:0;">🎂</span>
+                        <span style="font-size: 1.7rem; opacity:0.9; flex-shrink:0; font-style: normal;">🎂</span>
                     </div>
                     <div class="area-post-it">
                         {post_its_html}
