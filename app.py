@@ -287,11 +287,6 @@ if dados:
         )
 
     if not df_mes.empty or not df_retroativos.empty:
-        if not df_mes.empty:
-            df_mes = df_mes.sort_values(
-                by="data_nascimento",
-                key=lambda s: s.dt.day.apply(lambda d: (0 if d == dia_atual else 1, d))
-            )
 
         total_mes = len(df_mes)
 
@@ -310,26 +305,24 @@ if dados:
         </style>
         """, unsafe_allow_html=True)
 
-        # ── Altura do iframe adaptativa ───────────────────────────────────────
+        # ── Altura do iframe adaptativa (CORRIGIDA COM FOLGA GIGANTE) ─────────
         recados_por_pessoa = {}
         if not df_recados.empty and "para_quem" in df_recados.columns:
             recados_por_pessoa = df_recados["para_quem"].value_counts().to_dict()
 
-        altura_iframe = 300
+        altura_iframe = 400
         
-        # Calcula a altura grande APENAS para os cards principais do mês
         for _, row in df_mes.iterrows():
             nome_r        = str(row.get("nome", ""))
             n_recados     = recados_por_pessoa.get(nome_r, 0)
             linhas_postit = max(1, (n_recados // 4) + 1)
-            altura_iframe += 420 + linhas_postit * 170
+            altura_iframe += 500 + (linhas_postit * 180)
 
-        # Para o mural retroativo (mini polaroids) a altura é calculada em grelha, ocupando muito menos espaço
         if not df_retroativos.empty:
-            linhas_mini = max(1, (len(df_retroativos) // 6) + 1)
-            altura_iframe += 200 + (linhas_mini * 200)
+            linhas_mini = max(1, (len(df_retroativos) // 4) + 1)
+            altura_iframe += 400 + (linhas_mini * 250)
 
-        # ── LAÇO ORIGINAL INTACTO (MÊS ATUAL) ─────────────────────────────────
+        # ── LAÇO ORIGINAL (MÊS ATUAL) - SEM REORDENAÇÃO ───────────────────────
         cards_html = ""
         for i, row in df_mes.iterrows():
             nome = html_lib.escape(str(row.get("nome", "Sem Nome")))
@@ -441,7 +434,6 @@ if dados:
                 if not foto_url:
                     foto_url = f"https://api.dicebear.com/7.x/initials/svg?seed={nome}&backgroundColor=38bdf8,818cf8&textColor=ffffff"
 
-                # Cria apenas a estrutura simples da polaroide em ponto pequeno
                 cards_retro_html += f"""
                 <div class="mini-polaroid">
                     <div class="mini-foto" style="background-image: url('{foto_url}');"></div>
