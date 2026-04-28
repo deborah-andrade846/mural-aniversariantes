@@ -696,6 +696,29 @@ if dados:
                     .confete-wrapper {{ display:none !important; }}
                 }}
 
+                /* ══ IMPRESSÃO – DATA DO EVENTO ═════════════════════════════ */
+                .print-data-evento {{
+                    display: none;
+                }}
+                @media print {{
+                    .print-data-evento {{
+                        display: block;
+                        position: fixed;
+                        bottom: 0;
+                        left: 0;
+                        width: 100%;
+                        background: #ffffff;
+                        text-align: center;
+                        font-family: 'Inter', sans-serif;
+                        font-size: 1.1rem;
+                        font-weight: 700;
+                        color: #0f172a;
+                        padding: 12px;
+                        border-top: 2px solid #cbd5e1;
+                        z-index: 9999;
+                    }}
+                }}
+
                 @media (max-width:850px) {{
                     .aniversariante-row {{ grid-template-columns:1fr; padding:24px; }}
                 }}
@@ -743,7 +766,6 @@ if dados:
                         if (topo)    topo.style.display     = 'none';
 
                         // Melhoria #1 — recarrega o app Streamlit inteiro a cada 5 min
-                        // (meta refresh só recarregaria o iframe; window.parent recarrega tudo)
                         setTimeout(function() {{
                             try {{ window.parent.location.reload(); }}
                             catch(e) {{ window.location.reload(); }}
@@ -908,7 +930,8 @@ if dados:
             </div>
             """
 
-        full_html = html_base + cartoes_html + "</div></body></html>"
+        # ── NOVO: DIV COM DATA DO EVENTO (aparece apenas na impressão) ──────
+        full_html = html_base + cartoes_html + "</div><div class='print-data-evento'>Data do Evento: 30/04/2026</div></body></html>"
         components.html(full_html, height=altura_iframe, scrolling=True)
 
     else:
@@ -968,6 +991,116 @@ if dados:
         </html>
         """
         components.html(empty_html, height=420, scrolling=False)
+
+    # ── NOVO: SUB-MURAL RETROATIVO (meses 1,2,3 apenas em Abril/2026) ─────
+    if mes_atual == 4 and hoje.year == 2026:
+        df_retro = df[df["data_nascimento"].dt.month.isin([1, 2, 3])].copy()
+        if not df_retro.empty:
+            df_retro = df_retro.sort_values("data_nascimento")
+
+            mini_cards = ""
+            for _, row in df_retro.iterrows():
+                nome_r = html_lib.escape(str(row.get("nome", "Sem nome")).strip())
+                dia_r = row["data_nascimento"].day if pd.notna(row["data_nascimento"]) else "?"
+                mes_r = MESES_PTBR.get(row["data_nascimento"].month, "")
+                img_url_r = str(row.get("foto_url", "")).strip().replace("'", "%27").replace('"', "%22")
+                if img_url_r:
+                    foto_r = f'<img src="{img_url_r}" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';" alt="Foto" /><div style="display:none;width:100%;height:100%;background:#e2e8f0;align-items:center;justify-content:center;font-size:2rem;">👤</div>'
+                else:
+                    foto_r = '<div style="width:100%;height:100%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:2rem;">👤</div>'
+
+                mini_cards += f"""
+                <div class="mini-polaroid">
+                    <div class="mini-foto">{foto_r}</div>
+                    <div class="mini-nome">{nome_r}</div>
+                    <div class="mini-data">{dia_r} {mes_r}</div>
+                </div>
+                """
+
+            sub_mural_html = f"""
+            <!DOCTYPE html>
+            <html>
+            <head><meta charset="UTF-8">
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+            <style>
+                .sub-mural-container {{
+                    background: rgba(255,255,255,0.5);
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    border: 1px solid rgba(255,255,255,0.5);
+                    border-radius: 18px;
+                    padding: 24px 20px;
+                    margin: 40px auto 0;
+                    max-width: min(1200px, 96vw);
+                    text-align: center;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                }}
+                .sub-mural-titulo {{
+                    font-family: 'Playfair Display', serif;
+                    font-size: 1.35rem;
+                    color: #334155;
+                    margin-bottom: 18px;
+                    font-weight: 700;
+                }}
+                .sub-mural-grid {{
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 16px;
+                    justify-content: center;
+                }}
+                .mini-polaroid {{
+                    background: #fff;
+                    padding: 8px 8px 12px;
+                    border-radius: 4px;
+                    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+                    width: 110px;
+                    text-align: center;
+                    transition: transform 0.25s ease;
+                }}
+                .mini-polaroid:hover {{
+                    transform: scale(1.05);
+                }}
+                .mini-foto {{
+                    width: 100%;
+                    aspect-ratio: 1;
+                    overflow: hidden;
+                    border-radius: 2px;
+                    margin-bottom: 6px;
+                }}
+                .mini-foto img {{
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    display: block;
+                }}
+                .mini-nome {{
+                    font-family: 'Inter', sans-serif;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    color: #1e293b;
+                    line-height: 1.2;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }}
+                .mini-data {{
+                    font-family: 'Inter', sans-serif;
+                    font-size: 0.65rem;
+                    color: #64748b;
+                    margin-top: 3px;
+                }}
+            </style></head>
+            <body style="background:transparent;margin:0;">
+            <div class="sub-mural-container">
+                <div class="sub-mural-titulo">📅 Aniversariantes dos meses anteriores</div>
+                <div class="sub-mural-grid">{mini_cards}</div>
+            </div>
+            </body></html>
+            """
+            # altura aproximada: ~180px por linha (6 colunas considerando a largura)
+            linhas = (len(df_retro) + 5) // 6
+            altura_sub = linhas * 180 + 120
+            components.html(sub_mural_html, height=altura_sub, scrolling=False)
 
 else:
     st.warning("⚠️ Nenhum dado encontrado no banco de dados.")
