@@ -7,18 +7,17 @@ from utils import get_supabase, carregar_config
 st.set_page_config(page_title="Colaboradores", layout="wide", page_icon="👥")
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Conexão e cache (reaproveitada do app principal)
+# Conexão e cache (idêntico ao app principal, mantido aqui por independência)
 # ──────────────────────────────────────────────────────────────────────────────
 supabase = get_supabase()
 config   = carregar_config()
 
 @st.cache_data(ttl=120)
 def carregar_aniversariantes(_supabase):
-    """Retorna todos os registros da tabela 'aniversariantes'."""
     return _supabase.table("aniversariantes").select("*").execute().data or []
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Estilos consistentes com o mural
+# Estilos visuais consistentes com o mural
 # ──────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -117,16 +116,14 @@ if not dados:
     st.stop()
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Processamento
+# Processamento seguro
 # ──────────────────────────────────────────────────────────────────────────────
 df = pd.DataFrame(dados)
 df["data_nascimento"] = pd.to_datetime(df["data_nascimento"], errors="coerce")
 
-# Separar com e sem data válida
 df_com_data = df.dropna(subset=["data_nascimento"]).copy()
 df_sem_data = df[df["data_nascimento"].isna()].copy()
 
-# Ordenar os que têm data por mês e dia
 df_com_data["mes"] = df_com_data["data_nascimento"].dt.month
 df_com_data["dia"]  = df_com_data["data_nascimento"].dt.day
 df_com_data = df_com_data.sort_values(["mes", "dia"])
@@ -138,24 +135,21 @@ MESES_PTBR = {
 }
 
 def foto_valida(url):
-    """Retorna True se a URL é válida e não é uma string 'vazia' comum."""
     if not url:
         return False
     url_str = str(url).strip()
     return url_str.lower() not in ("nan", "none", "null", "")
 
-# Exibir contador total
 total_colaboradores = len(df)
 st.markdown(f'<div class="contador">📋 Total de colaboradores: {total_colaboradores}</div>', unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Renderização dos colaboradores COM data
+# Construção dos cards por mês (sem concatenar strings com +, evitando tags)
 # ──────────────────────────────────────────────────────────────────────────────
 for mes, grupo in df_com_data.groupby("mes"):
     nome_mes = MESES_PTBR.get(int(mes), "Mês desconhecido")
     st.markdown(f'<div class="mes-header">{nome_mes}</div>', unsafe_allow_html=True)
 
-    # Construir os cards do mês
     cards = []
     for _, row in grupo.iterrows():
         nome_raw = str(row.get("nome", "Sem nome")).strip()
@@ -169,21 +163,20 @@ for mes, grupo in df_com_data.groupby("mes"):
         else:
             foto_bloco = '<div class="foto-placeholder">👤</div>'
 
-        card = f"""
-        <div class="colab-card">
-            {foto_bloco}
-            <div class="colab-nome">{nome}</div>
-            <div class="colab-data">🎂 {dia} de {nome_mes}</div>
-        </div>
-        """
+        card = (
+            '<div class="colab-card">'
+            f'{foto_bloco}'
+            f'<div class="colab-nome">{nome}</div>'
+            f'<div class="colab-data">🎂 {dia} de {nome_mes}</div>'
+            '</div>'
+        )
         cards.append(card)
 
-    # Envolver em uma única grid
-    grid_html = '<div class="colab-grid">' + "\n".join(cards) + '</div>'
-    st.markdown(grid_html, unsafe_allow_html=True)
+    grid = '<div class="colab-grid">' + '\n'.join(cards) + '</div>'
+    st.markdown(grid, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Renderização dos colaboradores SEM data (se existirem)
+# Colaboradores sem data
 # ──────────────────────────────────────────────────────────────────────────────
 if not df_sem_data.empty:
     st.markdown('<div class="mes-header">Sem data definida</div>', unsafe_allow_html=True)
@@ -200,17 +193,17 @@ if not df_sem_data.empty:
         else:
             foto_bloco = '<div class="foto-placeholder">👤</div>'
 
-        card = f"""
-        <div class="colab-card">
-            {foto_bloco}
-            <div class="colab-nome">{nome}</div>
-            <div class="colab-data">🎂 Data não informada</div>
-        </div>
-        """
+        card = (
+            '<div class="colab-card">'
+            f'{foto_bloco}'
+            f'<div class="colab-nome">{nome}</div>'
+            '<div class="colab-data">🎂 Data não informada</div>'
+            '</div>'
+        )
         cards.append(card)
 
-    grid_html = '<div class="colab-grid">' + "\n".join(cards) + '</div>'
-    st.markdown(grid_html, unsafe_allow_html=True)
+    grid = '<div class="colab-grid">' + '\n'.join(cards) + '</div>'
+    st.markdown(grid, unsafe_allow_html=True)
 
 st.markdown("---")
 st.caption("Dados atualizados automaticamente a cada 2 minutos.")
