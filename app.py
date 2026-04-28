@@ -317,18 +317,19 @@ if dados:
 
         altura_iframe = 300
         
-        df_todos_renderizados = pd.concat([df_mes, df_retroativos]) if not df_retroativos.empty else df_mes
-        
-        for _, row in df_todos_renderizados.iterrows():
+        # Calcula a altura grande APENAS para os cards principais do mês
+        for _, row in df_mes.iterrows():
             nome_r        = str(row.get("nome", ""))
             n_recados     = recados_por_pessoa.get(nome_r, 0)
             linhas_postit = max(1, (n_recados // 4) + 1)
             altura_iframe += 420 + linhas_postit * 170
 
+        # Para o mural retroativo (mini polaroids) a altura é calculada em grelha, ocupando muito menos espaço
         if not df_retroativos.empty:
-            altura_iframe += 200
+            linhas_mini = max(1, (len(df_retroativos) // 6) + 1)
+            altura_iframe += 200 + (linhas_mini * 200)
 
-        # ── O SEU LAÇO ORIGINAL INTACTO (MÊS ATUAL) ───────────────────────────
+        # ── LAÇO ORIGINAL INTACTO (MÊS ATUAL) ─────────────────────────────────
         cards_html = ""
         for i, row in df_mes.iterrows():
             nome = html_lib.escape(str(row.get("nome", "Sem Nome")))
@@ -426,88 +427,26 @@ if dados:
             </div>
             """
 
-        # ── O SEU LAÇO DUPLICADO PARA RETROATIVOS ─────────────────────────────
+        # ── LAÇO NOVO PARA RETROATIVOS (MINI POLAROIDS) ───────────────────────
         cards_retro_html = ""
         if not df_retroativos.empty:
             for i, row in df_retroativos.iterrows():
                 nome = html_lib.escape(str(row.get("nome", "Sem Nome")))
-                curiosidade = html_lib.escape(str(row.get("curiosidade", "Gosta de surpresas!")))
                 foto_url = str(row.get("foto_url", ""))
                 
-                eh_hoje = False
                 str_dia = ""
                 if pd.notnull(row.get("data_nascimento")):
                     str_dia = f"{row['data_nascimento'].day:02d}/{row['data_nascimento'].month:02d}"
 
-                classe_hoje = ""
-                badge_hoje  = ""
-
                 if not foto_url:
                     foto_url = f"https://api.dicebear.com/7.x/initials/svg?seed={nome}&backgroundColor=38bdf8,818cf8&textColor=ffffff"
 
-                confete_html = ""
-
-                n_recados_pessoa = 0
-                post_its_html = ""
-
-                if not liberar_recados:
-                    post_its_html = """
-                    <p class="sem-recados sem-recados-bloqueado">
-                        🔒 Os recados serão revelados em breve!
-                    </p>"""
-                elif not df_recados.empty and "para_quem" in df_recados.columns:
-                    nome_original = str(row.get("nome", "")).strip()
-                    recados_pessoa = df_recados[df_recados["para_quem"] == nome_original]
-                    n_recados_pessoa = len(recados_pessoa)
-                    
-                    if recados_pessoa.empty:
-                        post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
-                    else:
-                        for _, r_row in recados_pessoa.iterrows():
-                            cor_idx = abs(hash(str(r_row.get("de_quem")) + str(r_row.get("mensagem")))) % len(POSTIT_COLORS)
-                            cor_tema = POSTIT_COLORS[cor_idx]
-                            
-                            remetente = html_lib.escape(str(r_row.get("de_quem", "Anônimo")))
-                            mensagem  = html_lib.escape(str(r_row.get("mensagem", "")))
-                            
-                            angulo = (hash(mensagem) % 6) - 3
-                            
-                            post_its_html += f"""
-                            <div class="post-it" style="background:{cor_tema['bg']}; color:{cor_tema['text']}; box-shadow: 2px 4px 10px {cor_tema['shadow']}; transform: rotate({angulo}deg);">
-                                <div class="post-it-msg">{mensagem}</div>
-                                <div class="post-it-autor">- {remetente}</div>
-                            </div>
-                            """
-                else:
-                    post_its_html = '<p class="sem-recados">📌 Seja o primeiro a deixar um recado!</p>'
-
+                # Cria apenas a estrutura simples da polaroide em ponto pequeno
                 cards_retro_html += f"""
-                <div class="aniversariante-row{classe_hoje}">
-                    {confete_html}
-                    <div class="col-esquerda">
-                        <div class="polaroid-container">
-                            <div class="polaroid-wrapper">
-                                <div class="polaroid">
-                                    <div class="foto-img" style="background-image: url('{foto_url}');"></div>
-                                    <div class="polaroid-caption">{nome}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="info-perfil">
-                            <div class="nome">{nome}</div>
-                            <div class="data-nasc">🎂 {str_dia} {badge_hoje}</div>
-                            <div class="curiosidade">
-                                <span class="curiosidade-label">Curiosidade:</span>
-                                {curiosidade}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-direita">
-                        <div class="recados-titulo">💌 Recados ({n_recados_pessoa})</div>
-                        <div class="recados-grid">
-                            {post_its_html}
-                        </div>
-                    </div>
+                <div class="mini-polaroid">
+                    <div class="mini-foto" style="background-image: url('{foto_url}');"></div>
+                    <div class="mini-nome" title="{nome}">{nome}</div>
+                    <div class="mini-data">🎂 {str_dia}</div>
                 </div>
                 """
 
@@ -649,7 +588,7 @@ if dados:
                     animation: confete 3s ease-in infinite;
                 }}
 
-                /* ══ POLAROID ════════════════════════════════════════════════ */
+                /* ══ POLAROID ORIGINAL (MURAL MÊS) ═══════════════════════════ */
                 .polaroid-container {{
                     width:100%; display:flex; align-items:center; justify-content:center;
                     padding:10px; position:relative; z-index:1;
@@ -682,6 +621,56 @@ if dados:
                     position:absolute; bottom:18px; left:0; right:0; text-align:center;
                     font-family:'Caveat',cursive; font-size:1.8rem; font-weight:700;
                     color:#1e293b; letter-spacing:1px; line-height:1;
+                }}
+
+                /* ══ MINI POLAROID (SUB MURAL RETROATIVO) ════════════════════ */
+                .mini-cards-container {{
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 20px;
+                    justify-content: center;
+                    width: 100%;
+                    max-width: min(1000px, 90vw);
+                    margin: 0 auto;
+                }}
+                .mini-polaroid {{
+                    background: #ffffff;
+                    padding: 8px 8px 16px;
+                    border-radius: 4px;
+                    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+                    width: 140px;
+                    text-align: center;
+                    transition: transform 0.3s ease;
+                }}
+                .mini-polaroid:hover {{
+                    transform: translateY(-5px) scale(1.05);
+                }}
+                .mini-foto {{
+                    width: 100%;
+                    aspect-ratio: 1/1;
+                    background-color: #e2e8f0;
+                    background-size: cover;
+                    background-position: center;
+                    border-radius: 2px;
+                    margin-bottom: 10px;
+                    border: 1px solid rgba(0,0,0,0.05);
+                }}
+                .mini-nome {{
+                    font-family: 'Caveat', cursive;
+                    font-size: 1.3rem;
+                    font-weight: 700;
+                    color: #1e293b;
+                    line-height: 1.1;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }}
+                .mini-data {{
+                    font-family: 'Inter', sans-serif;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    color: #64748b;
+                    margin-top: 4px;
                 }}
 
                 /* ══ INFORMAÇÕES DE PERFIL ═══════════════════════════════════ */
@@ -835,6 +824,11 @@ if dados:
                     .recados-titulo {{ color:#000 !important; border-bottom-color:#cbd5e1 !important; text-shadow:none !important; }}
                     .post-it {{ break-inside: avoid; transform:none !important; box-shadow:none !important; border:1px solid #cbd5e1 !important; background:#fff !important; }}
                     .confete-wrapper {{ display:none !important; }}
+
+                    /* Estilo de impressão para as mini polaroids */
+                    .mini-polaroid {{ border: 1px solid #cbd5e1 !important; break-inside: avoid; box-shadow: none !important; }}
+                    .mini-nome {{ color: #000 !important; }}
+                    .mini-data {{ color: #333 !important; }}
                 }}
 
                 /* ── Responsividade ── */
@@ -925,13 +919,15 @@ if dados:
             </div>
             
             {f'''
-            <div class="mural-header" style="margin-top: 80px; margin-bottom: 40px;">
-                <div class="mural-header-inner" style="padding: 15px 30px;">
-                    <p class="subtitulo">✦ Retroativos ✦</p>
-                    <h1 style="font-size: clamp(1.6rem, 3vw, 2.5rem);">Meses Anteriores</h1>
+            <div class="mural-header" style="margin-top: 100px; margin-bottom: 30px;">
+                <div class="mural-header-inner" style="padding: 15px 30px; width: auto; max-width: 90vw;">
+                    <p class="subtitulo" style="font-size: 0.65rem; margin-bottom: 4px;">✦ Celebrações Retroativas ✦</p>
+                    <h2 style="font-family: 'Playfair Display', serif; font-size: clamp(1.4rem, 2.5vw, 1.8rem); color: #fff; margin:0; text-shadow:0 2px 8px rgba(0,0,0,0.4);">
+                        Janeiro, Fevereiro e Março
+                    </h2>
                 </div>
             </div>
-            <div class="cards-container">
+            <div class="mini-cards-container">
                 {cards_retro_html}
             </div>
             ''' if cards_retro_html else ''}
