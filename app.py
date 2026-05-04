@@ -283,13 +283,11 @@ if not is_tv:
             key="mes_mural",
         )
 else:
-    # No modo TV, usa sempre o mês atual sem mostrar o seletor
     mes_selecionado = hoje.month
 
 mes_atual      = mes_selecionado
 nome_mes_atual = MESES_PTBR[mes_atual]
 
-# Só marca "hoje" quando o mês selecionado é o mês corrente
 dia_atual_efetivo = dia_atual if mes_atual == hoje.month else -1
 
 if dados:
@@ -331,6 +329,7 @@ if dados:
             linhas_postit = max(1, (n_recados // 4) + 1)
             altura_iframe += 420 + linhas_postit * 170
 
+        # ── HTML DO MURAL ─────────────────────────────────────────────────────
         html_base = f"""
         <!DOCTYPE html>
         <html>
@@ -374,7 +373,7 @@ if dados:
                     border: 1px solid rgba(255,255,255,0.35); border-radius: 20px;
                     padding: clamp(24px,4vw,32px) clamp(20px,5vw,70px) clamp(20px,3vw,28px);
                     width: fit-content;
-                    max-width: min(800px, 90vw);
+                    max-width: 95vw;                         /* ← AUMENTADO para caber meses longos */
                     box-shadow: 0 16px 48px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.4);
                     display: inline-block; position: relative; overflow: hidden;
                     margin: 0 auto;
@@ -395,8 +394,7 @@ if dados:
                     font-weight:900; color:#ffffff;
                     text-shadow:0 4px 20px rgba(0,0,0,0.6);
                     line-height:1.15; letter-spacing:-0.5px;
-                    overflow-wrap: break-word;   /* ← CORREÇÃO aplicada */
-                    word-break: break-word;      /* ← fallback extra */
+                    white-space: nowrap;                   /* ← TÍTULO SEM QUEBRA */
                 }}
                 .mural-header .mes-destaque {{
                     background:linear-gradient(100deg,#38bdf8 0%,#818cf8 50%,#f472b6 100%);
@@ -826,9 +824,10 @@ if dados:
                     }}
                 }}
 
+                /* ══ RESPONSIVO ══════════════════════════════════════════════ */
                 @media (max-width:850px) {{
                     .aniversariante-row {{ grid-template-columns:1fr; padding:24px; }}
-                    .mural-header h1 {{ white-space: normal; }}
+                    /* removida a quebra forçada do título – o quadro apenas expande */
                 }}
             </style>
             <style id="orientacao-style">
