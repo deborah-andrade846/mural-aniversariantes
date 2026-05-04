@@ -97,6 +97,7 @@ if modo_admin:
         novo_cadastro = st.checkbox("Libertar Aba de Cadastro", value=liberar_cadastro)
         novo_recados  = st.checkbox("Libertar Aba de Recados",  value=liberar_recados)
         novo_exibir   = st.checkbox("🎉 REVELAR MURAL FINAL",   value=exibir_mural)
+        novo_pesquisa = st.checkbox("Libertar Aba de Pesquisa", value=to_bool(config.get("liberar_pesquisa", True)))
 
     with st.sidebar.expander("🎨 Personalização Visual", expanded=False):
         cor_fundo_banco = config.get("cor_fundo")
@@ -154,6 +155,7 @@ if modo_admin:
         atualizar_config("liberar_recados",  novo_recados)
         atualizar_config("exibir_mural",     novo_exibir)
         atualizar_config("cor_fundo",        cor_fundo)
+        atualizar_config("liberar_pesquisa", novo_pesquisa)
         if img_b64_admin is not None:
             fundo_data_url = f"data:{img_tipo_admin};base64,{img_b64_admin}"
             atualizar_config("imagem_fundo", fundo_data_url)
@@ -266,10 +268,29 @@ except Exception as e:
         st.error(f"Erro inesperado ao carregar os dados: {e}")
 
 # ── MURAL ─────────────────────────────────────────────────────────────────────
-hoje           = datetime.now()
-mes_atual      = hoje.month
-dia_atual      = hoje.day
+hoje      = datetime.now()
+dia_atual = hoje.day
+
+# ── SELETOR DE MÊS ───────────────────────────────────────────────────────────
+if not is_tv:
+    col_mes, _ = st.columns([1, 3])
+    with col_mes:
+        mes_selecionado = st.selectbox(
+            "📅 Mês do Mural",
+            options=list(MESES_PTBR.keys()),
+            index=hoje.month - 1,
+            format_func=lambda m: MESES_PTBR[m],
+            key="mes_mural",
+        )
+else:
+    # No modo TV, usa sempre o mês atual sem mostrar o seletor
+    mes_selecionado = hoje.month
+
+mes_atual      = mes_selecionado
 nome_mes_atual = MESES_PTBR[mes_atual]
+
+# Só marca "hoje" quando o mês selecionado é o mês corrente
+dia_atual_efetivo = dia_atual if mes_atual == hoje.month else -1
 
 if dados:
     df = pd.DataFrame(dados)
@@ -279,7 +300,7 @@ if dados:
     if not df_mes.empty:
         df_mes = df_mes.sort_values(
             by="data_nascimento",
-            key=lambda s: s.dt.day.apply(lambda d: (0 if d == dia_atual else 1, d))
+            key=lambda s: s.dt.day.apply(lambda d: (0 if d == dia_atual_efetivo else 1, d))
         )
 
         total_mes = len(df_mes)
@@ -721,14 +742,12 @@ if dados:
                 }}
                 .btn-paisagem {{ background:linear-gradient(135deg,#6366f1,#818cf8); }}
 
-                /* ══ MODAL (NOVO) ═════════════════════════════════════════════ */
+                /* ══ MODAL ═══════════════════════════════════════════════════ */
                 .modal-overlay {{
                     display: none;
                     position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
+                    top: 0; left: 0;
+                    width: 100%; height: 100%;
                     background: rgba(0,0,0,0.5);
                     backdrop-filter: blur(8px);
                     -webkit-backdrop-filter: blur(8px);
@@ -736,15 +755,12 @@ if dados:
                     justify-content: center;
                     align-items: center;
                 }}
-                .modal-overlay.active {{
-                    display: flex;
-                }}
+                .modal-overlay.active {{ display: flex; }}
                 .modal-content {{
                     background: #fffef2;
                     border-radius: 24px;
                     padding: 32px 40px;
-                    max-width: 90vw;
-                    max-height: 80vh;
+                    max-width: 90vw; max-height: 80vh;
                     overflow-y: auto;
                     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
                     font-family: 'Caveat', cursive;
@@ -758,29 +774,15 @@ if dados:
                     to   {{ opacity:1; transform: scale(1) translateY(0); }}
                 }}
                 .modal-autor {{
-                    text-align: right;
-                    font-size: 1.1rem;
-                    font-weight: 700;
-                    color: #475569;
-                    margin-top: 16px;
-                    border-top: 1px dashed rgba(0,0,0,0.15);
-                    padding-top: 12px;
+                    text-align: right; font-size: 1.1rem; font-weight: 700;
+                    color: #475569; margin-top: 16px;
+                    border-top: 1px dashed rgba(0,0,0,0.15); padding-top: 12px;
                 }}
-                .modal-mensagem {{
-                    font-size: 1.5rem;
-                    line-height: 1.6;
-                    color: #0f172a;
-                }}
+                .modal-mensagem {{ font-size: 1.5rem; line-height: 1.6; color: #0f172a; }}
                 .modal-close-btn {{
-                    position: absolute;
-                    top: 10px;
-                    right: 16px;
-                    font-size: 1.5rem;
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    color: #64748b;
-                    transition: color 0.2s;
+                    position: absolute; top: 10px; right: 16px;
+                    font-size: 1.5rem; background: none; border: none;
+                    cursor: pointer; color: #64748b; transition: color 0.2s;
                 }}
                 .modal-close-btn:hover {{ color: #0f172a; }}
 
@@ -809,18 +811,13 @@ if dados:
                     .confete-wrapper {{ display:none !important; }}
                 }}
 
-                .print-data-evento-header {{
-                    display: none;
-                }}
+                .print-data-evento-header {{ display: none; }}
                 @media print {{
                     .print-data-evento-header {{
                         display: block;
                         font-family: 'Playfair Display', serif;
-                        font-size: 1.4rem;
-                        font-weight: 700;
-                        color: #0f172a;
-                        text-align: center;
-                        margin-top: 0.8rem;
+                        font-size: 1.4rem; font-weight: 700; color: #0f172a;
+                        text-align: center; margin-top: 0.8rem;
                         padding: 0.5rem 1rem;
                         border-top: 1px solid rgba(0,0,0,0.15);
                         border-bottom: 1px solid rgba(0,0,0,0.15);
@@ -882,7 +879,6 @@ if dados:
             </script>
 
             <div id="badge-orientacao" class="orientacao-badge"></div>
-
             <button id="btn-topo" class="btn-topo" onclick="voltarTopo()">↑ Topo</button>
 
             <div class="print-toolbar">
@@ -897,7 +893,7 @@ if dados:
                     <div class="header-deco">🎉 🎂 🎈 🎊 🎁</div>
                     <div class="header-count">
                         {'🎂 1 aniversariante' if total_mes == 1 else f'🎂 {total_mes} aniversariantes'}
-                        {' — incluindo hoje! 🥳' if any(df_mes["data_nascimento"].dt.day == dia_atual) else ''}
+                        {' — incluindo hoje! 🥳' if mes_atual == hoje.month and any(df_mes["data_nascimento"].dt.day == dia_atual) else ''}
                     </div>
                     <div class="print-data-evento-header">Data do Evento: 30/04/2026</div>
                 </div>
@@ -935,7 +931,7 @@ if dados:
             if texto_curiosidade:
                 curiosidade_html = f'<div class="curiosidade-txt">"{texto_curiosidade}"</div>'
 
-            e_hoje     = (dia == dia_atual)
+            e_hoje     = (dia == dia_atual_efetivo)
             classe_row = "aniversariante-row hoje" if e_hoje else "aniversariante-row"
             badge_hoje = '<div class="badge-hoje">🎂 Hoje é o grande dia! 🎉</div>' if e_hoje else ""
 
@@ -1042,7 +1038,6 @@ if dados:
             </div>
             """
 
-        # Modal HTML + JS
         modal_html = """
             </div>
 
@@ -1071,9 +1066,7 @@ if dados:
                     }
 
                     overlay.addEventListener('click', function(e) {
-                        if (e.target === overlay) {
-                            fecharModal();
-                        }
+                        if (e.target === overlay) { fecharModal(); }
                     });
 
                     document.getElementById('modal-close-btn').addEventListener('click', fecharModal);
@@ -1202,98 +1195,54 @@ if dados:
                 }}
                 body {{
                     background: transparent !important;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    min-height: 100vh;
-                    padding: 20px;
+                    display: flex; align-items: center; justify-content: center;
+                    min-height: 100vh; padding: 20px;
                 }}
                 .sub-mural-container {{
                     background: rgba(255,255,255,0.5);
-                    backdrop-filter: blur(8px);
-                    -webkit-backdrop-filter: blur(8px);
-                    border: 1px solid rgba(255,255,255,0.5);
-                    border-radius: 18px;
-                    padding: 28px 24px 24px;
-                    margin: 0 auto;
-                    max-width: min(1400px, 96vw);
-                    text-align: center;
+                    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+                    border: 1px solid rgba(255,255,255,0.5); border-radius: 18px;
+                    padding: 28px 24px 24px; margin: 0 auto;
+                    max-width: min(1400px, 96vw); text-align: center;
                     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-                    position: relative;
-                    overflow: hidden;
+                    position: relative; overflow: hidden;
                 }}
                 .sub-mural-container::before {{
-                    content: '';
-                    position: absolute;
-                    top: 0; left: 0; right: 0;
-                    height: 3px;
+                    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
                     background: linear-gradient(90deg, #38bdf8, #818cf8, #f472b6);
                     border-radius: 18px 18px 0 0;
                 }}
                 .sub-mural-titulo {{
-                    font-family: 'Playfair Display', serif;
-                    font-size: 1.35rem;
-                    font-weight: 700;
+                    font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700;
                     margin-bottom: 20px;
                     background: linear-gradient(100deg, #0284c7 0%, #818cf8 60%, #f472b6 100%);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                    display: inline-block;
+                    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                    background-clip: text; display: inline-block;
                 }}
                 .sub-mural-grid {{
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 20px;
-                    justify-content: center;
+                    display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;
                 }}
                 .mini-polaroid {{
-                    background: #fff;
-                    padding: 10px 10px 14px;
-                    border-radius: 4px;
-                    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-                    width: 138px;
-                    text-align: center;
-                    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1),
-                                box-shadow 0.25s ease;
+                    background: #fff; padding: 10px 10px 14px; border-radius: 4px;
+                    box-shadow: 0 6px 16px rgba(0,0,0,0.1); width: 138px; text-align: center;
+                    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease;
                 }}
                 .mini-polaroid:hover {{
                     transform: scale(1.07) translateY(-3px);
                     box-shadow: 0 12px 24px rgba(14,105,200,0.15);
                 }}
                 .mini-foto {{
-                    width: 100%;
-                    aspect-ratio: 1;
-                    overflow: hidden;
-                    border-radius: 2px;
-                    margin-bottom: 6px;
+                    width: 100%; aspect-ratio: 1; overflow: hidden;
+                    border-radius: 2px; margin-bottom: 6px;
                 }}
-                .mini-foto img {{
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                    display: block;
-                }}
+                .mini-foto img {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
                 .mini-nome {{
-                    font-family: 'Inter', sans-serif;
-                    font-size: 0.75rem;
-                    font-weight: 600;
-                    color: #1e293b;
-                    line-height: 1.2;
-                    word-break: break-word;
-                    overflow-wrap: break-word;
-                    white-space: normal;
-                    overflow: hidden;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
+                    font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 600;
+                    color: #1e293b; line-height: 1.2; word-break: break-word;
+                    overflow-wrap: break-word; white-space: normal; overflow: hidden;
+                    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
                 }}
-                .mini-data {{
-                    font-family: 'Inter', sans-serif;
-                    font-size: 0.65rem;
-                    color: #64748b;
-                    margin-top: 3px;
-                }}
+                .mini-data {{ font-family: 'Inter', sans-serif; font-size: 0.65rem; color: #64748b; margin-top: 3px; }}
             </style></head>
             <body>
             <div class="sub-mural-container">
