@@ -329,7 +329,6 @@ if dados:
             linhas_postit = max(1, (n_recados // 4) + 1)
             altura_iframe += 420 + linhas_postit * 170
 
-        # ── HTML DO MURAL ─────────────────────────────────────────────────────
         html_base = f"""
         <!DOCTYPE html>
         <html>
@@ -373,7 +372,7 @@ if dados:
                     border: 1px solid rgba(255,255,255,0.35); border-radius: 20px;
                     padding: clamp(24px,4vw,32px) clamp(20px,5vw,70px) clamp(20px,3vw,28px);
                     width: fit-content;
-                    max-width: 95vw;                         /* ← AUMENTADO para caber meses longos */
+                    max-width: 95vw;
                     box-shadow: 0 16px 48px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.4);
                     display: inline-block; position: relative; overflow: hidden;
                     margin: 0 auto;
@@ -394,7 +393,7 @@ if dados:
                     font-weight:900; color:#ffffff;
                     text-shadow:0 4px 20px rgba(0,0,0,0.6);
                     line-height:1.15; letter-spacing:-0.5px;
-                    white-space: nowrap;                   /* ← TÍTULO SEM QUEBRA */
+                    white-space: nowrap;
                 }}
                 .mural-header .mes-destaque {{
                     background:linear-gradient(100deg,#38bdf8 0%,#818cf8 50%,#f472b6 100%);
@@ -824,10 +823,8 @@ if dados:
                     }}
                 }}
 
-                /* ══ RESPONSIVO ══════════════════════════════════════════════ */
                 @media (max-width:850px) {{
                     .aniversariante-row {{ grid-template-columns:1fr; padding:24px; }}
-                    /* removida a quebra forçada do título – o quadro apenas expande */
                 }}
             </style>
             <style id="orientacao-style">
@@ -909,7 +906,13 @@ if dados:
             nome_formatado = nome_raw.title()
             nome           = html_lib.escape(nome_formatado)
 
-            texto_curiosidade = html_lib.escape(str(row.get("curiosidade", "")).strip())
+            # ══ TRATAMENTO DE CURIOSIDADE (EVITA "nan") ══════════════════════
+            curiosidade_raw = str(row.get("curiosidade", "")).strip()
+            if curiosidade_raw.lower() in ("", "nan", "none", "null"):
+                texto_curiosidade = ""
+            else:
+                texto_curiosidade = html_lib.escape(curiosidade_raw)
+
             dia = row["data_nascimento"].day if pd.notna(row["data_nascimento"]) else "?"
 
             partes        = nome_formatado.split()
