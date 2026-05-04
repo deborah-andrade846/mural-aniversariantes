@@ -395,7 +395,8 @@ if dados:
                     font-weight:900; color:#ffffff;
                     text-shadow:0 4px 20px rgba(0,0,0,0.6);
                     line-height:1.15; letter-spacing:-0.5px;
-                    white-space: nowrap;
+                    overflow-wrap: break-word;   /* ← CORREÇÃO aplicada */
+                    word-break: break-word;      /* ← fallback extra */
                 }}
                 .mural-header .mes-destaque {{
                     background:linear-gradient(100deg,#38bdf8 0%,#818cf8 50%,#f472b6 100%);
