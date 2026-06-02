@@ -10,20 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clonar repositório
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # <-- Mudei de v3 para v4
 
       - name: Configurar Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5  # <-- Mudei de v4 para v5
         with:
           python-version: '3.10'
 
       - name: Instalar dependências
-        # Instala as bibliotecas que seu utils.py e keep_alive.py precisam
-        run: pip install supabase streamlit pandas
+        run: pip install supabase
 
       - name: Rodar o ping
         env:
-          # O GitHub Actions precisa acessar as credenciais do banco
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: python keep_alive.py
