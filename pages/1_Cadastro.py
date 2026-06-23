@@ -20,7 +20,7 @@ st.write("Adicione sua foto, uma curiosidade e proteja seu perfil com uma senha.
 
 try:
     with st.spinner("Carregando lista de colaboradores..."):
-        res = supabase.table("aniversariantes").select("nome, perfil_completo").execute()
+        res = supabase.table("aniversariantes").select("id, nome, perfil_completo, data_nascimento, senha_perfil").execute()
     lista_funcionarios = res.data or []
 
 except Exception as e:
@@ -85,7 +85,18 @@ if nome_selecionado == "➕ Meu nome não está na lista":
 
 # --- ATUALIZAÇÃO ---
 elif nome_selecionado != "":
-    dados_atuais = next(item for item in lista_funcionarios if item["nome"] == nome_selecionado)
+    # Usa o 'id' como chave estável (nome pode ter homônimos).
+    correspondencias = [item for item in lista_funcionarios if item["nome"] == nome_selecionado]
+    dados_atuais = correspondencias[0]
+    perfil_id = dados_atuais.get("id")
+
+    if len(correspondencias) > 1:
+        st.warning(
+            "⚠️ Existe mais de um colaborador com este nome. "
+            "Será editado o primeiro registro encontrado — "
+            "se não for o seu perfil, contate a administração da GAFI."
+        )
+
     foi_completado = to_bool(dados_atuais.get("perfil_completo", False))
 
     with st.form("form_update"):
@@ -102,13 +113,7 @@ elif nome_selecionado != "":
         )
 
         # Permite atualizar data de nascimento se estiver com ano fictício (1900)
-        data_atual_raw = None
-        try:
-            res_data = supabase.table("aniversariantes").select("data_nascimento").eq("nome", nome_selecionado).single().execute()
-            data_atual_raw = res_data.data.get("data_nascimento") if res_data.data else None
-        except Exception:
-            pass
-
+        data_atual_raw = dados_atuais.get("data_nascimento")
         mostrar_campo_data = data_atual_raw and str(data_atual_raw).startswith("1900")
         if mostrar_campo_data:
             st.info("📅 Seu aniversário está com o ano fictício. Aproveite para corrigir!")
@@ -129,8 +134,7 @@ elif nome_selecionado != "":
 
         if submit_update:
             try:
-                res_check = supabase.table("aniversariantes").select("senha_perfil").eq("nome", nome_selecionado).single().execute()
-                senha_no_banco = res_check.data.get("senha_perfil") if res_check.data else None
+                senha_no_banco = dados_atuais.get("senha_perfil")
 
                 if foi_completado and not verificar_senha(senha_acesso, senha_no_banco):
                     st.error("❌ Senha incorreta! Você não tem permissão para alterar este perfil.")
@@ -157,7 +161,7 @@ elif nome_selecionado != "":
                     if mostrar_campo_data:
                         dados_update["data_nascimento"] = str(nova_data)
 
-                    supabase.table("aniversariantes").update(dados_update).eq("nome", nome_selecionado).execute()
+                    supabase.table("aniversariantes").update(dados_update).eq("id", perfil_id).execute()
                     st.success("✅ Perfil atualizado e protegido com sucesso!")
 
             except Exception as e:
