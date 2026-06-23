@@ -148,6 +148,48 @@ if modo_admin:
         except Exception:
             st.warning("Não foi possível carregar estatísticas.")
 
+    with st.sidebar.expander("🔓 Resetar senha de perfil", expanded=False):
+        st.caption(
+            "Para quem esqueceu a senha. O reset libera o perfil para a pessoa "
+            "criar uma senha nova na aba **Cadastro** — os dados (foto, "
+            "curiosidade, data) são mantidos."
+        )
+        try:
+            pessoas = carregar_aniversariantes(supabase)
+            # Apenas perfis bloqueados (já completados, exigem senha para editar)
+            bloqueados = [
+                p for p in pessoas
+                if to_bool(p.get("perfil_completo", False)) and p.get("id") is not None
+            ]
+            if not bloqueados:
+                st.info("Nenhum perfil com senha definida no momento.")
+            else:
+                bloqueados = sorted(bloqueados, key=lambda p: str(p.get("nome", "")).lower())
+                opcoes = {
+                    f'{p.get("nome", "Sem nome")} (#{p["id"]})': p["id"]
+                    for p in bloqueados
+                }
+                escolha = st.selectbox(
+                    "Selecione o perfil",
+                    options=list(opcoes.keys()),
+                    key="reset_senha_sel",
+                )
+                if st.button("🔓 Resetar senha", use_container_width=True, key="reset_senha_btn"):
+                    pid = opcoes[escolha]
+                    try:
+                        supabase.table("aniversariantes").update(
+                            {"perfil_completo": False, "senha_perfil": None}
+                        ).eq("id", pid).execute()
+                        carregar_aniversariantes.clear()
+                        st.success(
+                            f"✅ Senha resetada! Avise **{escolha.rsplit(' (#', 1)[0]}** "
+                            "para definir uma nova senha na aba Cadastro."
+                        )
+                    except Exception as e:
+                        st.error(f"Erro ao resetar: {e}")
+        except Exception:
+            st.warning("Não foi possível carregar a lista de perfis.")
+
     st.sidebar.write("")
     col_save, col_cache = st.sidebar.columns(2)
 
