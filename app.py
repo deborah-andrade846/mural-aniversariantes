@@ -303,18 +303,28 @@ if dados:
 
         total_mes = len(df_mes)
 
-        st.markdown("""
+        st.markdown(f"""
         <style>
-            .block-container {
+            .block-container {{
                 padding-left: 1rem !important;
                 padding-right: 1rem !important;
                 padding-top: 1rem !important;
                 max-width: 100% !important;
-            }
-            iframe[title="streamlit_components_v1.html"] {
+            }}
+            /* Fundo fixo no documento principal (fora do iframe) para que a
+               imagem permaneça parada enquanto o mural rola. */
+            .stApp {{
+                {estilo_fundo}
+                background-attachment: fixed !important;
+                background-size: cover !important;
+                background-position: center top !important;
+                background-repeat: no-repeat !important;
+            }}
+            iframe[title="streamlit_components_v1.html"] {{
                 width: 100% !important;
                 border: none !important;
-            }
+                background: transparent !important;
+            }}
         </style>
         """, unsafe_allow_html=True)
 
@@ -322,12 +332,12 @@ if dados:
         if not df_recados.empty and "para_quem" in df_recados.columns:
             recados_por_pessoa = df_recados["para_quem"].value_counts().to_dict()
 
-        altura_iframe = 300
+        altura_iframe = 280
         for _, row in df_mes.iterrows():
             nome_r        = str(row.get("nome", ""))
             n_recados     = recados_por_pessoa.get(nome_r, 0)
             linhas_postit = max(1, (n_recados // 4) + 1)
-            altura_iframe += 420 + linhas_postit * 170
+            altura_iframe += 360 + linhas_postit * 150
 
         html_base = f"""
         <!DOCTYPE html>
@@ -340,11 +350,9 @@ if dados:
                 *, *::before, *::after {{ margin:0; padding:0; box-sizing:border-box; }}
 
                 html {{
-                    {estilo_fundo}
-                    background-attachment: fixed !important;
-                    background-repeat: no-repeat !important;
-                    background-size: cover !important;
-                    background-position: center top !important;
+                    /* Fundo transparente: a imagem fica no .stApp (documento pai),
+                       fixa em relação à janela. Apenas a impressão repõe o fundo. */
+                    background: transparent !important;
                     min-height: 100%;
                 }}
                 body {{
@@ -354,14 +362,14 @@ if dados:
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    padding: 36px 24px 72px;
+                    padding: 20px 16px 32px;
                     min-height: 100vh;
                     width: 100%;
                 }}
 
                 /* ══ HEADER ══════════════════════════════════════════════════ */
                 .mural-header {{
-                    text-align: center; margin-bottom: 52px;
+                    text-align: center; margin-bottom: 28px;
                     position: relative; width: 100%;
                     max-width: min(1400px, 96vw);
                     animation: fadeInDown 0.9s ease both;
@@ -442,24 +450,24 @@ if dados:
 
                 /* ══ GRID ════════════════════════════════════════════════════ */
                 .mural-grid {{
-                    display:flex; flex-direction:column; gap:28px;
+                    display:flex; flex-direction:column; gap:18px;
                     max-width:min(1400px,96vw); width:100%;
                 }}
 
                 /* ══ CARD BASE ═══════════════════════════════════════════════ */
                 .aniversariante-row {{
                     display: grid;
-                    grid-template-columns: minmax(300px,1.2fr) 2fr;
-                    gap: clamp(28px,4vw,56px);
+                    grid-template-columns: minmax(240px,1fr) 2fr;
+                    gap: clamp(20px,3vw,40px);
                     background: rgba(255,255,255,0.65);
                     backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
                     border: 1px solid rgba(255,255,255,0.6);
                     border-radius: 22px;
-                    padding: clamp(30px,3.5vw,52px) clamp(28px,3.5vw,50px);
+                    padding: clamp(22px,2.5vw,36px) clamp(22px,3vw,40px);
                     box-shadow: 0 12px 40px rgba(0,0,0,0.15);
                     animation: fadeInUp 0.7s ease both;
                     align-items: stretch;
-                    min-height: 320px; position: relative; overflow: hidden;
+                    min-height: 240px; position: relative; overflow: hidden;
                     transition: transform 0.3s ease, box-shadow 0.3s ease;
                 }}
                 .aniversariante-row::before {{
@@ -507,11 +515,11 @@ if dados:
                 /* ══ POLAROID ════════════════════════════════════════════════ */
                 .polaroid-container {{
                     width:100%; display:flex;
-                    align-items:center; justify-content:center; padding:10px;
+                    align-items:center; justify-content:center; padding:6px;
                     position:relative; z-index:1;
                 }}
                 .polaroid-wrapper {{
-                    position:relative; width:100%; max-width:320px;
+                    position:relative; width:100%; max-width:240px;
                     display:flex; justify-content:center;
                 }}
                 .polaroid-wrapper::before {{
@@ -520,7 +528,7 @@ if dados:
                     transform:rotate(4deg) translateY(6px); z-index:0;
                 }}
                 .polaroid {{
-                    background:#ffffff; padding:16px 16px 58px; border-radius:4px;
+                    background:#ffffff; padding:14px 14px 40px; border-radius:4px;
                     box-shadow:0 16px 40px rgba(0,0,0,0.15),0 3px 10px rgba(0,0,0,0.1);
                     width:100%; color:#1e293b; text-align:center;
                     position:relative; z-index:1; transition:transform 0.45s ease;
@@ -559,10 +567,10 @@ if dados:
                 .nome {{
                     font-family:'Playfair Display',serif;
                     font-size:clamp(1.1rem,1.8vw,1.6rem);
-                    font-weight:900; margin-top:16px; color:#0f172a; line-height:1.2;
+                    font-weight:900; margin-top:12px; color:#0f172a; line-height:1.2;
                     word-break:break-word;
                     display:-webkit-box;
-                    -webkit-line-clamp:3; -webkit-box-orient:vertical;
+                    -webkit-line-clamp:2; -webkit-box-orient:vertical;
                     overflow:hidden;
                 }}
                 .data-badge {{
@@ -932,7 +940,7 @@ if dados:
 
             curiosidade_html = ""
             if texto_curiosidade:
-                curiosidade_html = f'<div class="curiosidade-txt">"{texto_curiosidade}"</div>'
+                curiosidade_html = f'<div class="curiosidade-txt">\"{texto_curiosidade}\"</div>'
 
             e_hoje     = (dia == dia_atual_efetivo)
             classe_row = "aniversariante-row hoje" if e_hoje else "aniversariante-row"
