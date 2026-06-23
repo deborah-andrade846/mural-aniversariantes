@@ -123,7 +123,7 @@ if modo_admin:
             img_tipo_admin = imagem_fundo.type
             estilo_fundo   = (
                 f"background-image: url('data:{img_tipo_admin};base64,{img_b64_admin}'); "
-                "background-size: cover; background-position: center top; background-repeat: no-repeat;"
+                "background-size: contain; background-position: center top; background-repeat: no-repeat;"
             )
 
     if img_b64_admin is None:
@@ -181,7 +181,7 @@ if not modo_admin:
     if imagem_salva:
         estilo_fundo = (
             f"background-image: url('{imagem_salva}'); "
-            "background-size: cover; background-position: center top; background-repeat: no-repeat;"
+            "background-size: contain; background-position: center top; background-repeat: no-repeat;"
         )
     elif cor_hex_valida(cor_salva):
         estilo_fundo = f"background-color: {cor_salva};"
@@ -196,7 +196,7 @@ if not exibir_mural:
             min-height: 100vh;
             {estilo_fundo}
             background-attachment: scroll !important;
-            background-size: cover !important;
+            background-size: contain !important;
             background-position: center top !important;
             background-repeat: no-repeat !important;
         }}
@@ -316,7 +316,7 @@ if dados:
             .stApp {{
                 {estilo_fundo}
                 background-attachment: fixed !important;
-                background-size: cover !important;
+                background-size: contain !important;
                 background-position: center top !important;
                 background-repeat: no-repeat !important;
             }}
@@ -801,7 +801,7 @@ if dados:
                     .modal-overlay {{ display: none !important; }}
                     html, body {{
                         {estilo_fundo}
-                        background-size:cover !important;
+                        background-size:contain !important;
                         background-position:center top !important;
                         background-repeat:no-repeat !important;
                         background-attachment:scroll !important;
@@ -1110,7 +1110,7 @@ if dados:
                 *, *::before, *::after {{ margin:0; padding:0; box-sizing:border-box; }}
                 html {{
                     {estilo_fundo}
-                    background-size:cover; background-position:center top;
+                    background-size:contain; background-position:center top;
                     background-repeat:no-repeat; min-height:100%;
                 }}
                 body {{
@@ -1199,7 +1199,7 @@ if dados:
                 html {{
                     {estilo_fundo}
                     background-attachment: scroll !important;
-                    background-size: cover !important;
+                    background-size: contain !important;
                     background-position: center top !important;
                     background-repeat: no-repeat !important;
                     min-height: 100%;
