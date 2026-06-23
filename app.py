@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import html as html_lib
 import streamlit as st
 import streamlit.components.v1 as components
@@ -987,8 +988,13 @@ if dados:
                         autor_raw = str(recado.get("de_quem", "Anônimo")).strip()
                         autor = html_lib.escape(autor_raw.title()) if autor_raw else "Anônimo"
 
-                        seed_val = hash(mensagem + autor + nome) & 0xFFFFFF
-                        rotacao  = (seed_val % 9) - 4
+                        # Hash determinístico: a rotação fica estável entre
+                        # execuções (hash() do Python varia por PYTHONHASHSEED).
+                        seed_bytes = (mensagem + autor + nome).encode("utf-8")
+                        seed_val   = int.from_bytes(
+                            hashlib.md5(seed_bytes).digest()[:4], "big"
+                        )
+                        rotacao    = (seed_val % 9) - 4
 
                         cor = POSTIT_COLORS[i % len(POSTIT_COLORS)]
 
