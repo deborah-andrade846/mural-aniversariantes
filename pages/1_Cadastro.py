@@ -20,7 +20,7 @@ st.write("Adicione sua foto, uma curiosidade e proteja seu perfil com uma senha.
 
 try:
     with st.spinner("Carregando lista de colaboradores..."):
-        res = supabase.table("aniversariantes").select("id, nome, perfil_completo, data_nascimento, senha_perfil").execute()
+        res = supabase.table("aniversariantes").select("id, nome, perfil_completo, data_nascimento, senha_perfil, curiosidade").execute()
     lista_funcionarios = res.data or []
 
 except Exception as e:
@@ -78,6 +78,7 @@ if nome_selecionado == "➕ Meu nome não está na lista":
                         "foto_url":        foto_url,
                     }
                     supabase.table("aniversariantes").insert(dados_insert).execute()
+                    st.cache_data.clear()
                     st.success(f"✅ Cadastro de **{novo_nome.strip()}** criado com sucesso! Bem-vindo(a) à equipe. 🎉")
 
                 except Exception as e:
@@ -127,7 +128,11 @@ elif nome_selecionado != "":
         if not foi_completado:
             senha_confirm = st.text_input("Confirme sua senha", type="password")
 
-        curiosidade = st.text_area("Sua curiosidade", max_chars=200)
+        # Pré-preenche com a curiosidade atual para não apagá-la sem querer.
+        curiosidade_atual = dados_atuais.get("curiosidade") or ""
+        if str(curiosidade_atual).strip().lower() in ("nan", "none", "null"):
+            curiosidade_atual = ""
+        curiosidade = st.text_area("Sua curiosidade", value=curiosidade_atual, max_chars=200)
         foto_upload = st.file_uploader("Sua foto", type=["jpg", "png", "jpeg"])
 
         submit_update = st.form_submit_button("💾 Salvar Informações")
@@ -162,7 +167,12 @@ elif nome_selecionado != "":
                         dados_update["data_nascimento"] = str(nova_data)
 
                     supabase.table("aniversariantes").update(dados_update).eq("id", perfil_id).execute()
-                    st.success("✅ Perfil atualizado e protegido com sucesso!")
+                    # Invalida os caches (Mural e Colaboradores) para refletir já.
+                    st.cache_data.clear()
+                    st.success(
+                        "✅ Perfil atualizado e protegido com sucesso! "
+                        "As alterações já aparecem no Mural."
+                    )
 
             except Exception as e:
                 st.error("Erro ao atualizar o perfil. Tente novamente.")

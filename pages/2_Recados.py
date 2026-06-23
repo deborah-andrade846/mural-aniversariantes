@@ -73,6 +73,7 @@ with st.form("form_recado", clear_on_submit=True):
                     "mensagem":  mensagem.strip(),
                 }
                 supabase.table("recados").insert(novo_recado).execute()
+                st.cache_data.clear()
                 st.success(f"✅ Post-it colado com sucesso para **{para_quem}**! Vá na aba do Mural para ver. 🎉")
             except Exception:
                 st.error("Erro ao enviar o recado. Tente novamente.")
