@@ -930,6 +930,30 @@ if dados:
                     background: linear-gradient(135deg,#38bdf8,#f472b6);
                     transform: scale(1.35);
                 }}
+                /* TV: recados aparecem 1 por vez, INTEIROS, e vão passando */
+                html.tv .area-post-it {{
+                    justify-content: center; align-items: flex-start;
+                    min-height: 240px;
+                }}
+                html.tv .area-post-it .post-it {{ display: none; }}
+                html.tv .area-post-it .post-it.recado-ativo {{ display: flex; }}
+                html.tv .post-it {{
+                    width: min(620px, 94%); min-height: 220px;
+                    transform: none !important;   /* sem inclinação: leitura melhor */
+                    padding: 30px 28px 24px;
+                }}
+                html.tv .post-it-msg {{
+                    -webkit-line-clamp: unset; display: block;
+                    overflow: visible; font-size: 1.7rem; line-height: 1.5;
+                }}
+                html.tv .post-it-autor {{ font-size: 1.2rem; }}
+                /* contador de recados dentro da rodada (ex.: 2/3) */
+                .recado-progresso {{ display: none; }}
+                html.tv .recado-progresso {{
+                    display: block; text-align: center; margin-top: 14px;
+                    font-family: 'Inter', sans-serif; font-size: 0.95rem;
+                    font-weight: 600; color: #64748b;
+                }}
             </style>
             <style id="orientacao-style">
                 @media print {{ @page {{ size:A3 portrait; margin:0; }} }}
@@ -961,7 +985,14 @@ if dados:
                     window.scrollTo({{ top: 0, behavior: 'smooth' }});
                 }}
 
-                // ── Carrossel do modo TV: mostra 1 aniversariante por vez ──
+                // ── Carrossel do modo TV ───────────────────────────────────
+                // Mostra 1 aniversariante por vez. Dentro de cada um, se houver
+                // mais de um recado, eles passam um a um (inteiros). A pessoa só
+                // avança depois que todos os recados foram exibidos.
+                var PESSOA_MS = 10000;   // cada aniversariante fica 10s na tela;
+                                         // se tiver vários recados, eles passam
+                                         // dentro desses 10s (10s / nº de recados).
+
                 function iniciarCarrosselTV() {{
                     var slides = Array.prototype.slice.call(
                         document.querySelectorAll('.aniversariante-row')
@@ -971,7 +1002,7 @@ if dados:
                     var dotsBox = document.getElementById('tv-dots');
                     var dots = [];
                     if (dotsBox && slides.length > 1) {{
-                        slides.forEach(function(_, i) {{
+                        slides.forEach(function() {{
                             var d = document.createElement('span');
                             d.className = 'tv-dot';
                             dotsBox.appendChild(d);
@@ -979,22 +1010,59 @@ if dados:
                         }});
                     }}
 
-                    var idx = 0;
-                    function mostrar(novo) {{
-                        slides[idx].classList.remove('tv-active');
-                        if (dots[idx]) dots[idx].classList.remove('ativo');
-                        idx = novo;
-                        slides[idx].classList.add('tv-active');
-                        if (dots[idx]) dots[idx].classList.add('ativo');
-                        window.scrollTo(0, 0);
+                    var pIdx = 0;
+                    var timer = null;
+
+                    function recadosDe(slide) {{
+                        return Array.prototype.slice.call(
+                            slide.querySelectorAll('.area-post-it .post-it')
+                        );
                     }}
 
-                    mostrar(0);
-                    if (slides.length > 1) {{
-                        setInterval(function() {{
-                            mostrar((idx + 1) % slides.length);
-                        }}, 10000);   // troca a cada 10s
+                    function pintarRecado(recs, prog, k) {{
+                        recs.forEach(function(r, i) {{
+                            r.classList.toggle('recado-ativo', i === k);
+                        }});
+                        if (prog && recs.length > 1) {{
+                            prog.textContent = '💬 recado ' + (k + 1) + ' de ' + recs.length;
+                        }} else if (prog) {{
+                            prog.textContent = '';
+                        }}
                     }}
+
+                    function proximaPessoa() {{
+                        if (timer) {{ clearTimeout(timer); clearInterval(timer); timer = null; }}
+                        ativarPessoa((pIdx + 1) % slides.length);
+                    }}
+
+                    function ativarPessoa(i) {{
+                        if (timer) {{ clearTimeout(timer); clearInterval(timer); timer = null; }}
+                        slides.forEach(function(s, j) {{ s.classList.toggle('tv-active', j === i); }});
+                        dots.forEach(function(d, j) {{ d.classList.toggle('ativo', j === i); }});
+                        pIdx = i;
+                        window.scrollTo(0, 0);
+
+                        var slide = slides[i];
+                        var recs  = recadosDe(slide);
+                        var prog  = slide.querySelector('.recado-progresso');
+
+                        if (recs.length > 1) {{
+                            // divide os 10s entre os recados, passando um a um
+                            var porRecado = PESSOA_MS / recs.length;
+                            var k = 0;
+                            pintarRecado(recs, prog, 0);
+                            timer = setInterval(function() {{
+                                k++;
+                                if (k >= recs.length) {{ proximaPessoa(); return; }}
+                                pintarRecado(recs, prog, k);
+                            }}, porRecado);
+                        }} else {{
+                            pintarRecado(recs, prog, 0);   // 0 ou 1 recado
+                            timer = setTimeout(proximaPessoa, PESSOA_MS);
+                        }}
+                    }}
+
+                    ativarPessoa(0);
                 }}
 
                 document.addEventListener('DOMContentLoaded', function() {{
@@ -1194,6 +1262,7 @@ if dados:
                     <div class="area-post-it">
                         {post_its_html}
                     </div>
+                    <div class="recado-progresso"></div>
                 </div>
             </div>
             """
