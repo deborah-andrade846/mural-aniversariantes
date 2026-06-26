@@ -384,7 +384,7 @@ if dados:
 
         html_base = f"""
         <!DOCTYPE html>
-        <html>
+        <html class="{'tv' if is_tv else ''}">
         <head>
             <meta charset="UTF-8">
             <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -409,22 +409,30 @@ if dados:
                     min-height: 100vh;
                     width: 100%;
                 }}
+                /* Overlay sutil para escurecer o fundo claro e garantir
+                   contraste do texto (importante numa TV vista de longe). */
+                body::before {{
+                    content:''; position:fixed; inset:0; z-index:0;
+                    pointer-events:none;
+                    background: linear-gradient(180deg, rgba(0,0,0,0.24), rgba(0,0,0,0.08));
+                }}
+                .mural-header, .mural-grid {{ position: relative; z-index: 1; }}
 
                 /* ══ HEADER ══════════════════════════════════════════════════ */
                 .mural-header {{
                     text-align: center; margin-bottom: 28px;
-                    position: relative; width: 100%;
+                    width: 100%;
                     max-width: min(1400px, 96vw);
                     animation: fadeInDown 0.9s ease both;
                 }}
                 .mural-header-inner {{
-                    background: rgba(255,255,255,0.18);
+                    background: rgba(15,23,42,0.42);
                     backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
-                    border: 1px solid rgba(255,255,255,0.35); border-radius: 20px;
+                    border: 1px solid rgba(255,255,255,0.22); border-radius: 20px;
                     padding: clamp(24px,4vw,32px) clamp(20px,5vw,70px) clamp(20px,3vw,28px);
                     width: fit-content;
                     max-width: 95vw;
-                    box-shadow: 0 16px 48px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.4);
+                    box-shadow: 0 16px 48px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18);
                     display: inline-block; position: relative; overflow: hidden;
                     margin: 0 auto;
                 }}
@@ -434,9 +442,9 @@ if dados:
                     border-radius: 20px 20px 0 0;
                 }}
                 .mural-header .subtitulo {{
-                    font-family:'Inter',sans-serif; font-weight:600; font-size:0.78rem;
-                    letter-spacing:8px; text-transform:uppercase; color:#ffffff;
-                    text-shadow:0 1px 6px rgba(0,0,0,0.5); margin-bottom:8px;
+                    font-family:'Inter',sans-serif; font-weight:700; font-size:0.8rem;
+                    letter-spacing:7px; text-transform:uppercase; color:#fde68a;
+                    text-shadow:0 1px 6px rgba(0,0,0,0.6); margin-bottom:8px;
                 }}
                 .mural-header h1 {{
                     font-family:'Playfair Display',serif;
@@ -500,11 +508,11 @@ if dados:
                 /* ══ CARD BASE ═══════════════════════════════════════════════ */
                 .aniversariante-row {{
                     display: grid;
-                    grid-template-columns: minmax(240px,1fr) 2fr;
+                    grid-template-columns: minmax(240px,1fr) 1.6fr;
                     gap: clamp(20px,3vw,40px);
-                    background: rgba(255,255,255,0.65);
+                    background: rgba(255,255,255,0.85);
                     backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-                    border: 1px solid rgba(255,255,255,0.6);
+                    border: 1px solid rgba(255,255,255,0.7);
                     border-radius: 22px;
                     padding: clamp(22px,2.5vw,36px) clamp(22px,3vw,40px);
                     box-shadow: 0 12px 40px rgba(0,0,0,0.15);
@@ -526,7 +534,7 @@ if dados:
                 /* ══ CARD "HOJE" ═════════════════════════════════════════════ */
                 .aniversariante-row.hoje {{
                     border: 2px solid rgba(251,191,36,0.8);
-                    background: rgba(255,251,235,0.78);
+                    background: rgba(255,251,235,0.92);
                     animation: fadeInUp 0.7s ease both, pulsoHoje 2.8s ease-in-out 0.8s infinite;
                 }}
                 .aniversariante-row.hoje::before {{
@@ -603,9 +611,11 @@ if dados:
                 }}
                 .foto-placeholder {{
                     width:100%; height:100%; min-height:120px;
-                    background:linear-gradient(135deg,#f1f5f9,#cbd5e1);
+                    background:linear-gradient(135deg,#e0e7ff,#c7d2fe);
                     display:flex; align-items:center; justify-content:center;
-                    font-size:4.5rem;
+                    font-family:'Playfair Display',serif; font-weight:900;
+                    font-size:clamp(3rem,6vw,5rem); color:#6366f1;
+                    letter-spacing:1px; text-shadow:0 2px 4px rgba(99,102,241,0.15);
                 }}
                 .nome {{
                     font-family:'Playfair Display',serif;
@@ -877,6 +887,49 @@ if dados:
                 @media (max-width:850px) {{
                     .aniversariante-row {{ grid-template-columns:1fr; padding:24px; }}
                 }}
+
+                /* ══ MODO TV — CARROSSEL (1 aniversariante por vez) ══════════ */
+                html.tv {{ font-size: 20px; }}                 /* amplia tudo p/ ver de longe */
+                html.tv body {{
+                    padding: 18px 28px 28px;
+                    min-height: 100vh; justify-content: flex-start;
+                }}
+                html.tv .mural-header {{ margin-bottom: 22px; }}
+                html.tv .mural-header h1 {{ font-size: clamp(2.6rem,4.5vw,4.6rem); }}
+                /* a grade vira um palco que centraliza o card ativo */
+                html.tv .mural-grid {{
+                    flex: 1 1 auto; display: flex; align-items: center;
+                    justify-content: center; width: 100%;
+                }}
+                html.tv .aniversariante-row {{
+                    display: none;
+                    width: 100%; max-width: min(1600px, 94vw);
+                    margin: 0 auto;
+                }}
+                html.tv .aniversariante-row.tv-active {{
+                    display: grid;
+                    animation: tvFade 0.7s ease both !important;
+                }}
+                @keyframes tvFade {{
+                    from {{ opacity: 0; transform: translateY(24px) scale(0.98); }}
+                    to   {{ opacity: 1; transform: none; }}
+                }}
+                /* indicador de posição (pontos) */
+                .tv-dots {{
+                    display: none; position: fixed; bottom: 22px; left: 0; right: 0;
+                    justify-content: center; gap: 10px; z-index: 1000;
+                }}
+                html.tv .tv-dots {{ display: flex; }}
+                .tv-dot {{
+                    width: 12px; height: 12px; border-radius: 50%;
+                    background: rgba(255,255,255,0.45);
+                    border: 1px solid rgba(0,0,0,0.15);
+                    transition: background 0.3s ease, transform 0.3s ease;
+                }}
+                .tv-dot.ativo {{
+                    background: linear-gradient(135deg,#38bdf8,#f472b6);
+                    transform: scale(1.35);
+                }}
             </style>
             <style id="orientacao-style">
                 @media print {{ @page {{ size:A3 portrait; margin:0; }} }}
@@ -908,6 +961,42 @@ if dados:
                     window.scrollTo({{ top: 0, behavior: 'smooth' }});
                 }}
 
+                // ── Carrossel do modo TV: mostra 1 aniversariante por vez ──
+                function iniciarCarrosselTV() {{
+                    var slides = Array.prototype.slice.call(
+                        document.querySelectorAll('.aniversariante-row')
+                    );
+                    if (slides.length === 0) return;
+
+                    var dotsBox = document.getElementById('tv-dots');
+                    var dots = [];
+                    if (dotsBox && slides.length > 1) {{
+                        slides.forEach(function(_, i) {{
+                            var d = document.createElement('span');
+                            d.className = 'tv-dot';
+                            dotsBox.appendChild(d);
+                            dots.push(d);
+                        }});
+                    }}
+
+                    var idx = 0;
+                    function mostrar(novo) {{
+                        slides[idx].classList.remove('tv-active');
+                        if (dots[idx]) dots[idx].classList.remove('ativo');
+                        idx = novo;
+                        slides[idx].classList.add('tv-active');
+                        if (dots[idx]) dots[idx].classList.add('ativo');
+                        window.scrollTo(0, 0);
+                    }}
+
+                    mostrar(0);
+                    if (slides.length > 1) {{
+                        setInterval(function() {{
+                            mostrar((idx + 1) % slides.length);
+                        }}, 10000);   // troca a cada 10s
+                    }}
+                }}
+
                 document.addEventListener('DOMContentLoaded', function() {{
                     applyOrientation('portrait');
                     if (IS_TV) {{
@@ -918,6 +1007,8 @@ if dados:
                         if (badge)   badge.style.display   = 'none';
                         if (topo)    topo.style.display     = 'none';
 
+                        iniciarCarrosselTV();
+
                         setTimeout(function() {{
                             try {{ window.parent.location.reload(); }}
                             catch(e) {{ window.location.reload(); }}
@@ -927,6 +1018,7 @@ if dados:
             </script>
 
             <div id="badge-orientacao" class="orientacao-badge"></div>
+            <div id="tv-dots" class="tv-dots"></div>
             <button id="btn-topo" class="btn-topo" onclick="voltarTopo()">↑ Topo</button>
 
             <div class="print-toolbar">
@@ -969,6 +1061,15 @@ if dados:
             partes        = nome_formatado.split()
             primeiro_nome = partes[0] if partes else nome_formatado
 
+            # Iniciais para o placeholder (em vez da silhueta genérica)
+            if len(partes) >= 2:
+                iniciais = (partes[0][0] + partes[-1][0]).upper()
+            elif partes:
+                iniciais = partes[0][:2].upper()
+            else:
+                iniciais = "?"
+            iniciais = html_lib.escape(iniciais)
+
             img_url = str(row.get("foto_url", "")).strip().replace("'", "%27").replace('"', "%22")
             if img_url:
                 foto_html = f'''
@@ -976,10 +1077,10 @@ if dados:
                     <img class="foto-img" src="{img_url}"
                          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
                          alt="Foto de {nome}" />
-                    <div class="foto-placeholder" style="display:none;">👤</div>
+                    <div class="foto-placeholder" style="display:none;">{iniciais}</div>
                 </div>'''
             else:
-                foto_html = '<div class="foto-wrapper"><div class="foto-placeholder">👤</div></div>'
+                foto_html = f'<div class="foto-wrapper"><div class="foto-placeholder">{iniciais}</div></div>'
 
             curiosidade_html = ""
             if texto_curiosidade:
@@ -1145,7 +1246,12 @@ if dados:
         """
 
         full_html = html_base + cartoes_html + modal_html + "</body></html>"
-        components.html(full_html, height=altura_iframe, scrolling=True)
+        if is_tv:
+            # No carrossel, só um card aparece por vez: altura fixa de "telão"
+            # e sem barra de rolagem interna.
+            components.html(full_html, height=1024, scrolling=False)
+        else:
+            components.html(full_html, height=altura_iframe, scrolling=True)
 
     else:
         empty_html = f"""
