@@ -989,8 +989,9 @@ if dados:
                 // Mostra 1 aniversariante por vez. Dentro de cada um, se houver
                 // mais de um recado, eles passam um a um (inteiros). A pessoa só
                 // avança depois que todos os recados foram exibidos.
-                var RECADO_MS    = 5000;    // tempo de cada recado
-                var PESSOA_MIN_MS = 10000;  // tempo mínimo por pessoa (0 ou 1 recado)
+                var PESSOA_MS = 10000;   // cada aniversariante fica 10s na tela;
+                                         // se tiver vários recados, eles passam
+                                         // dentro desses 10s (10s / nº de recados).
 
                 function iniciarCarrosselTV() {{
                     var slides = Array.prototype.slice.call(
@@ -1046,16 +1047,18 @@ if dados:
                         var prog  = slide.querySelector('.recado-progresso');
 
                         if (recs.length > 1) {{
+                            // divide os 10s entre os recados, passando um a um
+                            var porRecado = PESSOA_MS / recs.length;
                             var k = 0;
                             pintarRecado(recs, prog, 0);
                             timer = setInterval(function() {{
                                 k++;
                                 if (k >= recs.length) {{ proximaPessoa(); return; }}
                                 pintarRecado(recs, prog, k);
-                            }}, RECADO_MS);
+                            }}, porRecado);
                         }} else {{
                             pintarRecado(recs, prog, 0);   // 0 ou 1 recado
-                            timer = setTimeout(proximaPessoa, PESSOA_MIN_MS);
+                            timer = setTimeout(proximaPessoa, PESSOA_MS);
                         }}
                     }}
 
