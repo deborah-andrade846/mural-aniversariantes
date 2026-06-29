@@ -47,8 +47,16 @@ liberar_recados  = to_bool(config.get("liberar_recados", False))
 liberar_cadastro = to_bool(config.get("liberar_cadastro", True))
 
 # ── MODO TV ───────────────────────────────────────────────────────────────────
-# Pode ser ligado pela URL (?tv=true) OU pelo painel admin (config modo_tv).
-is_tv = (st.query_params.get("tv") == "true") or to_bool(config.get("modo_tv", False))
+# Precedência: a URL manda. ?tv=false força o modo normal (saída de
+# emergência para reaver o painel admin); ?tv=true força o modo TV;
+# sem parâmetro, vale o que estiver salvo no painel (config modo_tv).
+_tv_param = st.query_params.get("tv")
+if _tv_param == "false":
+    is_tv = False
+elif _tv_param == "true":
+    is_tv = True
+else:
+    is_tv = to_bool(config.get("modo_tv", False))
 
 if is_tv:
     st.markdown("""
