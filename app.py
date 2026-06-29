@@ -315,18 +315,30 @@ hoje      = datetime.now()
 dia_atual = hoje.day
 
 # ── SELETOR DE MÊS ───────────────────────────────────────────────────────────
+# Mês pode vir pela URL (?mes=6). Útil na TV: ?tv=true&mes=6 mostra junho
+# mesmo fora do mês — para comemorações fora da data.
+def _mes_da_url(default):
+    val = st.query_params.get("mes")
+    try:
+        m = int(val)
+        return m if 1 <= m <= 12 else default
+    except (TypeError, ValueError):
+        return default
+
+mes_url_default = _mes_da_url(hoje.month)
+
 if not is_tv:
     col_mes, _ = st.columns([1, 3])
     with col_mes:
         mes_selecionado = st.selectbox(
             "📅 Mês do Mural",
             options=list(MESES_PTBR.keys()),
-            index=hoje.month - 1,
+            index=mes_url_default - 1,
             format_func=lambda m: MESES_PTBR[m],
             key="mes_mural",
         )
 else:
-    mes_selecionado = hoje.month
+    mes_selecionado = mes_url_default
 
 mes_atual      = mes_selecionado
 nome_mes_atual = MESES_PTBR[mes_atual]
