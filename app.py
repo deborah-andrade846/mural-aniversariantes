@@ -392,6 +392,19 @@ nome_mes_atual = MESES_PTBR[mes_atual]
 
 dia_atual_efetivo = dia_atual if mes_atual == hoje.month else -1
 
+# ── ATALHO PARA DEIXAR UM RECADO ──────────────────────────────────────────────
+# Botão nativo do Streamlit (fora do iframe) que leva à aba de Recados,
+# onde a pessoa escreve e envia a mensagem. Aparece quando os recados
+# estão liberados.
+if liberar_recados:
+    _rc1, _rc2, _rc3 = st.columns([1, 2, 1])
+    with _rc2:
+        st.page_link(
+            "pages/2_Recados.py",
+            label="✍️ Deixar um recado para os aniversariantes",
+            use_container_width=True,
+        )
+
 if dados:
     df = pd.DataFrame(dados)
     df["data_nascimento"] = pd.to_datetime(df["data_nascimento"], errors="coerce")
