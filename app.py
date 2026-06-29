@@ -397,11 +397,31 @@ dia_atual_efetivo = dia_atual if mes_atual == hoje.month else -1
 # onde a pessoa escreve e envia a mensagem. Aparece quando os recados
 # estão liberados.
 if liberar_recados:
+    st.markdown("""
+        <style>
+            /* botão de recado: bem visível e com cara de botão */
+            div[data-testid="stLinkButton"] > a {
+                font-size: 1.2rem !important;
+                font-weight: 800 !important;
+                padding: 0.85rem 1.2rem !important;
+                border-radius: 16px !important;
+                background: linear-gradient(135deg,#0ea5e9,#f472b6) !important;
+                color: #ffffff !important;
+                border: none !important;
+                box-shadow: 0 6px 18px rgba(14,165,233,0.45) !important;
+            }
+            div[data-testid="stLinkButton"] > a:hover {
+                filter: brightness(1.05);
+                transform: translateY(-2px);
+            }
+        </style>
+    """, unsafe_allow_html=True)
     _rc1, _rc2, _rc3 = st.columns([1, 2, 1])
     with _rc2:
-        st.page_link(
-            "pages/2_Recados.py",
-            label="✍️ Deixar um recado para os aniversariantes",
+        st.link_button(
+            "✍️ Deixar um recado",
+            "/Recados",
+            type="primary",
             use_container_width=True,
         )
 
