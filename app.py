@@ -30,8 +30,25 @@ MESES_PTBR = {
     9: "Setembro", 10: "Outubro",  11: "Novembro", 12: "Dezembro",
 }
 
+def _parse_mes_admin(val):
+    """Mês salvo na config: int 1-12, ou 0 para 'automático' (mês atual)."""
+    try:
+        m = int(val)
+        return m if 1 <= m <= 12 else 0
+    except (TypeError, ValueError):
+        return 0
+
+# ── CONEXÃO & CONFIG ──────────────────────────────────────────────────────────
+supabase = get_supabase()
+config   = carregar_config()
+
+exibir_mural     = to_bool(config.get("exibir_mural",    False))
+liberar_recados  = to_bool(config.get("liberar_recados", False))
+liberar_cadastro = to_bool(config.get("liberar_cadastro", True))
+
 # ── MODO TV ───────────────────────────────────────────────────────────────────
-is_tv = st.query_params.get("tv") == "true"
+# Pode ser ligado pela URL (?tv=true) OU pelo painel admin (config modo_tv).
+is_tv = (st.query_params.get("tv") == "true") or to_bool(config.get("modo_tv", False))
 
 if is_tv:
     st.markdown("""
@@ -48,14 +65,6 @@ if is_tv:
         </style>
     """, unsafe_allow_html=True)
 
-# ── CONEXÃO & CONFIG ──────────────────────────────────────────────────────────
-supabase = get_supabase()
-config   = carregar_config()
-
-exibir_mural     = to_bool(config.get("exibir_mural",    False))
-liberar_recados  = to_bool(config.get("liberar_recados", False))
-liberar_cadastro = to_bool(config.get("liberar_cadastro", True))
-
 # ── FUNÇÕES COM CACHE ─────────────────────────────────────────────────────────
 @st.cache_data(ttl=120)
 def carregar_aniversariantes(_supabase):
@@ -71,6 +80,14 @@ senha_digitada = st.sidebar.text_input("Acesso restrito", type="password")
 
 SENHA_CORRETA = st.secrets.get("ADMIN_PASSWORD", "")
 modo_admin    = bool(SENHA_CORRETA) and (senha_digitada == SENHA_CORRETA)
+
+# Na TV, esconde a barra lateral para o público (telão limpo), mas mantém
+# para o admin — assim ele nunca fica preso e pode desligar o modo TV.
+if is_tv and not modo_admin:
+    st.markdown(
+        "<style>[data-testid='stSidebar']{display:none;}</style>",
+        unsafe_allow_html=True,
+    )
 
 if modo_admin:
     st.sidebar.success("Modo Admin Ativado! 🔓")
@@ -99,6 +116,26 @@ if modo_admin:
         novo_recados  = st.checkbox("Libertar Aba de Recados",  value=liberar_recados)
         novo_exibir   = st.checkbox("🎉 REVELAR MURAL FINAL",   value=exibir_mural)
         novo_pesquisa = st.checkbox("Libertar Aba de Pesquisa", value=to_bool(config.get("liberar_pesquisa", True)))
+
+    with st.sidebar.expander("📺 Modo TV (telão)", expanded=False):
+        st.caption(
+            "Liga o carrossel no telão e fixa o mês exibido, sem precisar "
+            "mexer na URL. A TV atualiza sozinha em até 5 min."
+        )
+        novo_modo_tv = st.checkbox(
+            "📺 Ativar modo TV (carrossel)",
+            value=to_bool(config.get("modo_tv", False)),
+        )
+        _opcoes_mes_tv = [0] + list(MESES_PTBR.keys())   # 0 = automático
+        _mes_tv_salvo  = _parse_mes_admin(config.get("mes_tv"))
+        novo_mes_tv = st.selectbox(
+            "Mês exibido na TV",
+            options=_opcoes_mes_tv,
+            index=_opcoes_mes_tv.index(_mes_tv_salvo),
+            format_func=lambda m: "Automático (mês atual)" if m == 0 else MESES_PTBR[m],
+        )
+        if novo_modo_tv:
+            st.info("⚠️ Com o modo TV ligado, todos que abrirem o mural verão o carrossel (sem o menu lateral).")
 
     with st.sidebar.expander("🎨 Personalização Visual", expanded=False):
         cor_fundo_banco = config.get("cor_fundo")
@@ -199,6 +236,8 @@ if modo_admin:
         atualizar_config("exibir_mural",     novo_exibir)
         atualizar_config("cor_fundo",        cor_fundo)
         atualizar_config("liberar_pesquisa", novo_pesquisa)
+        atualizar_config("modo_tv", novo_modo_tv)
+        atualizar_config("mes_tv", novo_mes_tv if novo_mes_tv != 0 else "")
         if img_b64_admin is not None:
             fundo_data_url = f"data:{img_tipo_admin};base64,{img_b64_admin}"
             atualizar_config("imagem_fundo", fundo_data_url)
@@ -315,17 +354,17 @@ hoje      = datetime.now()
 dia_atual = hoje.day
 
 # ── SELETOR DE MÊS ───────────────────────────────────────────────────────────
-# Mês pode vir pela URL (?mes=6). Útil na TV: ?tv=true&mes=6 mostra junho
-# mesmo fora do mês — para comemorações fora da data.
-def _mes_da_url(default):
-    val = st.query_params.get("mes")
+# Precedência: URL (?mes=6) > config do painel (mes_tv) > mês atual.
+# Útil na TV: comemorações que acontecem fora do mês de aniversário.
+def _parse_mes(val, default):
     try:
         m = int(val)
         return m if 1 <= m <= 12 else default
     except (TypeError, ValueError):
         return default
 
-mes_url_default = _mes_da_url(hoje.month)
+mes_config_default = _parse_mes(config.get("mes_tv"), hoje.month)
+mes_url_default    = _parse_mes(st.query_params.get("mes"), mes_config_default)
 
 if not is_tv:
     col_mes, _ = st.columns([1, 3])
