@@ -375,12 +375,9 @@ if dados:
         if not df_recados.empty and "para_quem" in df_recados.columns:
             recados_por_pessoa = df_recados["para_quem"].value_counts().to_dict()
 
-        altura_iframe = 280
-        for _, row in df_mes.iterrows():
-            nome_r        = str(row.get("nome", ""))
-            n_recados     = recados_por_pessoa.get(nome_r, 0)
-            linhas_postit = max(1, (n_recados // 4) + 1)
-            altura_iframe += 360 + linhas_postit * 150
+        # Cada card mostra 1 recado por vez (rotativo), então a altura por
+        # pessoa é ~fixa, sem depender da quantidade de recados.
+        altura_iframe = 280 + len(df_mes) * 600
 
         html_base = f"""
         <!DOCTYPE html>
@@ -930,30 +927,38 @@ if dados:
                     background: linear-gradient(135deg,#38bdf8,#f472b6);
                     transform: scale(1.35);
                 }}
-                /* TV: recados aparecem 1 por vez, INTEIROS, e vão passando */
-                html.tv .area-post-it {{
+                /* Recados aparecem 1 por vez, INTEIROS, e vão passando — em
+                   todos os modos (não depende de ?tv=true). */
+                .area-post-it {{
                     justify-content: center; align-items: flex-start;
-                    min-height: 240px;
+                    min-height: 220px;
                 }}
-                html.tv .area-post-it .post-it {{ display: none; }}
-                html.tv .area-post-it .post-it.recado-ativo {{ display: flex; }}
-                html.tv .post-it {{
-                    width: min(620px, 94%); min-height: 220px;
+                .area-post-it .post-it {{ display: none; }}
+                .area-post-it .post-it.recado-ativo {{ display: flex; }}
+                .post-it {{
+                    width: min(560px, 96%); min-height: 200px;
                     transform: none !important;   /* sem inclinação: leitura melhor */
-                    padding: 30px 28px 24px;
+                    padding: 26px 24px 20px;
                 }}
-                html.tv .post-it-msg {{
+                .post-it-msg {{
                     -webkit-line-clamp: unset; display: block;
-                    overflow: visible; font-size: 1.7rem; line-height: 1.5;
+                    overflow: visible; font-size: 1.4rem; line-height: 1.5;
                 }}
-                html.tv .post-it-autor {{ font-size: 1.2rem; }}
-                /* contador de recados dentro da rodada (ex.: 2/3) */
-                .recado-progresso {{ display: none; }}
-                html.tv .recado-progresso {{
-                    display: block; text-align: center; margin-top: 14px;
-                    font-family: 'Inter', sans-serif; font-size: 0.95rem;
+                .post-it-autor {{ font-size: 1.05rem; }}
+                /* contador de recados (ex.: recado 2 de 3) */
+                .recado-progresso {{
+                    text-align: center; margin-top: 14px; min-height: 1.1em;
+                    font-family: 'Inter', sans-serif; font-size: 0.9rem;
                     font-weight: 600; color: #64748b;
                 }}
+                /* Na TV tudo maior, para ler de longe */
+                html.tv .post-it {{
+                    width: min(620px, 94%); min-height: 220px;
+                    padding: 30px 28px 24px;
+                }}
+                html.tv .post-it-msg {{ font-size: 1.7rem; }}
+                html.tv .post-it-autor {{ font-size: 1.2rem; }}
+                html.tv .recado-progresso {{ font-size: 0.95rem; }}
             </style>
             <style id="orientacao-style">
                 @media print {{ @page {{ size:A3 portrait; margin:0; }} }}
@@ -1065,6 +1070,39 @@ if dados:
                     ativarPessoa(0);
                 }}
 
+                // ── Modo normal: cada card mostra 1 recado por vez e vai
+                // passando sozinho (independente, sem precisar de ?tv=true). ──
+                function iniciarRecadosNormais() {{
+                    var cards = Array.prototype.slice.call(
+                        document.querySelectorAll('.aniversariante-row')
+                    );
+                    cards.forEach(function(card) {{
+                        var recs = Array.prototype.slice.call(
+                            card.querySelectorAll('.area-post-it .post-it')
+                        );
+                        var prog = card.querySelector('.recado-progresso');
+                        if (recs.length === 0) return;
+
+                        function pinta(idx) {{
+                            recs.forEach(function(r, i) {{
+                                r.classList.toggle('recado-ativo', i === idx);
+                            }});
+                            if (prog && recs.length > 1) {{
+                                prog.textContent = '💬 recado ' + (idx + 1) + ' de ' + recs.length;
+                            }}
+                        }}
+
+                        pinta(0);
+                        if (recs.length > 1) {{
+                            var k = 0;
+                            setInterval(function() {{
+                                k = (k + 1) % recs.length;
+                                pinta(k);
+                            }}, 5000);   // cada recado fica 5s
+                        }}
+                    }});
+                }}
+
                 document.addEventListener('DOMContentLoaded', function() {{
                     applyOrientation('portrait');
                     if (IS_TV) {{
@@ -1081,6 +1119,8 @@ if dados:
                             try {{ window.parent.location.reload(); }}
                             catch(e) {{ window.location.reload(); }}
                         }}, 300000);
+                    }} else {{
+                        iniciarRecadosNormais();
                     }}
                 }});
             </script>
