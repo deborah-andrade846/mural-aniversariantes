@@ -416,8 +416,9 @@ if liberar_recados:
             }
         </style>
     """, unsafe_allow_html=True)
-    _rc1, _rc2, _rc3 = st.columns([1, 2, 1])
-    with _rc2:
+    # Posiciona o botão no canto superior direito (compacto).
+    _rc_esq, _rc_btn = st.columns([4, 1])
+    with _rc_btn:
         st.link_button(
             "✍️ Deixar um recado",
             "/Recados",
