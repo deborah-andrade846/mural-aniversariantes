@@ -401,14 +401,22 @@ if liberar_recados:
         <style>
             /* botão de recado: bem visível e com cara de botão */
             div[data-testid="stLinkButton"] > a {
-                font-size: 1.9rem !important;
-                font-weight: 800 !important;
                 padding: 1.15rem 1.8rem !important;
                 border-radius: 18px !important;
                 background: linear-gradient(135deg,#0ea5e9,#f472b6) !important;
                 color: #ffffff !important;
                 border: none !important;
                 box-shadow: 0 8px 22px rgba(14,165,233,0.5) !important;
+            }
+            /* O texto do botão fica num elemento interno (p/div/span) com
+               tamanho próprio, então a fonte precisa ser aplicada nele. */
+            div[data-testid="stLinkButton"] > a,
+            div[data-testid="stLinkButton"] > a p,
+            div[data-testid="stLinkButton"] > a div,
+            div[data-testid="stLinkButton"] > a span {
+                font-size: 1.9rem !important;
+                font-weight: 800 !important;
+                line-height: 1.2 !important;
             }
             div[data-testid="stLinkButton"] > a:hover {
                 filter: brightness(1.05);
