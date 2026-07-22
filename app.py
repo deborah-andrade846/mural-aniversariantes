@@ -414,8 +414,9 @@ if liberar_recados:
             div[data-testid="stLinkButton"] > a p,
             div[data-testid="stLinkButton"] > a div,
             div[data-testid="stLinkButton"] > a span {
-                font-size: 1.9rem !important;
-                font-weight: 800 !important;
+                font-size: 1.5rem !important;
+                font-weight: 500 !important;
+                letter-spacing: 0.3px !important;
                 line-height: 1.2 !important;
             }
             div[data-testid="stLinkButton"] > a:hover {
