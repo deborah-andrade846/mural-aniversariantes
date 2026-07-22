@@ -515,9 +515,9 @@ if dados:
                     animation: fadeInDown 0.9s ease both;
                 }}
                 .mural-header-inner {{
-                    background: rgba(15,23,42,0.42);
+                    background: rgba(15,23,42,0.62);
                     backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
-                    border: 1px solid rgba(255,255,255,0.22); border-radius: 20px;
+                    border: 1px solid rgba(255,255,255,0.28); border-radius: 20px;
                     padding: clamp(24px,4vw,32px) clamp(20px,5vw,70px) clamp(20px,3vw,28px);
                     width: fit-content;
                     max-width: 95vw;
@@ -553,13 +553,14 @@ if dados:
                 }}
                 .header-count {{
                     margin-top:12px;
-                    font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:600;
-                    color:rgba(255,255,255,0.95);
-                    background:rgba(255,255,255,0.22);
-                    border:1.5px solid rgba(255,255,255,0.45);
+                    font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:700;
+                    color:#ffffff;
+                    background:rgba(15,23,42,0.45);
+                    border:1.5px solid rgba(255,255,255,0.4);
                     border-radius:20px; display:inline-block;
                     padding:6px 20px; letter-spacing:0.5px;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                    text-shadow:0 1px 4px rgba(0,0,0,0.55);
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
                 }}
 
                 /* ══ ANIMAÇÕES ═══════════════════════════════════════════════ */
