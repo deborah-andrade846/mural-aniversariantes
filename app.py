@@ -401,7 +401,7 @@ if liberar_recados:
         <style>
             /* botão de recado: bem visível e com cara de botão */
             div[data-testid="stLinkButton"] > a {
-                font-size: 1.5rem !important;
+                font-size: 1.9rem !important;
                 font-weight: 800 !important;
                 padding: 1.15rem 1.8rem !important;
                 border-radius: 18px !important;
