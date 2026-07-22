@@ -502,13 +502,9 @@ if dados:
                     min-height: 100vh;
                     width: 100%;
                 }}
-                /* Overlay sutil para escurecer o fundo claro e garantir
-                   contraste do texto (importante numa TV vista de longe). */
-                body::before {{
-                    content:''; position:fixed; inset:0; z-index:0;
-                    pointer-events:none;
-                    background: linear-gradient(180deg, rgba(0,0,0,0.24), rgba(0,0,0,0.08));
-                }}
+                /* Sem overlay de escurecimento: o fundo festivo aparece
+                   uniforme em toda a tela. O contraste do texto é garantido
+                   pelos próprios fundos do cabeçalho e dos cards. */
                 .mural-header, .mural-grid {{ position: relative; z-index: 1; }}
 
                 /* ══ HEADER ══════════════════════════════════════════════════ */
