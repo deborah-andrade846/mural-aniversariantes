@@ -401,8 +401,8 @@ if liberar_recados:
         <style>
             /* botão de recado: bem visível e com cara de botão */
             div[data-testid="stLinkButton"] > a {
-                padding: 1.15rem 1.8rem !important;
-                border-radius: 18px !important;
+                padding: 0.6rem 1.2rem !important;
+                border-radius: 14px !important;
                 background: linear-gradient(135deg,#0ea5e9,#f472b6) !important;
                 color: #ffffff !important;
                 border: none !important;
@@ -426,7 +426,7 @@ if liberar_recados:
         </style>
     """, unsafe_allow_html=True)
     # Posiciona o botão no canto superior direito, com boa área de toque.
-    _rc_esq, _rc_btn = st.columns([2, 1])
+    _rc_esq, _rc_btn = st.columns([3, 1])
     with _rc_btn:
         st.link_button(
             "✍️ Deixar um recado",
