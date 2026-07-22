@@ -285,9 +285,9 @@ if not exibir_mural:
         .stApp {{
             min-height: 100vh;
             {estilo_fundo}
-            background-attachment: scroll !important;
-            background-size: contain !important;
-            background-position: center top !important;
+            background-attachment: fixed !important;
+            background-size: cover !important;
+            background-position: center center !important;
             background-repeat: no-repeat !important;
         }}
         .porteiro-card {{
@@ -452,8 +452,8 @@ if dados:
             .stApp {{
                 {estilo_fundo}
                 background-attachment: fixed !important;
-                background-size: contain !important;
-                background-position: center top !important;
+                background-size: cover !important;
+                background-position: center center !important;
                 background-repeat: no-repeat !important;
             }}
             iframe[title="streamlit_components_v1.html"] {{
@@ -1426,7 +1426,7 @@ if dados:
                 *, *::before, *::after {{ margin:0; padding:0; box-sizing:border-box; }}
                 html {{
                     {estilo_fundo}
-                    background-size:contain; background-position:center top;
+                    background-size:cover; background-position:center center;
                     background-repeat:no-repeat; min-height:100%;
                 }}
                 body {{
@@ -1515,8 +1515,8 @@ if dados:
                 html {{
                     {estilo_fundo}
                     background-attachment: scroll !important;
-                    background-size: contain !important;
-                    background-position: center top !important;
+                    background-size: cover !important;
+                    background-position: center center !important;
                     background-repeat: no-repeat !important;
                     min-height: 100%;
                 }}
