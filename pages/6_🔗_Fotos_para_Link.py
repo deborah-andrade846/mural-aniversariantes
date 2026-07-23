@@ -16,16 +16,22 @@ st.write(
     "As fotos são hospedadas no mesmo lugar usado pelo Mural."
 )
 
-# ── Acesso restrito (mesma senha do painel admin, se configurada) ─────────────
+# ── Acesso restrito: função exclusiva do administrador ────────────────────────
 SENHA_CORRETA = st.secrets.get("ADMIN_PASSWORD", "")
-if SENHA_CORRETA:
-    senha = st.text_input("🔒 Senha de administrador", type="password")
-    if senha != SENHA_CORRETA:
-        if senha:
-            st.error("Senha incorreta.")
-        else:
-            st.info("Digite a senha de administrador para usar esta ferramenta.")
-        st.stop()
+if not SENHA_CORRETA:
+    st.error(
+        "🔒 Ferramenta exclusiva do administrador. "
+        "Configure a senha `ADMIN_PASSWORD` nos *secrets* do app para habilitá-la."
+    )
+    st.stop()
+
+senha = st.text_input("🔒 Senha de administrador", type="password")
+if senha != SENHA_CORRETA:
+    if senha:
+        st.error("Senha incorreta.")
+    else:
+        st.info("Digite a senha de administrador para usar esta ferramenta.")
+    st.stop()
 
 
 def enviar_foto(arquivo) -> str:
