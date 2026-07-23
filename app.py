@@ -648,20 +648,24 @@ if dados:
                     animation: fadeInDown 0.9s ease both;
                 }}
                 .mural-header-inner {{
-                    /* Esvaecer: escurece só o miolo (foco no texto) e some nas
-                       bordas, sem cara de caixa sólida. */
-                    background: radial-gradient(135% 145% at 50% 42%,
-                        rgba(15,23,42,0.58) 0%,
-                        rgba(15,23,42,0.40) 44%,
-                        rgba(15,23,42,0.14) 74%,
-                        rgba(15,23,42,0.00) 100%);
-                    border: none; border-radius: 26px;
-                    padding: clamp(26px,4vw,40px) clamp(40px,8vw,110px) clamp(24px,3vw,34px);
+                    /* Sem caixa: o escurecimento vem de um brilho desfocado
+                       (::before), que dissolve por completo e dá foco ao texto. */
+                    background: transparent;
+                    border: none; box-shadow: none;
+                    padding: clamp(20px,3.5vw,34px) clamp(34px,7vw,90px) clamp(18px,2.6vw,28px);
                     width: fit-content;
                     max-width: 95vw;
-                    box-shadow: none;
                     display: inline-block; position: relative; overflow: visible;
-                    margin: 0 auto;
+                    margin: 0 auto; z-index: 0;
+                }}
+                .mural-header-inner::before {{
+                    content:''; position:absolute; inset:-14% -6%;
+                    background: radial-gradient(ellipse at 50% 50%,
+                        rgba(15,23,42,0.62) 0%,
+                        rgba(15,23,42,0.34) 42%,
+                        rgba(15,23,42,0.00) 72%);
+                    filter: blur(28px);
+                    z-index:-1; pointer-events:none;
                 }}
                 .mural-header .subtitulo {{
                     font-family:'Inter',sans-serif; font-weight:700; font-size:0.8rem;
