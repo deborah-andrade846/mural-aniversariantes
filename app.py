@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import html as html_lib
+import uuid
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
@@ -234,6 +235,59 @@ if modo_admin:
                         st.error(f"Erro ao resetar: {e}")
         except Exception:
             st.warning("Não foi possível carregar a lista de perfis.")
+
+    with st.sidebar.expander("🔗 Fotos para Link", expanded=False):
+        st.caption(
+            "Transforme fotos em links públicos para colar na planilha "
+            "(coluna `foto_url`). Pode enviar várias de uma vez."
+        )
+        fotos_link = st.file_uploader(
+            "Fotos",
+            type=["jpg", "jpeg", "png"],
+            accept_multiple_files=True,
+            key="admin_fotos_link",
+        )
+        if fotos_link and st.button(
+            "🚀 Gerar links", key="admin_gerar_links", use_container_width=True
+        ):
+            resultados_links = []
+            barra_links = st.progress(0.0)
+            for i, arq in enumerate(fotos_link):
+                nome_base = arq.name.rsplit(".", 1)[0]
+                try:
+                    ext      = arq.name.split(".")[-1].lower()
+                    nome_arq = f"{uuid.uuid4()}.{ext}"
+                    conteudo = arq.getvalue()
+                    try:
+                        supabase.storage.from_("fotos_mural").upload(
+                            nome_arq, conteudo,
+                            {"content-type": arq.type or "image/jpeg"},
+                        )
+                    except Exception:
+                        supabase.storage.from_("fotos_mural").upload(nome_arq, conteudo)
+                    url = supabase.storage.from_("fotos_mural").get_public_url(nome_arq)
+                    resultados_links.append({"nome": nome_base, "link": url})
+                except Exception as e:
+                    resultados_links.append({"nome": nome_base, "link": f"ERRO: {e}"})
+                barra_links.progress((i + 1) / len(fotos_link))
+            st.session_state["admin_resultados_links"] = resultados_links
+
+        resultados_links = st.session_state.get("admin_resultados_links")
+        if resultados_links:
+            df_links = pd.DataFrame(resultados_links)
+            st.dataframe(df_links, use_container_width=True, hide_index=True)
+            st.download_button(
+                "⬇️ Baixar CSV (nome, link)",
+                data=df_links.to_csv(index=False).encode("utf-8"),
+                file_name="fotos_links.csv",
+                mime="text/csv",
+                use_container_width=True,
+                key="admin_csv_links",
+            )
+            st.caption("Copie cada link (ícone de copiar no canto do campo):")
+            for r in resultados_links:
+                if not str(r["link"]).startswith("ERRO"):
+                    st.code(r["link"], language=None)
 
     st.sidebar.write("")
     col_save, col_cache = st.sidebar.columns(2)
