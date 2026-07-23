@@ -1,96 +1,42 @@
+"""Estúdio de vídeo do mural (função do administrador).
+
+Gera, no navegador, um vídeo com um aniversariante por quadro (estilo TV)
+para anexar em comunicados. Usado a partir do painel admin em app.py.
+"""
 import json
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
-from datetime import datetime
-from utils import get_supabase, carregar_config
 
-st.set_page_config(page_title="Vídeo do Mural", page_icon="🎬", layout="wide")
 
-MESES_PTBR = {
-    1: "Janeiro",  2: "Fevereiro", 3: "Março",    4: "Abril",
-    5: "Maio",     6: "Junho",     7: "Julho",     8: "Agosto",
-    9: "Setembro", 10: "Outubro",  11: "Novembro", 12: "Dezembro",
-}
+def _montar_slides(df_mes, nome_mes):
+    """Monta a lista de cards (dados) para o vídeo, na ordem por dia."""
+    slides = []
+    for _, row in df_mes.iterrows():
+        nome = str(row.get("nome", "")).strip().title()
+        dia = int(row["data_nascimento"].day) if pd.notna(row["data_nascimento"]) else 0
+        curio = str(row.get("curiosidade", "")).strip()
+        if curio.lower() in ("", "nan", "none", "null"):
+            curio = ""
+        foto = str(row.get("foto_url", "")).strip()
 
-supabase = get_supabase()
-config = carregar_config()
+        partes = nome.split()
+        if len(partes) >= 2:
+            iniciais = (partes[0][0] + partes[-1][0]).upper()
+        elif partes:
+            iniciais = partes[0][:2].upper()
+        else:
+            iniciais = "?"
 
-st.title("🎬 Vídeo do Mural")
-st.write(
-    "Gera um vídeo com **um aniversariante por vez** (estilo TV) para você "
-    "anexar nos comunicados. O arquivo é criado **no seu navegador** — clique "
-    "em *Gerar vídeo*, aguarde a renderização e depois baixe."
-)
+        slides.append({
+            "nome": nome,
+            "dia": dia,
+            "curiosidade": curio,
+            "foto": foto,
+            "iniciais": iniciais,
+        })
+    return slides
 
-# ── Carregamento dos aniversariantes ──────────────────────────────────────────
-try:
-    with st.spinner("Carregando aniversariantes..."):
-        dados = supabase.table("aniversariantes").select("*").execute().data or []
-except Exception:
-    st.error("Não foi possível conectar ao banco de dados. Tente novamente.")
-    st.stop()
-
-if not dados:
-    st.info("📭 Nenhum aniversariante cadastrado ainda.")
-    st.stop()
-
-df = pd.DataFrame(dados)
-df["data_nascimento"] = pd.to_datetime(df["data_nascimento"], errors="coerce")
-
-# ── Controles ─────────────────────────────────────────────────────────────────
-col_a, col_b = st.columns([1, 1])
-with col_a:
-    mes_sel = st.selectbox(
-        "📅 Mês do vídeo",
-        options=list(MESES_PTBR.keys()),
-        index=datetime.now().month - 1,
-        format_func=lambda m: MESES_PTBR[m],
-    )
-with col_b:
-    segs = st.slider("⏱️ Segundos por card", min_value=2, max_value=8, value=4)
-
-df_mes = df[df["data_nascimento"].dt.month == mes_sel].copy()
-if df_mes.empty:
-    st.info(f"📅 Nenhum aniversariante em {MESES_PTBR[mes_sel]}.")
-    st.stop()
-
-df_mes = df_mes.sort_values(by="data_nascimento", key=lambda s: s.dt.day)
-
-nome_mes = MESES_PTBR[mes_sel]
-
-# ── Preparação dos dados dos cards ────────────────────────────────────────────
-slides = []
-for _, row in df_mes.iterrows():
-    nome = str(row.get("nome", "")).strip().title()
-    dia = int(row["data_nascimento"].day) if pd.notna(row["data_nascimento"]) else 0
-    curio = str(row.get("curiosidade", "")).strip()
-    if curio.lower() in ("", "nan", "none", "null"):
-        curio = ""
-    foto = str(row.get("foto_url", "")).strip()
-
-    partes = nome.split()
-    if len(partes) >= 2:
-        iniciais = (partes[0][0] + partes[-1][0]).upper()
-    elif partes:
-        iniciais = partes[0][:2].upper()
-    else:
-        iniciais = "?"
-
-    slides.append({
-        "nome": nome,
-        "dia": dia,
-        "curiosidade": curio,
-        "foto": foto,
-        "iniciais": iniciais,
-    })
-
-st.caption(
-    f"🎂 {len(slides)} aniversariante(s) em {nome_mes}. "
-    f"Duração aproximada do vídeo: {len(slides) * segs + segs} s."
-)
-
-payload = json.dumps(slides, ensure_ascii=False)
 
 # ── Componente HTML (renderização + gravação no navegador) ────────────────────
 _TEMPLATE = r"""
@@ -406,17 +352,55 @@ _TEMPLATE = r"""
 </html>
 """
 
-html = (
-    _TEMPLATE
-    .replace("__DATA__", payload)
-    .replace("__SECS__", str(segs))
-    .replace("__MES__", nome_mes)
-)
+def render_estudio(supabase, mes_sel, segs, meses_ptbr):
+    """Renderiza o estúdio de vídeo na área principal (uso pelo admin)."""
+    nome_mes = meses_ptbr[mes_sel]
 
-components.html(html, height=760, scrolling=True)
+    st.title("🎬 Estúdio de Vídeo do Mural")
+    st.caption(
+        "Vídeo com um aniversariante por vez (estilo TV) para os comunicados. "
+        "É gerado **no seu navegador**. Para voltar ao mural, desmarque "
+        "*Abrir estúdio de vídeo* no painel de administração."
+    )
 
-st.info(
-    "💡 Dica: o vídeo é gerado no seu navegador. Se alguma foto não aparecer, "
-    "ela é substituída pelas iniciais da pessoa (isso evita erro na geração). "
-    "Recomendo usar o **Chrome** ou **Edge** atualizados."
-)
+    try:
+        with st.spinner("Carregando aniversariantes..."):
+            dados = supabase.table("aniversariantes").select("*").execute().data or []
+    except Exception:
+        st.error("Não foi possível conectar ao banco de dados. Tente novamente.")
+        return
+
+    if not dados:
+        st.info("📭 Nenhum aniversariante cadastrado ainda.")
+        return
+
+    df = pd.DataFrame(dados)
+    df["data_nascimento"] = pd.to_datetime(df["data_nascimento"], errors="coerce")
+    df_mes = df[df["data_nascimento"].dt.month == mes_sel].copy()
+
+    if df_mes.empty:
+        st.info(f"📅 Nenhum aniversariante em {nome_mes}.")
+        return
+
+    df_mes = df_mes.sort_values(by="data_nascimento", key=lambda s: s.dt.day)
+    slides = _montar_slides(df_mes, nome_mes)
+
+    st.caption(
+        f"🎂 {len(slides)} aniversariante(s) em {nome_mes}. "
+        f"Duração aproximada do vídeo: {len(slides) * segs + segs} s."
+    )
+
+    payload = json.dumps(slides, ensure_ascii=False)
+    html = (
+        _TEMPLATE
+        .replace("__DATA__", payload)
+        .replace("__SECS__", str(segs))
+        .replace("__MES__", nome_mes)
+    )
+    components.html(html, height=760, scrolling=True)
+
+    st.info(
+        "💡 Dica: o vídeo é gerado no seu navegador. Se alguma foto não aparecer, "
+        "ela é substituída pelas iniciais da pessoa (isso evita erro na geração). "
+        "Recomendo usar o **Chrome** ou **Edge** atualizados."
+    )

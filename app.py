@@ -289,6 +289,23 @@ if modo_admin:
                 if not str(r["link"]).startswith("ERRO"):
                     st.code(r["link"], language=None)
 
+    with st.sidebar.expander("🎬 Vídeo do Mural", expanded=False):
+        st.caption(
+            "Gera um vídeo com um aniversariante por vez (estilo TV) para os "
+            "comunicados. Abre o estúdio na área principal, à direita."
+        )
+        st.selectbox(
+            "Mês do vídeo",
+            options=list(MESES_PTBR.keys()),
+            index=datetime.now().month - 1,
+            format_func=lambda m: MESES_PTBR[m],
+            key="video_mes",
+        )
+        st.slider("Segundos por card", min_value=2, max_value=8, value=4, key="video_segs")
+        st.checkbox("▶️ Abrir estúdio de vídeo", key="video_abrir")
+        if st.session_state.get("video_abrir"):
+            st.info("O estúdio abriu na área principal. Desmarque para voltar ao mural.")
+
     st.sidebar.write("")
     col_save, col_cache = st.sidebar.columns(2)
 
@@ -317,6 +334,19 @@ if modo_admin:
 
 elif senha_digitada != "":
     st.sidebar.error("Senha incorreta.")
+
+# ── ESTÚDIO DE VÍDEO (função do admin) ────────────────────────────────────────
+# Quando o admin liga "Abrir estúdio de vídeo" no painel, o estúdio ocupa a
+# área principal e o mural não é renderizado (evita conflito de layout).
+if modo_admin and st.session_state.get("video_abrir"):
+    from video_studio import render_estudio
+    render_estudio(
+        supabase,
+        st.session_state.get("video_mes", datetime.now().month),
+        st.session_state.get("video_segs", 4),
+        MESES_PTBR,
+    )
+    st.stop()
 
 # ── ESTILO DE FUNDO (não-admin) ───────────────────────────────────────────────
 if not modo_admin:
