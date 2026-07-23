@@ -1092,29 +1092,42 @@ if dados:
                         background-attachment:scroll !important;
                         margin:0 !important; padding:0 !important;
                     }}
-                    /* Cabeçalho repetido em TODA página impressa: o body vira
-                       uma tabela e o cabeçalho vira o "thead", que o navegador
-                       repete a cada quebra de página (reservando o espaço). */
-                    body {{ display:table !important; width:100% !important; }}
+                    /* Cabeçalho repetido em TODA página impressa. Para o
+                       navegador repetir o "thead", precisa de uma TABELA de
+                       verdade: body=tabela, cabeçalho=thead, grade=corpo e cada
+                       card=linha com 2 células (foto | recados). */
+                    body {{
+                        display:table !important; width:100% !important;
+                        border-collapse:separate !important;
+                        border-spacing:0 16px !important;
+                    }}
                     .mural-header {{
                         display:table-header-group !important;
-                        position:static !important;
-                        margin:0 !important;
+                        position:static !important; margin:0 !important;
                     }}
-                    .mural-header-inner {{ margin-bottom:10px !important; }}
-                    /* O conteúdo (cards) flui como corpo da tabela e pagina. */
-                    .mural-grid {{ display:block !important; }}
+                    .mural-header-inner {{ margin-bottom:6px !important; }}
+                    .mural-grid {{ display:table-row-group !important; width:100% !important; }}
                     .aniversariante-row {{
+                        display:table-row !important;
                         break-inside:avoid !important;
                         page-break-inside:avoid !important;
                         -webkit-column-break-inside:avoid !important;
-                        display:grid !important;
-                        grid-template-columns:minmax(320px,1.2fr) 2fr !important;
                         animation:none !important;
-                        margin-bottom:18px !important;
                     }}
-                    /* Não quebrar dentro da foto nem da área de recados. */
-                    .polaroid-container, .recados-section {{
+                    /* O card branco arredondado vem das células (a linha nao
+                       aceita border-radius). */
+                    .aniversariante-row::before {{ display:none !important; }}
+                    .polaroid-container {{
+                        display:table-cell !important; vertical-align:middle !important;
+                        width:33% !important; padding:24px !important;
+                        background:rgba(255,255,255,0.93) !important;
+                        border-radius:20px 0 0 20px !important;
+                    }}
+                    .recados-section {{
+                        display:table-cell !important; vertical-align:top !important;
+                        padding:24px 28px !important;
+                        background:rgba(255,255,255,0.93) !important;
+                        border-radius:0 20px 20px 0 !important;
                         break-inside:avoid !important;
                         page-break-inside:avoid !important;
                     }}
