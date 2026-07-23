@@ -614,7 +614,7 @@ if dados:
         <head>
             <meta charset="UTF-8">
             <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600;700&family=Caveat:wght@500;700&family=Baloo+2:wght@600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+            <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600;700&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
             <style>
                 *, *::before, *::after {{ margin:0; padding:0; box-sizing:border-box; }}
 
@@ -659,31 +659,28 @@ if dados:
                     margin: 0 auto;
                 }}
                 .mural-header .subtitulo {{
-                    font-family:'Poppins',sans-serif; font-weight:700; font-size:0.82rem;
-                    letter-spacing:6px; text-transform:uppercase; color:#fcd34d;
+                    font-family:'Inter',sans-serif; font-weight:700; font-size:0.8rem;
+                    letter-spacing:7px; text-transform:uppercase; color:#fcd34d;
                     text-shadow:0 1px 2px rgba(0,0,0,0.85),
                                 0 0 8px rgba(0,0,0,0.5);
                     margin-bottom:8px;
                 }}
                 .mural-header h1 {{
-                    font-family:'Baloo 2', 'Poppins', cursive;
-                    font-size:clamp(2.2rem,4.2vw,4rem);
-                    font-weight:800; color:#fffdf7;
-                    /* Halo escuro em camadas: contorno + brilho, garante leitura
-                       sobre qualquer fundo, sem precisar de caixa. */
+                    font-family:'Playfair Display',serif;
+                    font-size:clamp(2.1rem,4vw,3.8rem);
+                    font-weight:900; color:#fffdf7;
+                    /* Halo escuro nítido (sem grandes desfoques que borram). */
                     text-shadow:0 1px 1px rgba(0,0,0,0.55),
-                                0 2px 4px rgba(0,0,0,0.7),
-                                0 0 9px rgba(0,0,0,0.5),
-                                0 0 20px rgba(0,0,0,0.4);
-                    line-height:1.12; letter-spacing:0.3px;
+                                0 2px 4px rgba(0,0,0,0.65),
+                                0 0 6px rgba(0,0,0,0.35);
+                    line-height:1.15; letter-spacing:-0.5px;
                     white-space: nowrap;
                 }}
                 .mural-header .mes-destaque {{
-                    background:linear-gradient(100deg,#f97316 0%,#ec4899 48%,#8b5cf6 100%);
+                    background:linear-gradient(100deg,#38bdf8 0%,#818cf8 50%,#f472b6 100%);
                     -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-                    /* text-shadow não aparece em texto com clip; usa drop-shadow. */
-                    filter:drop-shadow(0 1px 2px rgba(0,0,0,0.55))
-                           drop-shadow(0 0 6px rgba(0,0,0,0.35));
+                    /* Sombra fininha e nítida (o drop-shadow desfocado borrava). */
+                    filter:drop-shadow(0 1px 1px rgba(0,0,0,0.4));
                 }}
                 .header-deco {{
                     display:flex; justify-content:center; gap:10px; margin-top:14px;
