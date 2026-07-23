@@ -648,24 +648,15 @@ if dados:
                     animation: fadeInDown 0.9s ease both;
                 }}
                 .mural-header-inner {{
-                    /* Sem caixa: o escurecimento vem de um brilho desfocado
-                       (::before), que dissolve por completo e dá foco ao texto. */
+                    /* Sem fundo: o cabeçalho fica direto sobre a imagem; a
+                       legibilidade vem da sombra do texto. */
                     background: transparent;
                     border: none; box-shadow: none;
                     padding: clamp(20px,3.5vw,34px) clamp(34px,7vw,90px) clamp(18px,2.6vw,28px);
                     width: fit-content;
                     max-width: 95vw;
                     display: inline-block; position: relative; overflow: visible;
-                    margin: 0 auto; z-index: 0;
-                }}
-                .mural-header-inner::before {{
-                    content:''; position:absolute; inset:-14% -6%;
-                    background: radial-gradient(ellipse at 50% 50%,
-                        rgba(15,23,42,0.62) 0%,
-                        rgba(15,23,42,0.34) 42%,
-                        rgba(15,23,42,0.00) 72%);
-                    filter: blur(28px);
-                    z-index:-1; pointer-events:none;
+                    margin: 0 auto;
                 }}
                 .mural-header .subtitulo {{
                     font-family:'Inter',sans-serif; font-weight:700; font-size:0.8rem;
