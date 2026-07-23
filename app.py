@@ -362,6 +362,8 @@ if modo_admin and st.session_state.get("video_abrir"):
         st.session_state.get("video_mes", datetime.now().month),
         st.session_state.get("video_segs", 4),
         MESES_PTBR,
+        data_evento=str(config.get("data_evento", "") or "").strip(),
+        local_evento=str(config.get("local_evento", "") or "").strip(),
     )
     st.stop()
 
@@ -558,7 +560,7 @@ if dados:
         if local_evento:
             _partes_evento.append("📍 Local: " + html_lib.escape(local_evento))
         evento_html = (
-            f'<div class="print-data-evento-header">{" &nbsp;•&nbsp; ".join(_partes_evento)}</div>'
+            f'<div class="evento-info">{" &nbsp;•&nbsp; ".join(_partes_evento)}</div>'
             if _partes_evento else ""
         )
 
@@ -646,20 +648,20 @@ if dados:
                     animation: fadeInDown 0.9s ease both;
                 }}
                 .mural-header-inner {{
-                    background: rgba(15,23,42,0.62);
-                    backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
-                    border: 1px solid rgba(255,255,255,0.28); border-radius: 20px;
-                    padding: clamp(24px,4vw,32px) clamp(20px,5vw,70px) clamp(20px,3vw,28px);
+                    /* Esvaecer: escurece só o miolo (foco no texto) e some nas
+                       bordas, sem cara de caixa sólida. */
+                    background: radial-gradient(135% 145% at 50% 42%,
+                        rgba(15,23,42,0.58) 0%,
+                        rgba(15,23,42,0.40) 44%,
+                        rgba(15,23,42,0.14) 74%,
+                        rgba(15,23,42,0.00) 100%);
+                    border: none; border-radius: 26px;
+                    padding: clamp(26px,4vw,40px) clamp(40px,8vw,110px) clamp(24px,3vw,34px);
                     width: fit-content;
                     max-width: 95vw;
-                    box-shadow: 0 16px 48px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.18);
-                    display: inline-block; position: relative; overflow: hidden;
+                    box-shadow: none;
+                    display: inline-block; position: relative; overflow: visible;
                     margin: 0 auto;
-                }}
-                .mural-header-inner::before {{
-                    content:''; position:absolute; top:0; left:0; right:0; height:4px;
-                    background: linear-gradient(90deg,#38bdf8,#818cf8,#f472b6);
-                    border-radius: 20px 20px 0 0;
                 }}
                 .mural-header .subtitulo {{
                     font-family:'Inter',sans-serif; font-weight:700; font-size:0.8rem;
@@ -670,7 +672,7 @@ if dados:
                     font-family:'Playfair Display',serif;
                     font-size:clamp(2.1rem,4vw,3.8rem);
                     font-weight:900; color:#ffffff;
-                    text-shadow:0 4px 20px rgba(0,0,0,0.6);
+                    text-shadow:0 3px 18px rgba(0,0,0,0.75), 0 1px 3px rgba(0,0,0,0.6);
                     line-height:1.15; letter-spacing:-0.5px;
                     white-space: nowrap;
                 }}
@@ -1104,18 +1106,18 @@ if dados:
                     }}
                 }}
 
-                .print-data-evento-header {{ display: none; }}
-                @media print {{
-                    .print-data-evento-header {{
-                        display: block;
-                        font-family: 'Playfair Display', serif;
-                        font-size: 1.4rem; font-weight: 700; color: #0f172a;
-                        text-align: center; margin-top: 0.8rem;
-                        padding: 0.5rem 1rem;
-                        border-top: 1px solid rgba(0,0,0,0.15);
-                        border-bottom: 1px solid rgba(0,0,0,0.15);
-                        background: rgba(255,255,255,0.3);
-                    }}
+                /* Data/local do evento: visível no mural (tela) e na impressão. */
+                .evento-info {{
+                    margin-top: 12px;
+                    display: inline-flex; flex-wrap: wrap;
+                    justify-content: center; align-items: center; gap: 6px 16px;
+                    font-family:'Inter',sans-serif; font-size:0.9rem; font-weight:700;
+                    color:#ffffff;
+                    background:rgba(15,23,42,0.45);
+                    border:1px solid rgba(255,255,255,0.35);
+                    border-radius:14px; padding:8px 20px;
+                    letter-spacing:0.3px;
+                    text-shadow:0 1px 4px rgba(0,0,0,0.55);
                 }}
 
                 @media (max-width:850px) {{
