@@ -123,6 +123,9 @@ _TEMPLATE = r"""
     .capa .capa-deco { font-size:64px; letter-spacing:16px; }
     .capa .capa-count { margin-top:10px; font-size:32px; font-weight:600; color:#334155;
         background:rgba(255,255,255,0.6); padding:10px 30px; border-radius:40px; }
+    .capa .capa-evento { margin-top:16px; font-size:30px; font-weight:700; color:#0369a1;
+        background:rgba(255,255,255,0.72); padding:12px 34px; border-radius:16px;
+        box-shadow:0 6px 18px rgba(0,0,0,0.08); }
 </style>
 </head>
 <body>
@@ -139,9 +142,10 @@ _TEMPLATE = r"""
 <div id="studio"></div>
 
 <script>
-    var DATA = __DATA__;
-    var SECS = __SECS__;
-    var MES  = "__MES__";
+    var DATA   = __DATA__;
+    var SECS   = __SECS__;
+    var MES    = "__MES__";
+    var EVENTO = __EVENTO__;
 
     var W = 1280, H = 720, FPS = 30, FADE_MS = 500;
 
@@ -180,12 +184,15 @@ _TEMPLATE = r"""
     function montarCapa(){
         var el = document.createElement('div');
         el.className = 'vslide capa';
+        var eventoHtml = EVENTO
+            ? '<div class="capa-evento">' + esc(EVENTO) + '</div>' : '';
         el.innerHTML =
             '<div class="faixa-topo"></div>' +
             '<div class="capa-sub">✦ Celebrações GAFI ✦</div>' +
             '<div class="capa-titulo">Aniversariantes<br>de <span class="capa-mes">' + esc(MES) + '</span></div>' +
             '<div class="capa-deco">🎉 🎂 🎈 🎊 🎁</div>' +
-            '<div class="capa-count">' + DATA.length + ' aniversariante' + (DATA.length===1?'':'s') + '</div>';
+            '<div class="capa-count">' + DATA.length + ' aniversariante' + (DATA.length===1?'':'s') + '</div>' +
+            eventoHtml;
         return el;
     }
 
@@ -352,7 +359,7 @@ _TEMPLATE = r"""
 </html>
 """
 
-def render_estudio(supabase, mes_sel, segs, meses_ptbr):
+def render_estudio(supabase, mes_sel, segs, meses_ptbr, data_evento="", local_evento=""):
     """Renderiza o estúdio de vídeo na área principal (uso pelo admin)."""
     nome_mes = meses_ptbr[mes_sel]
 
@@ -390,11 +397,19 @@ def render_estudio(supabase, mes_sel, segs, meses_ptbr):
         f"Duração aproximada do vídeo: {len(slides) * segs + segs} s."
     )
 
+    _partes_ev = []
+    if str(data_evento).strip():
+        _partes_ev.append("📅 " + str(data_evento).strip())
+    if str(local_evento).strip():
+        _partes_ev.append("📍 " + str(local_evento).strip())
+    evento_txt = "   •   ".join(_partes_ev)
+
     payload = json.dumps(slides, ensure_ascii=False)
     html = (
         _TEMPLATE
         .replace("__DATA__", payload)
         .replace("__SECS__", str(segs))
+        .replace("__EVENTO__", json.dumps(evento_txt, ensure_ascii=False))
         .replace("__MES__", nome_mes)
     )
     components.html(html, height=760, scrolling=True)
