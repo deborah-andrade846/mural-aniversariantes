@@ -659,8 +659,8 @@ if dados:
                     margin: 0 auto;
                 }}
                 .mural-header .subtitulo {{
-                    font-family:'Inter',sans-serif; font-weight:700; font-size:0.8rem;
-                    letter-spacing:7px; text-transform:uppercase; color:#fcd34d;
+                    font-family:'Inter',sans-serif; font-weight:700; font-size:1.1rem;
+                    letter-spacing:8px; text-transform:uppercase; color:#fcd34d;
                     text-shadow:0 1px 2px rgba(0,0,0,0.85),
                                 0 0 8px rgba(0,0,0,0.5);
                     margin-bottom:8px;
@@ -679,8 +679,9 @@ if dados:
                 .mural-header .mes-destaque {{
                     background:linear-gradient(100deg,#38bdf8 0%,#818cf8 50%,#f472b6 100%);
                     -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-                    /* Sombra fininha e nítida (o drop-shadow desfocado borrava). */
-                    filter:drop-shadow(0 1px 1px rgba(0,0,0,0.4));
+                    /* Sem filter/drop-shadow aqui: em texto com background-clip:text
+                       o filtro desenha a silhueta preta (borrada) no lugar do
+                       degradê. Sem ele, o degradê aparece limpo e colorido. */
                 }}
                 .header-deco {{
                     display:flex; justify-content:center; gap:10px; margin-top:14px;
