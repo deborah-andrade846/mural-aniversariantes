@@ -1099,7 +1099,7 @@ if dados:
                         display: block !important;
                         position: fixed; top: 0; left: 0;
                         width: 100%; height: 100%;
-                        object-fit: contain; object-position: center top;
+                        object-fit: cover; object-position: center center;
                         z-index: -1;
                     }}
                 }}
