@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import html as html_lib
+import uuid
 import streamlit as st
 import streamlit.components.v1 as components
 import pandas as pd
@@ -235,6 +236,76 @@ if modo_admin:
         except Exception:
             st.warning("Não foi possível carregar a lista de perfis.")
 
+    with st.sidebar.expander("🔗 Fotos para Link", expanded=False):
+        st.caption(
+            "Transforme fotos em links públicos para colar na planilha "
+            "(coluna `foto_url`). Pode enviar várias de uma vez."
+        )
+        fotos_link = st.file_uploader(
+            "Fotos",
+            type=["jpg", "jpeg", "png"],
+            accept_multiple_files=True,
+            key="admin_fotos_link",
+        )
+        if fotos_link and st.button(
+            "🚀 Gerar links", key="admin_gerar_links", use_container_width=True
+        ):
+            resultados_links = []
+            barra_links = st.progress(0.0)
+            for i, arq in enumerate(fotos_link):
+                nome_base = arq.name.rsplit(".", 1)[0]
+                try:
+                    ext      = arq.name.split(".")[-1].lower()
+                    nome_arq = f"{uuid.uuid4()}.{ext}"
+                    conteudo = arq.getvalue()
+                    try:
+                        supabase.storage.from_("fotos_mural").upload(
+                            nome_arq, conteudo,
+                            {"content-type": arq.type or "image/jpeg"},
+                        )
+                    except Exception:
+                        supabase.storage.from_("fotos_mural").upload(nome_arq, conteudo)
+                    url = supabase.storage.from_("fotos_mural").get_public_url(nome_arq)
+                    resultados_links.append({"nome": nome_base, "link": url})
+                except Exception as e:
+                    resultados_links.append({"nome": nome_base, "link": f"ERRO: {e}"})
+                barra_links.progress((i + 1) / len(fotos_link))
+            st.session_state["admin_resultados_links"] = resultados_links
+
+        resultados_links = st.session_state.get("admin_resultados_links")
+        if resultados_links:
+            df_links = pd.DataFrame(resultados_links)
+            st.dataframe(df_links, use_container_width=True, hide_index=True)
+            st.download_button(
+                "⬇️ Baixar CSV (nome, link)",
+                data=df_links.to_csv(index=False).encode("utf-8"),
+                file_name="fotos_links.csv",
+                mime="text/csv",
+                use_container_width=True,
+                key="admin_csv_links",
+            )
+            st.caption("Copie cada link (ícone de copiar no canto do campo):")
+            for r in resultados_links:
+                if not str(r["link"]).startswith("ERRO"):
+                    st.code(r["link"], language=None)
+
+    with st.sidebar.expander("🎬 Vídeo do Mural", expanded=False):
+        st.caption(
+            "Gera um vídeo com um aniversariante por vez (estilo TV) para os "
+            "comunicados. Abre o estúdio na área principal, à direita."
+        )
+        st.selectbox(
+            "Mês do vídeo",
+            options=list(MESES_PTBR.keys()),
+            index=datetime.now().month - 1,
+            format_func=lambda m: MESES_PTBR[m],
+            key="video_mes",
+        )
+        st.slider("Segundos por card", min_value=2, max_value=8, value=4, key="video_segs")
+        st.checkbox("▶️ Abrir estúdio de vídeo", key="video_abrir")
+        if st.session_state.get("video_abrir"):
+            st.info("O estúdio abriu na área principal. Desmarque para voltar ao mural.")
+
     st.sidebar.write("")
     col_save, col_cache = st.sidebar.columns(2)
 
@@ -263,6 +334,19 @@ if modo_admin:
 
 elif senha_digitada != "":
     st.sidebar.error("Senha incorreta.")
+
+# ── ESTÚDIO DE VÍDEO (função do admin) ────────────────────────────────────────
+# Quando o admin liga "Abrir estúdio de vídeo" no painel, o estúdio ocupa a
+# área principal e o mural não é renderizado (evita conflito de layout).
+if modo_admin and st.session_state.get("video_abrir"):
+    from video_studio import render_estudio
+    render_estudio(
+        supabase,
+        st.session_state.get("video_mes", datetime.now().month),
+        st.session_state.get("video_segs", 4),
+        MESES_PTBR,
+    )
+    st.stop()
 
 # ── ESTILO DE FUNDO (não-admin) ───────────────────────────────────────────────
 if not modo_admin:
