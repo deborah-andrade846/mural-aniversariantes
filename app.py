@@ -659,8 +659,8 @@ if dados:
                     margin: 0 auto;
                 }}
                 .mural-header .subtitulo {{
-                    font-family:'Inter',sans-serif; font-weight:700; font-size:0.8rem;
-                    letter-spacing:7px; text-transform:uppercase; color:#fcd34d;
+                    font-family:'Inter',sans-serif; font-weight:700; font-size:1.1rem;
+                    letter-spacing:8px; text-transform:uppercase; color:#fcd34d;
                     text-shadow:0 1px 2px rgba(0,0,0,0.85),
                                 0 0 8px rgba(0,0,0,0.5);
                     margin-bottom:8px;
