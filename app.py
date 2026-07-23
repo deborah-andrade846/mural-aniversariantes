@@ -661,17 +661,20 @@ if dados:
                 .mural-header .subtitulo {{
                     font-family:'Inter',sans-serif; font-weight:700; font-size:1.1rem;
                     letter-spacing:8px; text-transform:uppercase; color:#fcd34d;
-                    text-shadow:none;
+                    /* Sombra fininha (sem glow) só para destacar do fundo. */
+                    text-shadow:0 1px 2px rgba(0,0,0,0.55);
                     margin-bottom:8px;
                 }}
                 .mural-header h1 {{
                     font-family:'Playfair Display',serif;
                     font-size:clamp(2.1rem,4vw,3.8rem);
                     font-weight:900; color:#fffdf7;
-                    /* Halo escuro nítido (restaurado). */
-                    text-shadow:0 1px 1px rgba(0,0,0,0.55),
-                                0 2px 4px rgba(0,0,0,0.65),
-                                0 0 6px rgba(0,0,0,0.35);
+                    /* Halo escuro reforçado (letras brancas ficam por cima,
+                       então não borra) — melhora a leitura sobre o fundo. */
+                    text-shadow:0 1px 1px rgba(0,0,0,0.6),
+                                0 2px 5px rgba(0,0,0,0.72),
+                                0 0 12px rgba(0,0,0,0.5),
+                                0 0 24px rgba(0,0,0,0.32);
                     line-height:1.15; letter-spacing:-0.5px;
                     white-space: nowrap;
                 }}
@@ -682,9 +685,9 @@ if dados:
                        do texto transparente e suja o degrade). O halo do mes vem
                        do drop-shadow, que fica ATRAS das letras coloridas. */
                     text-shadow:none;
-                    filter:drop-shadow(0 1px 1px rgba(0,0,0,0.5))
-                           drop-shadow(0 2px 3px rgba(0,0,0,0.4))
-                           drop-shadow(0 0 5px rgba(0,0,0,0.3));
+                    filter:drop-shadow(0 1px 1px rgba(0,0,0,0.6))
+                           drop-shadow(0 2px 4px rgba(0,0,0,0.45))
+                           drop-shadow(0 0 6px rgba(0,0,0,0.35));
                 }}
                 .header-deco {{
                     display:flex; justify-content:center; gap:10px; margin-top:14px;
@@ -694,12 +697,12 @@ if dados:
                     margin-top:12px;
                     font-family:'Inter',sans-serif; font-size:0.82rem; font-weight:700;
                     color:#ffffff;
-                    background:rgba(15,23,42,0.45);
-                    border:1.5px solid rgba(255,255,255,0.4);
+                    background:rgba(15,23,42,0.62);
+                    border:1.5px solid rgba(255,255,255,0.45);
                     border-radius:20px; display:inline-block;
                     padding:6px 20px; letter-spacing:0.5px;
                     text-shadow:0 1px 4px rgba(0,0,0,0.55);
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
                 }}
 
                 /* ══ ANIMAÇÕES ═══════════════════════════════════════════════ */
@@ -1089,12 +1092,21 @@ if dados:
                         background-attachment:scroll !important;
                         margin:0 !important; padding:0 !important;
                     }}
+                    /* Blocos empilham como blocos (paginação previsível). */
+                    .mural-grid {{ display:block !important; }}
                     .aniversariante-row {{
                         break-inside:avoid !important;
                         page-break-inside:avoid !important;
+                        -webkit-column-break-inside:avoid !important;
                         display:grid !important;
                         grid-template-columns:minmax(320px,1.2fr) 2fr !important;
                         animation:none !important;
+                        margin-bottom:18px !important;
+                    }}
+                    /* Não quebrar dentro da foto nem da área de recados. */
+                    .polaroid-container, .recados-section {{
+                        break-inside:avoid !important;
+                        page-break-inside:avoid !important;
                     }}
                     .confete-wrapper {{ display:none !important; }}
                 }}
@@ -1119,8 +1131,8 @@ if dados:
                     justify-content: center; align-items: center; gap: 6px 16px;
                     font-family:'Inter',sans-serif; font-size:0.9rem; font-weight:700;
                     color:#ffffff;
-                    background:rgba(15,23,42,0.45);
-                    border:1px solid rgba(255,255,255,0.35);
+                    background:rgba(15,23,42,0.62);
+                    border:1px solid rgba(255,255,255,0.45);
                     border-radius:14px; padding:8px 20px;
                     letter-spacing:0.3px;
                     text-shadow:0 1px 4px rgba(0,0,0,0.55);
