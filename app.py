@@ -155,6 +155,21 @@ if modo_admin:
 
         imagem_fundo = st.file_uploader("Imagem de Fundo", type=["jpg", "png", "jpeg"])
 
+    with st.sidebar.expander("📅 Dados do Evento", expanded=False):
+        st.caption(
+            "Aparecem no cabeçalho ao **imprimir** o mural (o cartaz do evento)."
+        )
+        novo_data_evento = st.text_input(
+            "Data do evento",
+            value=str(config.get("data_evento", "") or ""),
+            placeholder="Ex.: 30/07/2026",
+        )
+        novo_local_evento = st.text_input(
+            "Local do evento",
+            value=str(config.get("local_evento", "") or ""),
+            placeholder="Ex.: Refeitório da GAFI",
+        )
+
     img_b64_admin  = None
     img_tipo_admin = None
     if imagem_fundo is not None:
@@ -317,6 +332,8 @@ if modo_admin:
         atualizar_config("liberar_pesquisa", novo_pesquisa)
         atualizar_config("modo_tv", novo_modo_tv)
         atualizar_config("mes_tv", novo_mes_tv if novo_mes_tv != 0 else "")
+        atualizar_config("data_evento",  novo_data_evento.strip())
+        atualizar_config("local_evento", novo_local_evento.strip())
         if img_b64_admin is not None:
             fundo_data_url = f"data:{img_tipo_admin};base64,{img_b64_admin}"
             atualizar_config("imagem_fundo", fundo_data_url)
@@ -531,6 +548,27 @@ if dados:
         )
 
         total_mes = len(df_mes)
+
+        # ── Dados do evento (editáveis no painel admin) ───────────────────────
+        data_evento  = str(config.get("data_evento", "") or "").strip()
+        local_evento = str(config.get("local_evento", "") or "").strip()
+        _partes_evento = []
+        if data_evento:
+            _partes_evento.append("📅 Data do Evento: " + html_lib.escape(data_evento))
+        if local_evento:
+            _partes_evento.append("📍 Local: " + html_lib.escape(local_evento))
+        evento_html = (
+            f'<div class="print-data-evento-header">{" &nbsp;•&nbsp; ".join(_partes_evento)}</div>'
+            if _partes_evento else ""
+        )
+
+        # ── Fundo para impressão: <img> real (imprime mesmo sem "gráficos de
+        #    segundo plano" marcado, ao contrário de background CSS) ───────────
+        fundo_img_url = str(config.get("imagem_fundo", "") or "").strip()
+        fundo_print_img = (
+            f'<img class="print-bg-img" src="{fundo_img_url}" alt="" aria-hidden="true">'
+            if fundo_img_url else ""
+        )
 
         st.markdown(f"""
         <style>
@@ -1053,6 +1091,19 @@ if dados:
                     .confete-wrapper {{ display:none !important; }}
                 }}
 
+                /* Fundo de impressão como <img>: imprime mesmo sem a opção
+                   "gráficos de segundo plano" marcada no navegador. */
+                .print-bg-img {{ display: none; }}
+                @media print {{
+                    .print-bg-img {{
+                        display: block !important;
+                        position: fixed; top: 0; left: 0;
+                        width: 100%; height: 100%;
+                        object-fit: contain; object-position: center top;
+                        z-index: -1;
+                    }}
+                }}
+
                 .print-data-evento-header {{ display: none; }}
                 @media print {{
                     .print-data-evento-header {{
@@ -1268,6 +1319,7 @@ if dados:
                 }});
             </script>
 
+            {fundo_print_img}
             <div id="badge-orientacao" class="orientacao-badge"></div>
             <div id="tv-dots" class="tv-dots"></div>
             <button id="btn-topo" class="btn-topo" onclick="voltarTopo()">↑ Topo</button>
@@ -1286,7 +1338,7 @@ if dados:
                         {'🎂 1 aniversariante' if total_mes == 1 else f'🎂 {total_mes} aniversariantes'}
                         {' — incluindo hoje! 🥳' if mes_atual == hoje.month and any(df_mes["data_nascimento"].dt.day == dia_atual) else ''}
                     </div>
-                    <div class="print-data-evento-header">Data do Evento: 30/04/2026</div>
+                    {evento_html}
                 </div>
             </div>
 
