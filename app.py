@@ -678,11 +678,13 @@ if dados:
                 .mural-header .mes-destaque {{
                     background:linear-gradient(100deg,#38bdf8 0%,#818cf8 50%,#f472b6 100%);
                     -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-                    /* Zera a sombra herdada do h1: em texto com clip (fill
-                       transparente) a sombra escura aparece por tras/atraves das
-                       letras e deixa o mes escuro e embacado. Sem filter tambem,
-                       para o degrade ficar limpo e vibrante. */
+                    /* text-shadow zerada (senao a sombra escura aparece atraves
+                       do texto transparente e suja o degrade). O halo do mes vem
+                       do drop-shadow, que fica ATRAS das letras coloridas. */
                     text-shadow:none;
+                    filter:drop-shadow(0 1px 1px rgba(0,0,0,0.5))
+                           drop-shadow(0 2px 3px rgba(0,0,0,0.4))
+                           drop-shadow(0 0 5px rgba(0,0,0,0.3));
                 }}
                 .header-deco {{
                     display:flex; justify-content:center; gap:10px; margin-top:14px;
