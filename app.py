@@ -661,15 +661,17 @@ if dados:
                 .mural-header .subtitulo {{
                     font-family:'Inter',sans-serif; font-weight:700; font-size:1.1rem;
                     letter-spacing:8px; text-transform:uppercase; color:#fcd34d;
-                    text-shadow:0 1px 2px rgba(0,0,0,0.85),
-                                0 0 8px rgba(0,0,0,0.5);
+                    text-shadow:none;
                     margin-bottom:8px;
                 }}
                 .mural-header h1 {{
                     font-family:'Playfair Display',serif;
                     font-size:clamp(2.1rem,4vw,3.8rem);
                     font-weight:900; color:#fffdf7;
-                    text-shadow:none;
+                    /* Halo escuro nítido (restaurado). */
+                    text-shadow:0 1px 1px rgba(0,0,0,0.55),
+                                0 2px 4px rgba(0,0,0,0.65),
+                                0 0 6px rgba(0,0,0,0.35);
                     line-height:1.15; letter-spacing:-0.5px;
                     white-space: nowrap;
                 }}
