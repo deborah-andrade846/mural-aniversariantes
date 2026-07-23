@@ -1092,7 +1092,17 @@ if dados:
                         background-attachment:scroll !important;
                         margin:0 !important; padding:0 !important;
                     }}
-                    /* Blocos empilham como blocos (paginação previsível). */
+                    /* Cabeçalho repetido em TODA página impressa: o body vira
+                       uma tabela e o cabeçalho vira o "thead", que o navegador
+                       repete a cada quebra de página (reservando o espaço). */
+                    body {{ display:table !important; width:100% !important; }}
+                    .mural-header {{
+                        display:table-header-group !important;
+                        position:static !important;
+                        margin:0 !important;
+                    }}
+                    .mural-header-inner {{ margin-bottom:10px !important; }}
+                    /* O conteúdo (cards) flui como corpo da tabela e pagina. */
                     .mural-grid {{ display:block !important; }}
                     .aniversariante-row {{
                         break-inside:avoid !important;
