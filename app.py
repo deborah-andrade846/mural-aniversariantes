@@ -1080,7 +1080,9 @@ if dados:
                 /* ══ IMPRESSÃO ═══════════════════════════════════════════════ */
                 @media print {{
                     * {{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }}
-                    @page {{ size:A3 portrait; margin:0; }}
+                    /* Reserva a faixa superior de cada página para o cabeçalho
+                       fixo (que se repete em todas as páginas). */
+                    @page {{ size:A3 portrait; margin: 46mm 0 10mm 0; }}
                     .btn-imprimir, .print-toolbar, .orientacao-badge,
                     .btn-topo {{ display:none !important; }}
                     .modal-overlay {{ display: none !important; }}
@@ -1092,42 +1094,34 @@ if dados:
                         background-attachment:scroll !important;
                         margin:0 !important; padding:0 !important;
                     }}
-                    /* Cabeçalho repetido em TODA página impressa. Para o
-                       navegador repetir o "thead", precisa de uma TABELA de
-                       verdade: body=tabela, cabeçalho=thead, grade=corpo e cada
-                       card=linha com 2 células (foto | recados). */
-                    body {{
-                        display:table !important; width:100% !important;
-                        border-collapse:separate !important;
-                        border-spacing:0 16px !important;
-                    }}
+                    /* Cabeçalho FIXO: o navegador imprime elementos
+                       position:fixed em TODAS as páginas, dentro da faixa
+                       reservada pelo @page. */
                     .mural-header {{
-                        display:table-header-group !important;
-                        position:static !important; margin:0 !important;
+                        position: fixed !important;
+                        top: 0 !important; left: 0 !important; right: 0 !important;
+                        margin: 0 !important; padding-top: 5mm !important;
+                        z-index: 5 !important;
                     }}
-                    .mural-header-inner {{ margin-bottom:6px !important; }}
-                    .mural-grid {{ display:table-row-group !important; width:100% !important; }}
+                    /* Cabeçalho compacto na impressão para caber na faixa. */
+                    .header-deco {{ display:none !important; }}
+                    .mural-header h1 {{ font-size: 2rem !important; }}
+                    .mural-header .subtitulo {{ font-size: 0.8rem !important; margin-bottom:4px !important; }}
+                    .mural-header-inner {{ padding: 2px 20px !important; }}
+                    .header-count, .evento-info {{ margin-top: 6px !important; }}
+
+                    /* Cards em grade, sem cortar entre páginas. */
+                    .mural-grid {{ display:block !important; }}
                     .aniversariante-row {{
-                        display:table-row !important;
+                        display:grid !important;
+                        grid-template-columns:minmax(320px,1.2fr) 2fr !important;
                         break-inside:avoid !important;
                         page-break-inside:avoid !important;
                         -webkit-column-break-inside:avoid !important;
                         animation:none !important;
+                        margin-bottom:18px !important;
                     }}
-                    /* O card branco arredondado vem das células (a linha nao
-                       aceita border-radius). */
-                    .aniversariante-row::before {{ display:none !important; }}
-                    .polaroid-container {{
-                        display:table-cell !important; vertical-align:middle !important;
-                        width:33% !important; padding:24px !important;
-                        background:rgba(255,255,255,0.93) !important;
-                        border-radius:20px 0 0 20px !important;
-                    }}
-                    .recados-section {{
-                        display:table-cell !important; vertical-align:top !important;
-                        padding:24px 28px !important;
-                        background:rgba(255,255,255,0.93) !important;
-                        border-radius:0 20px 20px 0 !important;
+                    .polaroid-container, .recados-section {{
                         break-inside:avoid !important;
                         page-break-inside:avoid !important;
                     }}
