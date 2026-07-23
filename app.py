@@ -669,10 +669,7 @@ if dados:
                     font-family:'Playfair Display',serif;
                     font-size:clamp(2.1rem,4vw,3.8rem);
                     font-weight:900; color:#fffdf7;
-                    /* Halo escuro nítido (sem grandes desfoques que borram). */
-                    text-shadow:0 1px 1px rgba(0,0,0,0.55),
-                                0 2px 4px rgba(0,0,0,0.65),
-                                0 0 6px rgba(0,0,0,0.35);
+                    text-shadow:none;
                     line-height:1.15; letter-spacing:-0.5px;
                     white-space: nowrap;
                 }}
