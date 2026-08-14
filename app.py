@@ -1092,24 +1092,16 @@ if dados:
                         background-attachment:scroll !important;
                         margin:0 !important; padding:0 !important;
                     }}
-                    /* Conteúdo ocupa toda a largura da página (A3 largo):
-                       sem limite de largura nem centralização. */
-                    body {{ align-items:stretch !important; }}
-                    .mural-header {{ max-width:100% !important; }}
-                    .mural-grid {{
-                        display:block !important;
-                        max-width:100% !important; width:100% !important;
-                    }}
+                    /* Cards em grade, sem cortar entre páginas. */
+                    .mural-grid {{ display:block !important; }}
                     .aniversariante-row {{
                         display:grid !important;
-                        grid-template-columns:minmax(300px,1fr) 2.4fr !important;
+                        grid-template-columns:minmax(320px,1.2fr) 2fr !important;
                         break-inside:avoid !important;
                         page-break-inside:avoid !important;
                         -webkit-column-break-inside:avoid !important;
                         animation:none !important;
                         margin-bottom:18px !important;
-                        max-width:100% !important;
-                        min-height:0 !important;
                     }}
                     .polaroid-container, .recados-section {{
                         break-inside:avoid !important;
