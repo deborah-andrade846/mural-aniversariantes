@@ -1080,9 +1080,7 @@ if dados:
                 /* ══ IMPRESSÃO ═══════════════════════════════════════════════ */
                 @media print {{
                     * {{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }}
-                    /* Reserva a faixa superior de cada página para o cabeçalho
-                       fixo (que se repete em todas as páginas). */
-                    @page {{ size:A3 portrait; margin: 46mm 0 10mm 0; }}
+                    @page {{ size:A3 portrait; margin:0; }}
                     .btn-imprimir, .print-toolbar, .orientacao-badge,
                     .btn-topo {{ display:none !important; }}
                     .modal-overlay {{ display: none !important; }}
@@ -1094,22 +1092,6 @@ if dados:
                         background-attachment:scroll !important;
                         margin:0 !important; padding:0 !important;
                     }}
-                    /* Cabeçalho FIXO: o navegador imprime elementos
-                       position:fixed em TODAS as páginas, dentro da faixa
-                       reservada pelo @page. */
-                    .mural-header {{
-                        position: fixed !important;
-                        top: 0 !important; left: 0 !important; right: 0 !important;
-                        margin: 0 !important; padding-top: 5mm !important;
-                        z-index: 5 !important;
-                    }}
-                    /* Cabeçalho compacto na impressão para caber na faixa. */
-                    .header-deco {{ display:none !important; }}
-                    .mural-header h1 {{ font-size: 2rem !important; }}
-                    .mural-header .subtitulo {{ font-size: 0.8rem !important; margin-bottom:4px !important; }}
-                    .mural-header-inner {{ padding: 2px 20px !important; }}
-                    .header-count, .evento-info {{ margin-top: 6px !important; }}
-
                     /* Cards em grade, sem cortar entre páginas. */
                     .mural-grid {{ display:block !important; }}
                     .aniversariante-row {{
