@@ -52,15 +52,32 @@ Tabelas usadas:
 - `pesquisa_satisfacao` — notas e sugestões por categoria
 - `configuracoes_mural` — pares `chave`/`valor` (flags e personalização)
 
-O workflow `.github/workflows/keep_alive.yml` faz um ping periódico para evitar
-que o projeto Supabase entre em pausa por inatividade.
+### Manter o Supabase ativo (anti-pausa)
+
+No plano gratuito o Supabase **pausa o projeto após ~7 dias sem nenhuma
+requisição** — e enquanto ele acorda (1 a 2 minutos) o mural falha ao carregar.
+O workflow `.github/workflows/manter-supabase-ativo.yml` faz um ping na API REST
+a cada 2 dias, o que conta como atividade e impede a pausa automática.
+
+**Configuração obrigatória (uma única vez)** em
+`Settings > Secrets and variables > Actions`:
+
+| Secret | Valor |
+|---|---|
+| `SUPABASE_URL` | `https://xxxxxxxx.supabase.co` (mesmo dos Secrets do Streamlit) |
+| `SUPABASE_KEY` | a mesma chave `anon` usada no Streamlit |
+| `STREAMLIT_APP_URL` | *(opcional)* URL pública do mural, para acordar o app também |
+
+Para testar na hora: aba **Actions > Manter Supabase ativo > Run workflow**.
+
+> O GitHub desativa workflows agendados em repositórios sem commits por 60
+> dias. Se isso ocorrer, é só reabilitar na aba Actions.
 
 ## 📁 Estrutura
 
 ```
 app.py                 # mural principal
 utils.py               # conexão Supabase, hashing, helpers
-keep_alive.py          # ping anti-pausa do Supabase
 migrar_senhas.py       # migração pontual de senhas para bcrypt
 pages/                 # páginas adicionais do Streamlit
 requirements.txt       # dependências
