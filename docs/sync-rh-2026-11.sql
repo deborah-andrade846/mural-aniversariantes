@@ -18,6 +18,10 @@
 
 BEGIN;
 
+-- 0) A sequência de ids estava atrás do max(id) (ids inseridos à mão) e o INSERT
+--    falhava com duplicate key. Realinha a sequência.
+SELECT setval(pg_get_serial_sequence('public.aniversariantes','id'), (SELECT max(id) FROM public.aniversariantes));
+
 DROP TABLE IF EXISTS rh_planilha;
 CREATE TEMP TABLE rh_planilha (nome text, setor text, cargo text, dn date, mes int, dia int);
 INSERT INTO rh_planilha VALUES
@@ -58,7 +62,7 @@ INSERT INTO rh_planilha VALUES
   ('Gilson Jonas Rodrigues Filho', 'Suprimentos', 'Analista de Compras e Contratos Jr', '1987-09-14', 9, 14),
   ('Iloisio Neves Nascimento', 'Suprimentos', 'Analista de Suprimentos Sr', '1979-10-13', 10, 13),
   ('Amilton Machado de Souza', 'Suprimentos', 'Analista de Compras e Contratos Pl', '1972-11-03', 11, 3),
-  ('Jose Neto Candido Rodrigues', 'Suprimentos', 'Analista de Compras e Contratos SR', '1995-08-07', 8, 7),
+  ('Jose Neto Candido Rodrigues', 'Suprimentos', 'Analista de Compras e Contratos Sr', '1995-08-07', 8, 7),
   ('Fabricio Santana de Lima', 'Tecnologia da Informação', 'Assistente Administrativo', '1990-03-23', 3, 23),
   ('Guilherme Agenor De Almeida', 'Tecnologia da Informação', 'Analista de TI SR', NULL, 12, 28),
   ('Thiago Oliveira Gama', 'Tecnologia da Informação', 'Auxiliar Técnico', '2006-09-07', 9, 7),
